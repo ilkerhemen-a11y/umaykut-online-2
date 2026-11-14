@@ -35,9 +35,9 @@ async function loadWorldMap(){
     territory.className="territory-ring";
     territory.setAttribute("aria-label","Sana ait küçük hâkimiyet alanı");
     layer.append(territory);
-    const icons={wood:"🪵",stone:"🪨",iron:"⛏️"};
-    const names={wood:"Odun",stone:"Taş",iron:"Demir"};
-    (data.resources||[]).filter(node=>["wood","stone","iron"].includes(node.resource_type)).forEach(node=>{
+    const icons={food:"🌾",wood:"🪵",stone:"🪨",iron:"⛏️",gold:"🪙",horses:"🐎"};
+    const names={food:"Tahıl",wood:"Odun",stone:"Taş",iron:"Demir",gold:"Altın",horses:"At"};
+    (data.resources||[]).filter(node=>Object.hasOwn(icons,node.resource_type)).forEach(node=>{
       const marker=document.createElement("button");
       marker.type="button";marker.className="resource-node";
       marker.style.left=Number(node.x)+"%";marker.style.top=Number(node.y)+"%";
@@ -320,7 +320,7 @@ function renderArmy(army){
   });
 }
 $("#authForm").addEventListener("submit",async e=>{e.preventDefault();const username=$("#username").value.trim(),password=$("#password").value;$("#authSubmit").disabled=true;$("#authMessage").textContent="Sunucuya bağlanılıyor…";try{const data=await api(authMode==="login"?"/api/auth/login":"/api/auth/register",{method:"POST",body:JSON.stringify({username,password})});token=data.token;localStorage.setItem("umaykut_token",token);await enterGame(data.player);}catch(error){$("#authMessage").textContent=error.message;}finally{$("#authSubmit").disabled=false;}});
-$("#enterVillage").onclick=()=>{show("village");loadVillageResources();loadVillageBuildings();};$("#goHome").onclick=()=>{show("village");loadVillageResources();loadVillageBuildings();};$("#myVillage").onclick=()=>{show("village");loadVillageResources();loadVillageBuildings();};$("#backWorld").onclick=()=>show("world");
+$("#enterVillage").onclick=()=>{show("village");loadVillageBuildings();};$("#goHome").onclick=()=>{show("village");loadVillageBuildings();};$("#myVillage").onclick=()=>{show("village");loadVillageBuildings();};$("#backWorld").onclick=()=>show("world");
 function modal(title,desc,action="Geliştirme bilgisi"){$("#modalTitle").textContent=title;$("#modalText").textContent=desc;$("#modalWorkerField").hidden=true;$("#modalAction").textContent=action;$("#modalAction").onclick=()=>$("#modal").classList.remove("open");$("#modal").classList.add("open");}
 $("#closeModal").onclick=()=>$("#modal").classList.remove("open");
 
