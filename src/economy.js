@@ -114,7 +114,7 @@ export async function getMyEconomy(req, res) {
       return res.status(404).json({ error: "Şehir bulunamadı." });
     }
     const cityResult = await client.query(
-      `SELECT level, worker_pool, wood, stone, iron, food, gold, horses,
+      `SELECT c.level, c.worker_pool, c.wood, c.stone, c.iron, c.food, c.gold, c.horses,
               COALESCE(SUM(n.workers_assigned), 0)::integer AS assigned_workers
          FROM player_cities c
          LEFT JOIN city_resource_nodes n ON n.city_player_id = c.player_id
