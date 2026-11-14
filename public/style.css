@@ -83,3 +83,55 @@
 .modal-worker-field{display:block;margin:14px 0;color:#f0d27b;font-size:12px}
 .modal-worker-field[hidden]{display:none}
 .modal-worker-field input{display:block;width:100%;margin-top:7px;padding:12px;border:1px solid #a98239;border-radius:7px;background:#17140f;color:#fff0c9;font:inherit;text-align:center}
+
+
+/* Dünya haritası: küçük hâkimiyet alanı ve kompakt 6 puanlık madenler */
+#world .resource-map-nodes .territory-ring{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:clamp(142px,39vw,178px);
+  aspect-ratio:1;
+  transform:translate(-50%,-50%);
+  border:2px solid #48dfff;
+  border-radius:50%;
+  background:radial-gradient(circle,#35d9f018 0 65%,#35d9f008 100%);
+  box-shadow:0 0 0 1px #d5ffff55,0 0 9px #36dfff88,inset 0 0 8px #36dfff22;
+  z-index:1;
+  pointer-events:none;
+}
+#world .resource-map-nodes .resource-node{
+  z-index:2;
+}
+#world .resource-map-nodes .resource-node .resource-kind{
+  display:block;
+  position:absolute;
+  top:calc(100% - 1px);
+  left:50%;
+  transform:translateX(-50%);
+  padding:2px 4px;
+  border-radius:5px;
+  background:#211b12df;
+  color:#f8e7b7;
+  font-size:8px;
+  line-height:1;
+}
+#world .resource-map-nodes .resource-node .resource-level{
+  top:-3px;
+  left:-2px;
+  width:14px;
+  height:14px;
+  font-size:8px;
+}
+@media(max-width:699px){
+  #world .resource-map-nodes .territory-ring{
+    width:clamp(132px,37vw,164px);
+    border-width:1.5px;
+  }
+  #world .resource-map-nodes .resource-node{
+    width:32px;
+    height:34px;
+  }
+  #world .resource-map-nodes .resource-node span{font-size:22px}
+  #world .resource-map-nodes .resource-node .resource-kind{font-size:7px}
+}
