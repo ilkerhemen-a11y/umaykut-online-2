@@ -13,7 +13,7 @@ export async function getWorld(_req, res) {
 
 export async function getMyCity(req, res) {
   const result = await pool.query(
-    `SELECT city_name, x, y, level, wood, stone, iron, food
+    `SELECT city_name, x, y, level, wood, stone, iron, food, gold, horses, worker_pool
      FROM player_cities WHERE player_id = $1`,
     [req.player.sub]
   );
