@@ -96,10 +96,10 @@ async function openUnits(){
 }
 function renderUnits(units){
   const container=$("#unitCatalog");container.replaceChildren();
-  const icons=["🪓","🏹","🛡️","⚔️","🐎","🏹","🐎"];
+  const icons={barracks_1:"🪓",archer:"🏹",barracks_5:"🛡️",barracks_10:"⚔️",stable_1:"🐎",stable_5:"🏹",stable_10:"🐎",catapult:"🪨",artillery:"💣"};
   units.forEach((unit,index)=>{
     const card=document.createElement("article");card.className="unit-card";
-    const art=document.createElement("div");art.className="unit-art";art.textContent=icons[index];
+    const art=document.createElement("div");art.className="unit-art";art.textContent=icons[unit.id]||"⚔️";
     const heading=document.createElement("h3");heading.textContent=unit.role;
     const meta=document.createElement("p");meta.className="unit-meta";meta.textContent=unit.building+" · Seviye "+unit.level;
     const count=document.createElement("p");count.className="unit-count";count.textContent="Ordudaki mevcut: "+Number(unit.quantity).toLocaleString("tr-TR");
@@ -142,7 +142,7 @@ function renderTrainingStatus(){
   if(!activeTraining){
     const message=document.createElement("p");message.textContent="Şu anda aktif eğitim yok. Bir asker seçerek eğitime başlayabilirsin.";panel.append(message);return;
   }
-  const unitNames={barracks_1:"Piyade",archer:"Okçu",barracks_5:"Kalkanlı",barracks_10:"Elit muhafız",stable_1:"Hafif süvari",stable_5:"Atlı okçu",stable_10:"Ağır süvari"};
+  const unitNames={barracks_1:"Piyade",archer:"Okçu",barracks_5:"Kalkanlı",barracks_10:"Elit muhafız",stable_1:"Hafif süvari",stable_5:"Atlı okçu",stable_10:"Ağır süvari",catapult:"Mancınık",artillery:"Topçu"};
   const message=document.createElement("p");message.textContent=(unitNames[activeTraining.unit_id]||activeTraining.unit_id)+" · "+activeTraining.quantity+" asker hazırlanıyor.";panel.append(message);
   const timer=document.createElement("strong");timer.id="trainingCountdown";timer.className="training-countdown";panel.append(timer);updateTrainingCountdown();
   const note=document.createElement("small");note.textContent="Eğitim sunucu saatine göre ilerler. Tamamlandığında askerler otomatik olarak orduya eklenir.";panel.append(note);
@@ -222,10 +222,10 @@ function renderArmy(army){
   if(summary)summary.textContent="💰 Toplam yağma taşıma kapasitesi: "+Number(army.totalCarryCapacity||0).toLocaleString("tr-TR");
   const strip=document.querySelector(".army-strip .units");
   strip.replaceChildren();
-  const icons=["🪓","🏹","🛡️","⚔️","🐎","🏹","🐎"];
-  units.forEach((unit,index)=>{
+  const icons={barracks_1:"🪓",archer:"🏹",barracks_5:"🛡️",barracks_10:"⚔️",stable_1:"🐎",stable_5:"🏹",stable_10:"🐎",catapult:"🪨",artillery:"💣"};
+  units.forEach(unit=>{
     const item=document.createElement("div");
-    const icon=document.createElement("span");icon.textContent=icons[index]||"⚔️";
+    const icon=document.createElement("span");icon.textContent=icons[unit.id]||"⚔️";
     const name=document.createElement("small");name.textContent=unit.role;
     const quantity=document.createElement("b");quantity.textContent=Number(unit.quantity).toLocaleString("tr-TR");
     item.append(icon,name,quantity);strip.append(item);
