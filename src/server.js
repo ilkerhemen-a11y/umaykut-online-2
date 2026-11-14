@@ -36,12 +36,6 @@ async function ensureSchema() {
     CREATE INDEX IF NOT EXISTS idx_player_cities_coordinates
       ON player_cities (x, y);
     ALTER TABLE players ADD COLUMN IF NOT EXISTS faction_id VARCHAR(20);
-    DO $ BEGIN
-      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'players_faction_id_check') THEN
-        ALTER TABLE players ADD CONSTRAINT players_faction_id_check
-          CHECK (faction_id IS NULL OR faction_id IN ('selcuk', 'hun', 'gokturk'));
-      END IF;
-    END $;
     CREATE INDEX IF NOT EXISTS idx_players_faction_id ON players (faction_id);
   `);
 }
