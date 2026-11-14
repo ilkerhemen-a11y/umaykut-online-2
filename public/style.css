@@ -18,3 +18,59 @@
 .army-strip .units div{min-width:62px}
 
 .resource-map-nodes{position:absolute;inset:0;pointer-events:none}.resource-map-nodes .resource-node{transform:translate(-50%,-50%);z-index:2;pointer-events:auto;border:1px solid #d5aa42;border-radius:9px;background:#211b12dd;padding:4px 6px;min-width:48px;cursor:pointer}.resource-map-nodes .resource-node span{display:block;font-size:24px;line-height:1.1}.resource-map-nodes .resource-node small{display:block;white-space:nowrap;color:#ffe6a4;font-size:9px}
+
+/* Mobil dünya haritası: tam ekran arazi ve küçük kaynak işaretleri */
+@media(max-width:699px){
+  body{padding-bottom:calc(66px + env(safe-area-inset-bottom));overflow-x:hidden}
+  .resourcebar{padding:5px 5px 6px}
+  .brand{display:none}
+  .resources{grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  .resources div{border-radius:4px;padding:5px 1px 4px;font-size:18px;line-height:1.1}
+  .resources b{font-size:9px;white-space:nowrap}
+  .resources small{display:none}
+  #world.screen.active{display:flex;flex-direction:column;height:calc(100dvh - 66px - env(safe-area-inset-bottom));min-height:500px}
+  #world .screen-top{height:43px;flex:0 0 43px;padding:0 9px;background:linear-gradient(90deg,#201b12,#302619,#201b12)}
+  #world .map-world{height:auto;min-height:0;flex:1;isolation:isolate;background:
+    radial-gradient(ellipse at 25% 20%,#c1d96b66 0,transparent 34%),
+    radial-gradient(ellipse at 78% 68%,#d5df7555 0,transparent 31%),
+    radial-gradient(ellipse at 48% 48%,#9fbd45 0,#789b35 47%,#557c2c 78%,#385b25 100%)}
+  #world .map-world:before{inset:-12%;opacity:.8;transform:rotate(-13deg);background-image:
+    radial-gradient(ellipse at center,#d4e48b55 0 1px,transparent 2px),
+    radial-gradient(ellipse at center,#314c2050 0 1px,transparent 2px),
+    repeating-linear-gradient(163deg,transparent 0 43px,#e2e99b12 44px 46px,transparent 48px 91px);
+    background-size:29px 31px,47px 53px,100% 100%}
+  #world .map-label{top:10px;font-size:9px;padding:5px 10px;background:#282014b8;z-index:3}
+  #world .world-village span{font-size:clamp(42px,12vw,62px);filter:drop-shadow(2px 5px 3px #26351b)}
+  #world .world-village b{font-size:10px;padding:3px 6px}
+  #world .world-village small{font-size:8px}
+  #world .home{left:43%;top:43%;padding:8px;border-width:2px}
+  #world .one{left:9%;top:20%}
+  #world .two{right:9%;top:69%}
+  #world .resource-map-nodes .resource-node{position:absolute;min-width:0;width:42px;height:43px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;display:grid;place-items:center;filter:drop-shadow(1px 3px 2px #26351b)}
+  #world .resource-map-nodes .resource-node span{font-size:30px;line-height:1;grid-area:1/1}
+  #world .resource-map-nodes .resource-node .resource-level{position:absolute;top:-5px;left:-3px;display:grid;place-items:center;width:15px;height:15px;border:1px solid #d4e4a1;border-radius:50%;background:#164321;color:#fff;font:700 9px/1 Arial,sans-serif;padding:0}
+  #world .resource-map-nodes .resource-node .resource-kind{display:none}
+  #world .map-hint{bottom:10px;font-size:9px;padding:6px 10px;max-width:85%;overflow:hidden;text-overflow:ellipsis}
+  #world .world-actions{flex:0 0 auto;padding:8px 10px;gap:9px;background:#17140f}
+  #world .world-actions button{padding:11px 7px;font-size:12px}
+  #village.screen.active{display:block}
+  #village .village-scene{height:clamp(390px,54dvh,570px);min-height:390px;background:
+    radial-gradient(ellipse at 50% 45%,#dfc17b 0,#b99a5a 50%,#718d3d 100%)}
+  #village .wall{inset:14% 4% 13%;border-width:10px}
+  #village .building,#village .main-building{padding:5px 6px;font-size:clamp(21px,6vw,29px);border-radius:8px}
+  #village .building small,#village .main-building small{font-size:8px}
+  #village .main-building{font-size:clamp(36px,10vw,48px);padding:10px 13px}
+  #village .main-building b{font-size:9px}
+  #village .army-strip{overflow:hidden}
+  #village .actions{padding:7px 5px}
+  #village .actions button{padding:8px 1px;font-size:17px}
+  #village .actions b{font-size:9px}
+  .bottom-nav{padding-bottom:calc(5px + env(safe-area-inset-bottom))}
+}
+@media(max-width:380px){
+  .resources div{font-size:16px}
+  .resources b{font-size:8px}
+  #world .resource-map-nodes .resource-node{width:36px;height:38px}
+  #world .resource-map-nodes .resource-node span{font-size:26px}
+  #world .world-actions button{font-size:11px}
+}
