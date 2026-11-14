@@ -30,6 +30,17 @@ Socket.IO bağlantısı `auth: { token }` ile doğrulanır; başarılı bağlant
 
 İlk girişte Selçuk, Hun veya Göktürk devletlerinden biri seçilir. Seçim PostgreSQL üzerindeki `players.faction_id` alanına kaydedilir ve API üzerinden tekrar değiştirilmesi engellenir. Bonuslar sunucu tarafından tek bir tanım kaynağından sunulur: Selçuk (+%3 saldırı, +%3 savunma, +%2 maksimum HP), Hun (+%5 saldırı, +%3 hareket hızı), Göktürk (+%5 savunma, +%3 maksimum HP). Bu sürümde savaş/karakter stat hesaplama sistemi henüz bulunmadığından bonuslar seçim ekranında ve API yanıtında tanımlıdır; henüz savaş hesaplamalarına uygulanmaz.
 
+## Şehir işçileri ve harita kaynakları (ilk ekonomi sürümü)
+
+- Her yeni şehrin başlangıç işçi havuzu **1.800** kişidir. İşçiler şehir binalarında çalışmaz; haritadaki kaynak noktalarına atanır.
+- Her şehir için altı kaynak noktası oluşturulur: tahıl, odun, taş, demir, altın ve at. Noktalar şehrin çevresindeki koordinatlarda gösterilir.
+- Merkez Binası Seviye 1 iken her kaynak noktasına en fazla **300 işçi** atanabilir. İlk sürümde bu sınır merkez seviyesi × 300 olarak hesaplanır. Böylece Seviye 1'de altı noktanın toplam kapasitesi 1.800 işçidir.
+- İşçi atamaları şehir bazında kalıcıdır. Toplam atanan işçi sayısı şehir havuzunu aşamaz; boşta kalan işçiler başka kaynaklara gönderilebilir.
+- Kaynak üretimi sunucu saatine göre çevrimdışı da devam eder. İlk denge değerleri: tahıl/odun/taş/demir işçi başına saatte 1; altın saatte 0,5; at saatte 0,25 birim. Bu değerler test ekonomisi için başlangıç ayarıdır ve oyun dengesi testleriyle değiştirilecektir.
+- Merkez seviyesi düşürülürse, sonraki ekonomi işlemi sırasında her kaynak noktasındaki atama yeni kapasiteye indirilir; boşa çıkan işçiler havuzda kullanılabilir hale gelir.
+- API: `GET /api/economy/me` üretim, kaynak noktaları ve işçi dağılımını getirir. `POST /api/economy/assign` gövdesi `{ "nodeId": 1, "workers": 300 }` biçimindedir.
+- Köyde **İşçiler / Üretim** düğmesi bu yönetim ekranını açar. Kaynak sayacı sunucu verisiyle güncellenir.
+
 ## Geliştirme durumu
 Bu kod henüz canlıya alınmış veya üretim güvenliği açısından denetlenmiş değildir. Şehir koordinatlarının çakışmasını önleme, kaynak üretimi, binalar, ordu, savaş, ittifaklar, rate limit, parola sıfırlama, istemci entegrasyonu ve otomatik testler sonraki aşamalardır. Gizli anahtarları GitHub'a yüklemeyin.
 
