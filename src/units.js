@@ -1,7 +1,6 @@
 import { pool } from "./db.js";
 
 // İstatistik sırası: saldırı, piyadelere karşı savunma, atlılara karşı savunma, hareket hızı, yağma taşıma kapasitesi.
-// Son değer altın değildir; askerin yağmaya çıktığında taşıyabileceği toplam ganimet miktarıdır.
 const columns = [
   { id: "barracks_1", building: "Kışla", level: 1, role: "Piyade" },
   { id: "archer", building: "Kışla", level: 1, role: "Okçu" },
@@ -10,22 +9,25 @@ const columns = [
   { id: "stable_1", building: "Ahır", level: 1, role: "Hafif süvari" },
   { id: "stable_5", building: "Ahır", level: 5, role: "Atlı okçu" },
   { id: "stable_10", building: "Ahır", level: 10, role: "Ağır süvari" },
-  { id: "catapult", building: "Atölye", level: 1, role: "Mancınık", category: "Kuşatma" },
-  { id: "artillery", building: "Atölye", level: 1, role: "Topçu", category: "Kuşatma" }
+  { id: "mancinik", building: "Kuşatma", level: 1, role: "Mancınık", unitType: "siege" },
+  { id: "topcu", building: "Kuşatma", level: 1, role: "Topçu", unitType: "siege" }
 ];
 
 const raw = {
   gokturk: [
     [20,30,15,18,30], [25,100,30,20,30], [10,20,150,16,60],
-    [100,80,40,25,60], [40,140,50,30,40], [110,50,50,40,100], [150,110,110,30,60], [180,10,10,8,0], [260,5,5,5,0]
+    [100,80,40,25,60], [40,140,50,30,40], [110,50,50,40,100], [150,110,110,30,60],
+    [180,100,100,8,0], [260,120,120,5,0]
   ],
   selcuk: [
     [15,20,10,22,30], [25,90,15,22,30], [40,20,90,18,40],
-    [115,55,55,25,50], [20,50,140,30,40], [60,120,20,45,80], [160,90,90,35,90], [180,10,10,8,0], [260,5,5,5,0]
+    [115,55,55,25,50], [20,50,140,30,40], [60,120,20,45,80], [160,90,90,35,90],
+    [190,90,110,8,0], [270,110,130,5,0]
   ],
   hun: [
     [25,25,25,24,60], [30,80,15,24,40], [30,30,90,20,40],
-    [130,50,70,27,80], [50,50,110,40,40], [120,110,20,50,120], [190,70,70,40,100], [180,10,10,8,0], [260,5,5,5,0]
+    [130,50,70,27,80], [50,50,110,40,40], [120,110,20,50,120], [190,70,70,40,100],
+    [210,80,90,9,0], [290,100,110,6,0]
   ]
 };
 
