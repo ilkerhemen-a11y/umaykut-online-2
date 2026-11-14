@@ -76,12 +76,35 @@ $("#confirmFaction").addEventListener("click",async()=>{
     button.textContent="DEVLETİMİ SEÇ";
   }
 });
+
+async function openUnits(){
+  show("unitsScreen");
+  $("#unitCatalog").textContent="Askerler yükleniyor…";
+  try{const data=await api("/api/units/me");$("#unitsFactionTitle").textContent=data.factionName.toLocaleUpperCase("tr-TR");renderUnits(data.units);}
+  catch(error){$("#unitCatalog").textContent=error.message;}
+}
+function renderUnits(units){
+  const container=$("#unitCatalog");container.replaceChildren();
+  const icons=["🪓","🏹","🛡️","⚔️","🐎","🏹","🐎"];
+  units.forEach((unit,index)=>{
+    const card=document.createElement("article");card.className="unit-card";
+    const art=document.createElement("div");art.className="unit-art";art.textContent=icons[index];
+    const heading=document.createElement("h3");heading.textContent=unit.role;
+    const meta=document.createElement("p");meta.className="unit-meta";meta.textContent=unit.building+" · Seviye "+unit.level;
+    const stats=document.createElement("dl");stats.className="unit-stats";
+    [["⚔️","Saldırı",unit.stats.attack],["🛡️","Savunma",unit.stats.defense],["🟣","Özel savunma",unit.stats.specialDefense],["🏃","Hız",unit.stats.speed],["🌾","Yiyecek maliyeti",unit.stats.foodCost]].forEach(([icon,label,value])=>{const row=document.createElement("div");const dt=document.createElement("dt");dt.textContent=icon+" "+label;const dd=document.createElement("dd");dd.textContent=String(value);row.append(dt,dd);stats.append(row);});
+    card.append(art,heading,meta,stats);container.append(card);
+  });
+}
+$("#openUnits").addEventListener("click",openUnits);
+$("#backVillageFromUnits").addEventListener("click",()=>show("village"));
+
 async function loadPlayerData(){try{const [city,world]=await Promise.all([api("/api/city/me"),api("/api/world")]);const c=city.city;$("#myVillage b").textContent=c.city_name;$("#myVillage small").textContent="Merkez · Sv. "+c.level;document.querySelector(".village-title").innerHTML=c.city_name.toUpperCase()+" <small>BOZKIRIN KALBİ</small>";document.querySelector("#village .server").textContent=c.city_name.toUpperCase()+" · SEVİYE "+c.level;for(const key of ["wood","stone","iron","food"])$("#"+key).textContent=Number(c[key]).toLocaleString("tr-TR");}catch(error){console.error("Oyuncu verileri yüklenemedi:",error);}}
 $("#authForm").addEventListener("submit",async e=>{e.preventDefault();const username=$("#username").value.trim(),password=$("#password").value;$("#authSubmit").disabled=true;$("#authMessage").textContent="Sunucuya bağlanılıyor…";try{const data=await api(authMode==="login"?"/api/auth/login":"/api/auth/register",{method:"POST",body:JSON.stringify({username,password})});token=data.token;localStorage.setItem("umaykut_token",token);await enterGame(data.player);}catch(error){$("#authMessage").textContent=error.message;}finally{$("#authSubmit").disabled=false;}});
 $("#enterVillage").onclick=()=>show("village");$("#goHome").onclick=()=>show("village");$("#myVillage").onclick=()=>show("village");$("#backWorld").onclick=()=>show("world");
 function modal(title,desc,action="Geliştirme bilgisi"){$("#modalTitle").textContent=title;$("#modalText").textContent=desc;$("#modalAction").textContent=action;$("#modal").classList.add("open");}
 $("#closeModal").onclick=()=>$("#modal").classList.remove("open");
-document.querySelectorAll("[data-building]").forEach(b=>b.onclick=()=>modal(b.dataset.building,"Bu yapı köy ekonomisine ve savunmasına katkı sağlar. Gerçek yükseltme sistemi sıradaki aşamada bağlanacak.","Yakında aktif"));
+document.querySelectorAll("[data-building]").forEach(b=>b.onclick=()=>{if(b.dataset.building==="Kışla"||b.dataset.building==="Ahır"){openUnits();return;}modal(b.dataset.building,"Bu yapı köy ekonomisine ve savunmasına katkı sağlar. Gerçek yükseltme sistemi sıradaki aşamada bağlanacak.","Yakında aktif");});
 document.querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>modal(b.dataset.action,"Bu bölümün oyun sistemi bir sonraki geliştirme aşamasında eklenecek."));
 $("#modalAction").onclick=()=>$("#modal").classList.remove("open");
 if(token){api("/api/city/me").then(()=>enterGame({username:"Oyuncu"})).catch(()=>{localStorage.removeItem("umaykut_token");token=null;});}
