@@ -34,3 +34,18 @@ CREATE TABLE IF NOT EXISTS player_army (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (player_id, unit_id)
 );
+
+-- Sunucu saatine göre tamamlanan asker eğitimleri.
+CREATE TABLE IF NOT EXISTS player_training_queue (
+  id BIGSERIAL PRIMARY KEY,
+  player_id BIGINT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+  faction_id VARCHAR(20) NOT NULL CHECK (faction_id IN ('selcuk', 'hun', 'gokturk')),
+  unit_id VARCHAR(32) NOT NULL,
+  quantity INTEGER NOT NULL CHECK (quantity BETWEEN 1 AND 100),
+  started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  finishes_at TIMESTAMPTZ NOT NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'training' CHECK (status IN ('training', 'completed')),
+  completed_at TIMESTAMPTZ
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_one_active_training_per_player
+  ON player_training_queue (player_id) WHERE status = 'training';
