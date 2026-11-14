@@ -56,6 +56,7 @@
     <div class="village-scene">
       <div class="village-title">İLK YURDUM <small>BOZKIRIN KALBİ</small></div>
       <div class="wall"></div>
+      <div id="villageResourceNodes" class="village-resource-nodes" aria-label="Kale içindeki kaynak noktaları"></div>
       <button class="building b1" data-building="Atölye">⚒️<small>Atölye · Sv. 1</small></button>
       <button class="building b2" data-building="Ahır">🐎<small>Ahır · Sv. 1</small></button>
       <button class="building b3" data-building="Tapınak">🛕<small>Tapınak · Sv. 1</small></button>
@@ -94,6 +95,6 @@
 </main>
 <aside class="side-tabs"><button>Birlik</button><button>Sistem</button><button>Genel Sohbet</button></aside>
 <footer class="bottom-nav"><button>🏯<small>Günlük</small></button><button>⚔️<small>Saldırı</small></button><button>🛡️<small>Destek</small></button><button>📜<small>Rapor</small></button><button>🧭<small>Giden</small></button><button>🎖️<small>Görev</small></button><button>☰<small>Diğer</small></button></footer>
-<div class="modal" id="modal"><div class="modal-card"><button class="close" id="closeModal">✕</button><h2 id="modalTitle">Merkez Binası</h2><p id="modalText">Köyünün kalbi.</p><button class="gold-button" id="modalAction">Geliştirme bilgisi</button></div></div>
+<div class="modal" id="modal"><div class="modal-card"><button class="close" id="closeModal">✕</button><h2 id="modalTitle">Merkez Binası</h2><p id="modalText">Köyünün kalbi.</p><label id="modalWorkerField" class="modal-worker-field" hidden>Gönderilecek işçi sayısı<input id="workerAmount" type="number" min="0" step="1" inputmode="numeric"></label><button class="gold-button" id="modalAction">Geliştirme bilgisi</button></div></div>
 <script src="/game.js"></script>
 </body></html>
