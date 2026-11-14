@@ -29,6 +29,21 @@ const raw = {
 
 const factionNames = { selcuk: "Selçuk Devleti", hun: "Hun Devleti", gokturk: "Göktürk Devleti" };
 
+export function getFactionUnits(factionId) {
+  const values = raw[factionId];
+  if (!values) return null;
+  return values.map((stats, index) => ({
+    ...columns[index],
+    stats: {
+      attack: stats[0],
+      defense: stats[1],
+      specialDefense: stats[2],
+      speed: stats[3],
+      foodCost: stats[4]
+    }
+  }));
+}
+
 export function getUnitCatalog(_req, res) {
   const units = Object.entries(raw).flatMap(([factionId, values]) =>
     values.map((stats, index) => ({
@@ -62,7 +77,7 @@ export async function getMyUnitCatalog(req, res) {
   const result = await pool.query("SELECT faction_id FROM players WHERE id = $1", [req.player.sub]);
   const factionId = result.rows[0]?.faction_id;
   if (!factionId) return res.status(409).json({ error: "Önce bir devlet seçmelisin." });
-  const units = raw[factionId];
+  const units = getFactionUnits(factionId);
   if (!units) return res.status(500).json({ error: "Oyuncu devletinin asker kataloğu bulunamadı." });
   res.json({
     factionId,
@@ -74,15 +89,6 @@ export async function getMyUnitCatalog(req, res) {
       speed: "Hız",
       foodCost: "Yiyecek maliyeti"
     },
-    units: units.map((stats, index) => ({
-      ...columns[index],
-      stats: {
-        attack: stats[0],
-        defense: stats[1],
-        specialDefense: stats[2],
-        speed: stats[3],
-        foodCost: stats[4]
-      }
-    }))
+    units
   });
 }
