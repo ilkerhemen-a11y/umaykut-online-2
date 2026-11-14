@@ -139,3 +139,21 @@
   #world .resource-map-nodes .resource-node span{font-size:20px}
   #world .resource-map-nodes .resource-node .resource-kind{font-size:7px}
 }
+
+/* Köy başlangıcı: yalnızca merkez binası hazır; diğer yapılar oyuncu tarafından yerleştirilir. */
+.village-buildings-layer{position:absolute;inset:0;z-index:4;pointer-events:none}
+.placed-building{position:absolute;transform:translate(-50%,-50%);min-width:54px;max-width:104px;min-height:52px;padding:4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:1px solid #d0a34c;border-radius:8px;background:linear-gradient(#49391fef,#21190fee);box-shadow:0 3px 7px #38281799;color:#ffe7a7;pointer-events:auto;text-shadow:1px 1px 2px #000}
+.placed-building span{font-size:25px;line-height:1.1}.placed-building b{font-size:8px;white-space:nowrap}.placed-building small{font-size:8px}
+.placed-building.placed-center{min-width:102px;min-height:94px;border:2px solid #f0c75f;background:linear-gradient(#6e562e,#2b2113)}
+.placed-building.placed-center span{font-size:42px}.placed-building.placed-center b{font-size:10px}
+.building-placement{margin:8px;padding:10px;border:1px solid #806333;border-radius:10px;background:#201a12}
+.placement-heading{font-weight:bold;color:#e8c15c;font-size:12px}
+#placementHint{font-size:11px;color:#d8c69b;margin:6px 0 9px}
+.building-catalog{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.building-catalog button{min-width:0;padding:7px 2px;border:1px solid #806333;border-radius:8px;background:#302718;font-size:21px}
+.building-catalog button small{display:block;font-size:9px;white-space:nowrap}
+.building-catalog button.selected{border:2px solid #58dca0;background:#34502b}
+.building-catalog button.built{opacity:.4;filter:grayscale(1)}
+.building-catalog button:disabled{cursor:not-allowed}
+.village-scene{cursor:crosshair}
+@media(min-width:700px){.building-placement{max-width:900px;margin:10px auto}}
