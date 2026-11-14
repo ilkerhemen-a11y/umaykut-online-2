@@ -20,9 +20,9 @@ export async function ensureCityNodes(client, playerId) {
   // Başlangıç kalesinin çevresindeki üç temel kaynak noktası.
   // Harita görünümünde başlangıç kalesi yaklaşık %50, %50 konumundadır.
   const startingNodes = {
-    wood: { x: 34, y: 40, level: 6 },
-    stone: { x: 57, y: 40, level: 6 },
-    iron: { x: 50, y: 60, level: 6 }
+    wood: { x: 40, y: 39, level: 6 },
+    stone: { x: 55, y: 39, level: 6 },
+    iron: { x: 48, y: 56, level: 6 }
   };
   const occupied = Object.values(startingNodes).map(point => ({ x: point.x, y: point.y }));
   const randomPoint = () => {
@@ -50,6 +50,23 @@ export async function ensureCityNodes(client, playerId) {
       [playerId, resource.id, point.x, point.y, level, resource.yieldPerWorkerHour]
     );
   }
+  // Var olan hesaplarda da üç başlangıç madeni kalenin yakınında ve 6 puanlı kalsın.
+  await client.query(`
+    UPDATE city_resource_nodes
+       SET x = CASE resource_type
+                 WHEN 'wood' THEN 40
+                 WHEN 'stone' THEN 55
+                 WHEN 'iron' THEN 48
+               END,
+           y = CASE resource_type
+                 WHEN 'wood' THEN 39
+                 WHEN 'stone' THEN 39
+                 WHEN 'iron' THEN 56
+               END,
+           level = 6
+     WHERE city_player_id = $1
+       AND resource_type IN ('wood','stone','iron')
+  `, [playerId]);
 }
 
 async function settleProduction(client, playerId) {
