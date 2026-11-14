@@ -37,7 +37,7 @@ async function settleProduction(client, playerId) {
   );
   await ensureCityNodes(client, playerId);
   const result = await client.query(
-    `SELECT c.level, c.wood, c.stone, c.iron, c.food, c.gold, c.horses,
+    `SELECT c.level, c.worker_pool, c.wood, c.stone, c.iron, c.food, c.gold, c.horses,
             c.production_remainders, c.last_production_at,
             COALESCE(SUM(n.workers_assigned), 0)::integer AS assigned_workers
        FROM player_cities c
@@ -79,7 +79,7 @@ async function settleProduction(client, playerId) {
     "UPDATE city_resource_nodes SET workers_assigned = LEAST(workers_assigned, $2) WHERE city_player_id = $1",
     [playerId, cap]
   );
-  return { level: Number(city.level), workerPool: STARTING_WORKERS };
+  return { level: Number(city.level), workerPool: Number(city.worker_pool) };
 }
 
 export async function getMyEconomy(req, res) {
@@ -92,7 +92,7 @@ export async function getMyEconomy(req, res) {
       return res.status(404).json({ error: "Şehir bulunamadı." });
     }
     const cityResult = await client.query(
-      `SELECT level, wood, stone, iron, food, gold, horses,
+      `SELECT level, worker_pool, wood, stone, iron, food, gold, horses,
               COALESCE(SUM(n.workers_assigned), 0)::integer AS assigned_workers
          FROM player_cities c
          LEFT JOIN city_resource_nodes n ON n.city_player_id = c.player_id
@@ -174,7 +174,7 @@ export async function assignWorkers(req, res) {
       "SELECT COALESCE(SUM(workers_assigned), 0)::integer AS assigned FROM city_resource_nodes WHERE city_player_id = $1",
       [req.player.sub]
     );
-    const available = STARTING_WORKERS - Number(totals.rows[0].assigned);
+    const poolResult = await client.query("SELECT worker_pool FROM player_cities WHERE player_id = $1", [req.player.sub]);\n    const available = Number(poolResult.rows[0].worker_pool) - Number(totals.rows[0].assigned);
     if (delta > available) {
       await client.query("ROLLBACK");
       return res.status(400).json({ error: `Yeterli boşta işçi yok. Kullanılabilir işçi: ${available}.` });
