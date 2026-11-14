@@ -151,6 +151,57 @@ $("#openUnits").addEventListener("click",openUnits);
 $("#backVillageFromUnits").addEventListener("click",()=>show("village"));
 
 
+let villageEconomy=null;
+const villageResourcePositions={wood:[24,31],stone:[76,31],iron:[50,77],food:[23,69],gold:[77,69],horses:[50,20]};
+async function loadVillageResources(){
+  try{
+    const data=await api("/api/economy/me");
+    villageEconomy=data;
+    const layer=$("#villageResourceNodes");
+    if(!layer)return;
+    layer.replaceChildren();
+    const icons={food:"🌾",wood:"🌳",stone:"🪨",iron:"⛏️",gold:"🪙",horses:"🐎"};
+    data.nodes.forEach(node=>{
+      const point=villageResourcePositions[node.resourceType]||[node.x,node.y];
+      const marker=document.createElement("button");
+      marker.type="button";marker.className="village-resource-node";
+      marker.style.left=point[0]+"%";marker.style.top=point[1]+"%";
+      marker.setAttribute("aria-label",node.name+" kaynağı, seviye "+node.level+". İşçi gönder.");
+      const icon=document.createElement("span");icon.textContent=icons[node.resourceType]||node.icon||"📍";
+      const name=document.createElement("b");name.textContent=node.name+" · Sv."+node.level;
+      const workers=document.createElement("small");workers.textContent=Number(node.workersAssigned).toLocaleString("tr-TR")+" işçi";
+      marker.append(icon,name,workers);
+      marker.addEventListener("click",()=>openWorkerAssignment(node));
+      layer.append(marker);
+    });
+  }catch(error){console.error("Kale kaynakları yüklenemedi:",error);}
+}
+function openWorkerAssignment(node){
+  const field=$("#modalWorkerField"),input=$("#workerAmount");
+  $("#modalTitle").textContent=node.icon+" "+node.name+" kaynağı";
+  $("#modalText").textContent="Seviye "+node.level+" · İşçi sınırı "+node.maxWorkers+". Boşta "+villageEconomy.availableWorkers+" işçin var. Göndereceğin toplam işçi sayısını yaz.";
+  field.hidden=false;input.max=String(Math.min(node.maxWorkers,node.workersAssigned+villageEconomy.availableWorkers));
+  input.value=String(node.workersAssigned);input.focus();
+  $("#modalAction").textContent="İŞÇİLERİ GÖNDER";
+  $("#modalAction").onclick=async()=>{
+    const amount=Number(input.value);
+    if(!Number.isSafeInteger(amount)||amount<0||amount>node.maxWorkers){
+      $("#modalText").textContent="0 ile "+node.maxWorkers+" arasında geçerli bir sayı gir.";
+      return;
+    }
+    const action=$("#modalAction");action.disabled=true;action.textContent="GÖNDERİLİYOR…";
+    try{
+      const result=await api("/api/economy/assign",{method:"POST",body:JSON.stringify({nodeId:node.id,workers:amount})});
+      $("#modal").classList.remove("open");
+      await loadVillageResources();
+      await loadEconomy(true);
+      await loadPlayerData();
+      $("#economyMessage").textContent=result.message;
+    }catch(error){$("#modalText").textContent=error.message;}
+    finally{action.disabled=false;action.textContent="İŞÇİLERİ GÖNDER";}
+  };
+  $("#modal").classList.add("open");
+}
 let economyRefreshTimer=null;
 async function openEconomy(){
   show("economyScreen");
@@ -234,8 +285,8 @@ function renderArmy(army){
   });
 }
 $("#authForm").addEventListener("submit",async e=>{e.preventDefault();const username=$("#username").value.trim(),password=$("#password").value;$("#authSubmit").disabled=true;$("#authMessage").textContent="Sunucuya bağlanılıyor…";try{const data=await api(authMode==="login"?"/api/auth/login":"/api/auth/register",{method:"POST",body:JSON.stringify({username,password})});token=data.token;localStorage.setItem("umaykut_token",token);await enterGame(data.player);}catch(error){$("#authMessage").textContent=error.message;}finally{$("#authSubmit").disabled=false;}});
-$("#enterVillage").onclick=()=>show("village");$("#goHome").onclick=()=>show("village");$("#myVillage").onclick=()=>show("village");$("#backWorld").onclick=()=>show("world");
-function modal(title,desc,action="Geliştirme bilgisi"){$("#modalTitle").textContent=title;$("#modalText").textContent=desc;$("#modalAction").textContent=action;$("#modal").classList.add("open");}
+$("#enterVillage").onclick=()=>{show("village");loadVillageResources();};$("#goHome").onclick=()=>{show("village");loadVillageResources();};$("#myVillage").onclick=()=>{show("village");loadVillageResources();};$("#backWorld").onclick=()=>show("world");
+function modal(title,desc,action="Geliştirme bilgisi"){$("#modalTitle").textContent=title;$("#modalText").textContent=desc;$("#modalWorkerField").hidden=true;$("#modalAction").textContent=action;$("#modalAction").onclick=()=>$("#modal").classList.remove("open");$("#modal").classList.add("open");}
 $("#closeModal").onclick=()=>$("#modal").classList.remove("open");
 document.querySelectorAll("[data-building]").forEach(b=>b.onclick=()=>{if(b.dataset.building==="Kışla"||b.dataset.building==="Ahır"){openUnits();return;}modal(b.dataset.building,"Bu yapı köy ekonomisine ve savunmasına katkı sağlar. Gerçek yükseltme sistemi sıradaki aşamada bağlanacak.","Yakında aktif");});
 document.querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>{if(b.dataset.action==="Üretim"){openEconomy();return;}modal(b.dataset.action,"Bu bölümün oyun sistemi bir sonraki geliştirme aşamasında eklenecek.");});
