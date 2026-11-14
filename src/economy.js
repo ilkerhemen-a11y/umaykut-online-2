@@ -10,7 +10,7 @@ const RESOURCE_TYPES = Object.freeze([
 ]);
 const WORKERS_PER_NODE_PER_CENTER_LEVEL = 300;
 
-async function ensureCityNodes(client, playerId) {
+export async function ensureCityNodes(client, playerId) {
   const city = await client.query(
     "SELECT x, y FROM player_cities WHERE player_id = $1",
     [playerId]
