@@ -34,8 +34,8 @@ async function loadWorldMap(){
     const icons={food:"🌾",wood:"🌳",stone:"🪨",iron:"⛏️",gold:"🪙"};
     const names={food:"Tahıl",wood:"Odun",stone:"Taş",iron:"Demir",gold:"Altın"};
     (data.resources||[]).forEach(node=>{
-      const marker=document.createElement("button");
-      marker.type="button";marker.className="resource-node";
+      const marker=document.createElement("div");
+      marker.className="resource-node";
       marker.style.left=Number(node.x)+"%";marker.style.top=Number(node.y)+"%";
       marker.title=names[node.resource_type]+" · Seviye "+node.level;
       const icon=document.createElement("span");icon.textContent=icons[node.resource_type]||"📍";
