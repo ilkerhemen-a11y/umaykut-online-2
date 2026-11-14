@@ -7,13 +7,27 @@
 </head>
 <body>
 <header class="resourcebar">
-  <div class="brand">🐺 <b>UMAYKUT</b><small>ONLINE II</small></div>
+  <div class="brand">🐺 <b>UMAYKUT</b><small>ONLINE II · <span id="playerName">OYUNCU</span></small></div>
   <div class="resources">
     <div>🪨 <b id="stone">32.450</b><small>Taş</small></div><div>🌳 <b id="wood">478.569</b><small>Odun</small></div>
     <div>🌾 <b id="food">357.154</b><small>Yiyecek</small></div><div>⛏️ <b id="iron">18.698</b><small>Demir</small></div>
     <div>🪙 <b id="gold">1.424</b><small>Altın</small></div><div>🐎 <b id="horses">46</b><small>At</small></div><div>💎 <b id="gems">38</b><small>Elmas</small></div>
   </div>
 </header>
+<section id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-emblem">🐺</div><h1>UMAYKUT ONLINE II</h1>
+    <p>Bozkırın kaderini sen yaz.</p>
+    <div class="auth-tabs"><button id="loginTab" class="selected" type="button">Giriş Yap</button><button id="registerTab" type="button">Kayıt Ol</button></div>
+    <form id="authForm">
+      <label for="username">Oyuncu adı</label><input id="username" name="username" minlength="3" maxlength="18" autocomplete="username" required placeholder="Oyuncu adın">
+      <label for="password">Şifre</label><input id="password" name="password" type="password" minlength="8" maxlength="72" autocomplete="current-password" required placeholder="En az 8 karakter">
+      <button id="authSubmit" class="gold-button" type="submit">Oyuna Giriş</button>
+      <p id="authMessage" class="auth-message" role="status"></p>
+    </form>
+    <small>Test sürümü · Hesap bilgilerini güvenli tut.</small>
+  </div>
+</section>
 <main>
   <section id="world" class="screen active">
     <div class="screen-top"><button class="menu">☰</button><span class="server">🟢 BOZKIR 1 · 2X</span><button class="round" id="enterVillage">↗</button></div>
