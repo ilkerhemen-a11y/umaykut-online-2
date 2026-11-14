@@ -39,8 +39,9 @@ async function loadWorldMap(){
       marker.style.left=Number(node.x)+"%";marker.style.top=Number(node.y)+"%";
       marker.title=names[node.resource_type]+" · Seviye "+node.level;
       const icon=document.createElement("span");icon.textContent=icons[node.resource_type]||"📍";
-      const label=document.createElement("small");label.textContent=names[node.resource_type]+" · Sv."+node.level;
-      marker.append(icon,label);layer.append(marker);
+      const level=document.createElement("small");level.className="resource-level";level.textContent=String(node.level);
+      const kind=document.createElement("small");kind.className="resource-kind";kind.textContent=names[node.resource_type];
+      marker.append(icon,level,kind);layer.append(marker);
     });
   }catch(error){console.error("Dünya haritası yüklenemedi:",error);}
 }
