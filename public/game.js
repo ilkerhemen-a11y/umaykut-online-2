@@ -31,16 +31,20 @@ async function loadWorldMap(){
     const layer=$("#resourceMapNodes");
     if(!layer)return;
     layer.replaceChildren();
-    const icons={food:"🌾",wood:"🌳",stone:"🪨",iron:"⛏️",gold:"🪙"};
-    const names={food:"Tahıl",wood:"Odun",stone:"Taş",iron:"Demir",gold:"Altın"};
-    (data.resources||[]).forEach(node=>{
+    const territory=document.createElement("div");
+    territory.className="territory-ring";
+    territory.setAttribute("aria-label","Sana ait küçük hâkimiyet alanı");
+    layer.append(territory);
+    const icons={wood:"🪵",stone:"🪨",iron:"⛏️"};
+    const names={wood:"Odun",stone:"Taş",iron:"Demir"};
+    (data.resources||[]).filter(node=>["wood","stone","iron"].includes(node.resource_type)).forEach(node=>{
       const marker=document.createElement("button");
       marker.type="button";marker.className="resource-node";
       marker.style.left=Number(node.x)+"%";marker.style.top=Number(node.y)+"%";
-      marker.title=names[node.resource_type]+" · Seviye "+node.level+" · İşçi göndermek için dokun";
-      marker.setAttribute("aria-label",names[node.resource_type]+" seviye "+node.level+" kaynak noktası");
-      const icon=document.createElement("span");icon.textContent=icons[node.resource_type]||"📍";
-      const level=document.createElement("small");level.className="resource-level";level.textContent=String(node.level);
+      marker.title=names[node.resource_type]+" · 6 Puan · İşçi göndermek için dokun";
+      marker.setAttribute("aria-label",names[node.resource_type]+" 6 puanlık sana ait kaynak. İşçi göndermek için dokun.");
+      const icon=document.createElement("span");icon.textContent=icons[node.resource_type];
+      const level=document.createElement("small");level.className="resource-level";level.textContent="6";
       const kind=document.createElement("small");kind.className="resource-kind";kind.textContent=names[node.resource_type];
       marker.append(icon,level,kind);
       marker.addEventListener("click",async()=>{
@@ -49,7 +53,7 @@ async function loadWorldMap(){
           villageEconomy=economy;
           const ownNode=economy.nodes.find(item=>item.id===Number(node.id));
           if(ownNode){openWorkerAssignment(ownNode);}
-          else{modal("Başka oyuncunun kaynağı", "Bu kaynak noktası başka bir oyuncuya ait. İşçi göndermek için kendi kale çevrendeki kaynakları seçmelisin.", "Anladım");}
+          else{modal("Kaynak bulunamadı","Bu maden sana ait değil veya artık kullanılamıyor.","Anladım");}
         }catch(error){modal("Kaynak bilgisi alınamadı",error.message,"Tamam");}
       });
       layer.append(marker);
