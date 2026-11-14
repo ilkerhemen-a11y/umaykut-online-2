@@ -203,7 +203,6 @@ function renderEconomy(data){
   });
 }
 $("#backVillageFromEconomy").addEventListener("click",()=>show("village"));
-$("#openEconomy").addEventListener("click",openEconomy);
 
 async function loadPlayerData(){
   try{
