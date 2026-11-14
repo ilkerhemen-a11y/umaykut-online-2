@@ -23,7 +23,7 @@ export async function register(req, res) {
     );
     const player = result.rows[0];
     await client.query(
-      "INSERT INTO player_cities (player_id, city_name) VALUES ($1, $2)",
+      "INSERT INTO player_cities (player_id, city_name, worker_pool) VALUES ($1, $2, 1800)",
       [player.id, player.username + 'in Yurdu']
     );
     await client.query("COMMIT");
