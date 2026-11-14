@@ -12,6 +12,7 @@ import { getUnitCatalog, getMyUnitCatalog } from "./units.js";
 import { getMyArmy } from "./army.js";
 import { getMyTraining, startTraining } from "./training.js";
 import { getMyEconomy, assignWorkers } from "./economy.js";
+import { getMyBuildings, placeBuilding } from "./buildings.js";
 
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
   throw new Error("JWT_SECRET en az 32 karakterlik güçlü bir gizli anahtar olmalı.");
@@ -47,6 +48,19 @@ async function ensureSchema() {
     ALTER TABLE player_cities ADD COLUMN IF NOT EXISTS worker_pool INTEGER NOT NULL DEFAULT 1800;
     ALTER TABLE player_cities ADD COLUMN IF NOT EXISTS production_remainders JSONB NOT NULL DEFAULT '{}'::jsonb;
     ALTER TABLE player_cities ADD COLUMN IF NOT EXISTS last_production_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+    CREATE TABLE IF NOT EXISTS city_buildings (
+      id BIGSERIAL PRIMARY KEY,
+      city_player_id BIGINT NOT NULL REFERENCES player_cities(player_id) ON DELETE CASCADE,
+      building_type VARCHAR(24) NOT NULL,
+      x NUMERIC(5,2) NOT NULL CHECK (x BETWEEN 3 AND 97),
+      y NUMERIC(5,2) NOT NULL CHECK (y BETWEEN 3 AND 97),
+      level INTEGER NOT NULL DEFAULT 1 CHECK (level >= 1),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (city_player_id, building_type)
+    );
+    INSERT INTO city_buildings (city_player_id, building_type, x, y, level)
+      SELECT player_id, 'center', 50, 47, 1 FROM player_cities
+      ON CONFLICT (city_player_id, building_type) DO NOTHING;
     CREATE TABLE IF NOT EXISTS city_resource_nodes (
       id BIGSERIAL PRIMARY KEY,
       city_player_id BIGINT NOT NULL REFERENCES player_cities(player_id) ON DELETE CASCADE,
@@ -123,6 +137,8 @@ app.get("/api/training/me", requireAuth, getMyTraining);
 app.post("/api/training/start", requireAuth, startTraining);
 app.get("/api/world", requireAuth, getWorld);
 app.get("/api/city/me", requireAuth, getMyCity);
+app.get("/api/buildings/me", requireAuth, getMyBuildings);
+app.post("/api/buildings/place", requireAuth, placeBuilding);
 app.get("/api/economy/me", requireAuth, getMyEconomy);
 app.post("/api/economy/assign", requireAuth, assignWorkers);
 
