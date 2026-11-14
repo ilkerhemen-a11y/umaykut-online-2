@@ -46,16 +46,16 @@ Bu kod henüz canlıya alınmış veya üretim güvenliği açısından denetlen
 
 ## Devletlere özel asker kataloğu
 
-- Her devlet için 7 asker tanımı bulunur: Kışla Seviye 1, Okçu, Kışla Seviye 5, Kışla Seviye 10, Ahır Seviye 1, Ahır Seviye 5 ve Ahır Seviye 10.
+- Her devlet için 9 birlik tanımı bulunur: mevcut 7 kışla/ahır askeri ile Mancınık ve Topçu kuşatma birlikleri.
 - Beş değer kesin olarak şu sıradadır: saldırı; piyadelere karşı savunma (normal kalkan); atlılara karşı savunma (mor kalkan); hareket hızı; yağmaya gönderilen bir askerin toplam ganimet taşıma kapasitesi (altın simgesi). Son değer üretim maliyeti veya altın değildir.
-- `GET /api/units` tüm devletlerin katalog tanımlarını; `GET /api/units/me` giriş yapan oyuncunun devletine ait 7 birimi getirir.
+- `GET /api/units` tüm devletlerin katalog tanımlarını; `GET /api/units/me` giriş yapan oyuncunun devletine ait 9 birimi getirir.
 - Köyde Kışla/Ahır binalarına veya Ordu Birlikleri başlığına dokununca asker kataloğu açılır.
-- Asker kataloğu devlet bazında yedi birimi ve beş doğrulanmış istatistiği sunar. Üretim kuyruğu ve kalıcı birlik envanteri aşağıdaki bölümlerde açıklanır; kaynak maliyetleri ve savaş hesabı henüz etkin değildir.
+- Asker kataloğu devlet bazında dokuz birimi ve beş temel istatistiği sunar. Üretim kuyruğu ve kalıcı birlik envanteri aşağıdaki bölümlerde açıklanır; kaynak maliyetleri ve savaş hesabı henüz etkin değildir.
 
 ## Kalıcı ordu mevcudu (ilk altyapı)
 
-- `player_army` tablosu her oyuncunun kendi devletine ait 7 asker türünü ayrı ayrı saklar.
-- `GET /api/army/me` giriş yapan oyuncunun asker mevcudunu döndürür; ilk istekte 7 birlik sıfır adetle oluşturulur.
+- `player_army` tablosu her oyuncunun kendi devletine ait 9 birlik türünü ayrı ayrı saklar.
+- `GET /api/army/me` giriş yapan oyuncunun asker mevcudunu döndürür; ilk istekte 9 birlik sıfır adetle oluşturulur.
 - Köydeki ordu şeridi artık sabit örnek sayılar yerine veritabanından gelen gerçek birlik adetlerini gösterir.
 - Ordu envanteri kalıcıdır. `GET /api/army/me` her asker türünün adetini ve `totalCarryCapacity` alanını döndürür. Toplam kapasite, her tür için asker adedi × o askerin birim taşıma kapasitesi toplamıdır. Köyde toplam yağma taşıma kapasitesi ayrıca gösterilir. Kaynak maliyetleri ve yağma seferi henüz etkin değildir.
 
@@ -67,3 +67,12 @@ Bu kod henüz canlıya alınmış veya üretim güvenliği açısından denetlen
 - Kışla/Ahır ekranında aktif eğitim geri sayımı, asker adedi ve ordudaki mevcut gösterilir.
 - Bu test aşamasında kaynak düşümü uygulanmaz. Beşinci asker değeri üretim bedeli değil, yağma taşıma kapasitesidir. Üretim maliyetleri ayrıca tasarlanıp onaylanacaktır.
 - Gerçek zamanlı otomatik tamamlama, oyuncu eğitim ekranını yeniden açtığında veya eğitim durumu API'si sorgulandığında işlenir; ayrı arka plan worker henüz yoktur.
+
+
+## Kuşatma birlikleri (ilk entegrasyon)
+
+- Her devletin kataloğuna Mancınık ve Topçu eklendi; mevcut yedi asker türü korunur.
+- Birlikler ordu envanterinde ayrı adetlerle saklanır ve mevcut asker eğitim ekranından eğitilebilir.
+- Mancınık eğitim süresi test dengesi olarak birim başına 90 saniye, Topçu 120 saniyedir.
+- Saldırı/savunma değerleri ilk denge değerleridir; kuşatma savaşı hesaplaması henüz oyunda bulunmadığından bu aşamada gerçek kale hasarı uygulanmaz.
+- Portreler, kullanıcının gönderdiği savaş ekranı görselinden alınmıştır.
