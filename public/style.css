@@ -157,3 +157,10 @@
 .building-catalog button:disabled{cursor:not-allowed}
 .village-scene{cursor:crosshair}
 @media(min-width:700px){.building-placement{max-width:900px;margin:10px auto}}
+
+.village-building-slots{position:absolute;inset:0;z-index:5;pointer-events:none}
+.building-slot{position:absolute;transform:translate(-50%,-50%);width:42px;height:42px;border:2px dashed #e7c66c;border-radius:50%;background:#17251edb;color:#ffe6a0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;box-shadow:0 0 8px #e9c45b66;pointer-events:auto}
+.building-slot span{font-size:22px;line-height:22px;font-weight:bold}.building-slot small{font-size:6px;line-height:8px}
+.building-slot:active{transform:translate(-50%,-50%) scale(.94);background:#40552c}
+#buildingPlacementPanel[hidden]{display:none}#buildingPlacementPanel{position:relative;z-index:10}#cancelBuildingPlacement{margin-top:9px;width:100%}
+@media(max-width:420px){.building-slot{width:36px;height:36px}.building-slot span{font-size:19px}.building-slot small{font-size:5px}}
