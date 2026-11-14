@@ -77,11 +77,22 @@ $("#confirmFaction").addEventListener("click",async()=>{
   }
 });
 
+let trainingPoll=null,trainingClock=null,activeTraining=null;
 async function openUnits(){
   show("unitsScreen");
   $("#unitCatalog").textContent="Askerler yükleniyor…";
-  try{const data=await api("/api/units/me");$("#unitsFactionTitle").textContent=data.factionName.toLocaleUpperCase("tr-TR");renderUnits(data.units);}
-  catch(error){$("#unitCatalog").textContent=error.message;}
+  try{
+    const [catalog,army,training]=await Promise.all([api("/api/units/me"),api("/api/army/me"),api("/api/training/me")]);
+    $("#unitsFactionTitle").textContent=catalog.factionName.toLocaleUpperCase("tr-TR");
+    const counts=new Map(army.units.map(unit=>[unit.id,unit.quantity]));
+    renderUnits(catalog.units.map(unit=>({...unit,quantity:counts.get(unit.id)||0})));
+    activeTraining=training.activeTraining;
+    renderTrainingStatus();
+    if(trainingPoll)clearInterval(trainingPoll);
+    if(trainingClock)clearInterval(trainingClock);
+    trainingPoll=setInterval(refreshTraining,5000);
+    trainingClock=setInterval(updateTrainingCountdown,1000);
+  }catch(error){$("#unitCatalog").textContent=error.message;}
 }
 function renderUnits(units){
   const container=$("#unitCatalog");container.replaceChildren();
@@ -91,10 +102,50 @@ function renderUnits(units){
     const art=document.createElement("div");art.className="unit-art";art.textContent=icons[index];
     const heading=document.createElement("h3");heading.textContent=unit.role;
     const meta=document.createElement("p");meta.className="unit-meta";meta.textContent=unit.building+" · Seviye "+unit.level;
+    const count=document.createElement("p");count.className="unit-count";count.textContent="Ordudaki mevcut: "+Number(unit.quantity).toLocaleString("tr-TR");
     const stats=document.createElement("dl");stats.className="unit-stats";
     [["⚔️","Saldırı",unit.stats.attack],["🛡️","Savunma",unit.stats.defense],["🟣","Özel savunma",unit.stats.specialDefense],["🏃","Hız",unit.stats.speed],["🌾","Yiyecek maliyeti",unit.stats.foodCost]].forEach(([icon,label,value])=>{const row=document.createElement("div");const dt=document.createElement("dt");dt.textContent=icon+" "+label;const dd=document.createElement("dd");dd.textContent=String(value);row.append(dt,dd);stats.append(row);});
-    card.append(art,heading,meta,stats);container.append(card);
+    const quantityLabel=document.createElement("label");quantityLabel.className="training-quantity-label";quantityLabel.textContent="Eğitilecek asker";
+    const quantity=document.createElement("input");quantity.type="number";quantity.min="1";quantity.max="100";quantity.value="1";quantity.className="training-quantity";quantity.setAttribute("aria-label",unit.role+" eğitim adedi");
+    const button=document.createElement("button");button.type="button";button.className="train-button";button.textContent="EĞİTİME BAŞLA";button.addEventListener("click",()=>beginTraining(unit.id,quantity.value,button));
+    card.append(art,heading,meta,count,stats,quantityLabel,quantity,button);container.append(card);
   });
+}
+async function beginTraining(unitId,quantity,button){
+  button.disabled=true;button.textContent="BAŞLATILIYOR…";
+  try{
+    const result=await api("/api/training/start",{method:"POST",body:JSON.stringify({unitId,quantity:Number(quantity)})});
+    activeTraining=result.activeTraining;renderTrainingStatus();
+    await loadPlayerData();
+  }catch(error){modal("Eğitim başlatılamadı",error.message,"Tamam");}
+  finally{button.disabled=false;button.textContent="EĞİTİME BAŞLA";}
+}
+async function refreshTraining(){
+  try{
+    const previous=activeTraining?.id;
+    const result=await api("/api/training/me");
+    activeTraining=result.activeTraining;
+    renderTrainingStatus();
+    if(previous&&!activeTraining)await loadPlayerData();
+  }catch(error){console.error("Eğitim durumu alınamadı:",error);}
+}
+function updateTrainingCountdown(){
+  const countdown=$("#trainingCountdown");
+  if(!countdown||!activeTraining)return;
+  const remaining=Math.max(0,Math.ceil((new Date(activeTraining.finishes_at).getTime()-Date.now())/1000));
+  const minutes=Math.floor(remaining/60),seconds=remaining%60;
+  countdown.textContent=minutes+":"+String(seconds).padStart(2,"0");
+}
+function renderTrainingStatus(){
+  const panel=$("#trainingStatus");panel.replaceChildren();
+  const title=document.createElement("b");title.textContent="ASKER EĞİTİMİ";panel.append(title);
+  if(!activeTraining){
+    const message=document.createElement("p");message.textContent="Şu anda aktif eğitim yok. Bir asker seçerek eğitime başlayabilirsin.";panel.append(message);return;
+  }
+  const unitNames={barracks_1:"Piyade",archer:"Okçu",barracks_5:"Kalkanlı",barracks_10:"Elit muhafız",stable_1:"Hafif süvari",stable_5:"Atlı okçu",stable_10:"Ağır süvari"};
+  const message=document.createElement("p");message.textContent=(unitNames[activeTraining.unit_id]||activeTraining.unit_id)+" · "+activeTraining.quantity+" asker hazırlanıyor.";panel.append(message);
+  const timer=document.createElement("strong");timer.id="trainingCountdown";timer.className="training-countdown";panel.append(timer);updateTrainingCountdown();
+  const note=document.createElement("small");note.textContent="Eğitim sunucu saatine göre ilerler. Tamamlandığında askerler otomatik olarak orduya eklenir.";panel.append(note);
 }
 $("#openUnits").addEventListener("click",openUnits);
 $("#backVillageFromUnits").addEventListener("click",()=>show("village"));
