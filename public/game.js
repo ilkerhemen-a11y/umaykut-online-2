@@ -99,7 +99,30 @@ function renderUnits(units){
 $("#openUnits").addEventListener("click",openUnits);
 $("#backVillageFromUnits").addEventListener("click",()=>show("village"));
 
-async function loadPlayerData(){try{const [city,world]=await Promise.all([api("/api/city/me"),api("/api/world")]);const c=city.city;$("#myVillage b").textContent=c.city_name;$("#myVillage small").textContent="Merkez · Sv. "+c.level;document.querySelector(".village-title").innerHTML=c.city_name.toUpperCase()+" <small>BOZKIRIN KALBİ</small>";document.querySelector("#village .server").textContent=c.city_name.toUpperCase()+" · SEVİYE "+c.level;for(const key of ["wood","stone","iron","food"])$("#"+key).textContent=Number(c[key]).toLocaleString("tr-TR");}catch(error){console.error("Oyuncu verileri yüklenemedi:",error);}}
+async function loadPlayerData(){
+  try{
+    const [city,army]=await Promise.all([api("/api/city/me"),api("/api/army/me")]);
+    const c=city.city;
+    $("#myVillage b").textContent=c.city_name;
+    $("#myVillage small").textContent="Merkez · Sv. "+c.level;
+    document.querySelector(".village-title").innerHTML=c.city_name.toUpperCase()+" <small>BOZKIRIN KALBİ</small>";
+    document.querySelector("#village .server").textContent=c.city_name.toUpperCase()+" · SEVİYE "+c.level;
+    for(const key of ["wood","stone","iron","food"])$("#"+key).textContent=Number(c[key]).toLocaleString("tr-TR");
+    renderArmy(army.units);
+  }catch(error){console.error("Oyuncu verileri yüklenemedi:",error);}
+}
+function renderArmy(units){
+  const strip=document.querySelector(".army-strip .units");
+  strip.replaceChildren();
+  const icons=["🪓","🏹","🛡️","⚔️","🐎","🏹","🐎"];
+  units.forEach((unit,index)=>{
+    const item=document.createElement("div");
+    const icon=document.createElement("span");icon.textContent=icons[index]||"⚔️";
+    const name=document.createElement("small");name.textContent=unit.role;
+    const quantity=document.createElement("b");quantity.textContent=Number(unit.quantity).toLocaleString("tr-TR");
+    item.append(icon,name,quantity);strip.append(item);
+  });
+}
 $("#authForm").addEventListener("submit",async e=>{e.preventDefault();const username=$("#username").value.trim(),password=$("#password").value;$("#authSubmit").disabled=true;$("#authMessage").textContent="Sunucuya bağlanılıyor…";try{const data=await api(authMode==="login"?"/api/auth/login":"/api/auth/register",{method:"POST",body:JSON.stringify({username,password})});token=data.token;localStorage.setItem("umaykut_token",token);await enterGame(data.player);}catch(error){$("#authMessage").textContent=error.message;}finally{$("#authSubmit").disabled=false;}});
 $("#enterVillage").onclick=()=>show("village");$("#goHome").onclick=()=>show("village");$("#myVillage").onclick=()=>show("village");$("#backWorld").onclick=()=>show("world");
 function modal(title,desc,action="Geliştirme bilgisi"){$("#modalTitle").textContent=title;$("#modalText").textContent=desc;$("#modalAction").textContent=action;$("#modal").classList.add("open");}
