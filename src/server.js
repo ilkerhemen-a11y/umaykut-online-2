@@ -8,6 +8,7 @@ import { pool } from "./db.js";
 import { register, login, requireAuth } from "./auth.js";
 import { getWorld, getMyCity } from "./world.js";
 import { getFactions, getMyFaction, selectFaction } from "./factions.js";
+import { getUnitCatalog, getMyUnitCatalog } from "./units.js";
 
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
   throw new Error("JWT_SECRET en az 32 karakterlik güçlü bir gizli anahtar olmalı.");
@@ -61,6 +62,8 @@ app.post("/api/auth/login", login);
 app.get("/api/factions", getFactions);
 app.get("/api/faction/me", requireAuth, getMyFaction);
 app.post("/api/faction/select", requireAuth, selectFaction);
+app.get("/api/units", getUnitCatalog);
+app.get("/api/units/me", requireAuth, getMyUnitCatalog);
 app.get("/api/world", requireAuth, getWorld);
 app.get("/api/city/me", requireAuth, getMyCity);
 
