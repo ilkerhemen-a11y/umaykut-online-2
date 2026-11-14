@@ -36,7 +36,7 @@ Bu kod henüz canlıya alınmış veya üretim güvenliği açısından denetlen
 ## Devletlere özel asker kataloğu
 
 - Her devlet için 7 asker tanımı bulunur: Kışla Seviye 1, Okçu, Kışla Seviye 5, Kışla Seviye 10, Ahır Seviye 1, Ahır Seviye 5 ve Ahır Seviye 10.
-- Kaynak görseldeki beş değer sırasıyla saldırı, savunma, özel savunma, hız ve yiyecek maliyeti olarak geçici biçimde adlandırılmıştır. Özel savunma ve yiyecek maliyeti etiketleri oyun tasarımında teyit bekler.
+- Beş değer kesin olarak şu sıradadır: saldırı; piyadelere karşı savunma (normal kalkan); atlılara karşı savunma (mor kalkan); hareket hızı; yağmaya gönderilen bir askerin toplam ganimet taşıma kapasitesi (altın simgesi). Son değer üretim maliyeti veya altın değildir.
 - `GET /api/units` tüm devletlerin katalog tanımlarını; `GET /api/units/me` giriş yapan oyuncunun devletine ait 7 birimi getirir.
 - Köyde Kışla/Ahır binalarına veya Ordu Birlikleri başlığına dokununca asker kataloğu açılır.
 - Bu aşama katalog ve istatistik gösterimidir. Asker üretimi, kuyruk, kaynak düşümü, birlik envanteri ve savaş hesabı henüz etkin değildir.
@@ -54,5 +54,5 @@ Bu kod henüz canlıya alınmış veya üretim güvenliği açısından denetlen
 - Her oyuncu için aynı anda tek aktif eğitim bulunur. Süreler test amaçlı asker başına 20–60 saniyedir; adet arttıkça toplam süre doğrusal artar.
 - `GET /api/training/me` sunucu saatine göre tamamlanan eğitimi sonuçlandırır ve askerleri kalıcı ordu envanterine ekler. Oyuncu oyundan çıksa da bitiş zamanı kaybolmaz.
 - Kışla/Ahır ekranında aktif eğitim geri sayımı, asker adedi ve ordudaki mevcut gösterilir.
-- Bu test aşamasında kaynak düşümü uygulanmaz. Görseldeki son satırın yiyecek maliyeti mi, üretim bedeli mi olduğu ve kaynak türleri/üretim maliyetleri kesinleşmeden odun, taş, demir, yiyecek, altın veya at düşülmez.
+- Bu test aşamasında kaynak düşümü uygulanmaz. Beşinci asker değeri üretim bedeli değil, yağma taşıma kapasitesidir. Üretim maliyetleri ayrıca tasarlanıp onaylanacaktır.
 - Gerçek zamanlı otomatik tamamlama, oyuncu eğitim ekranını yeniden açtığında veya eğitim durumu API'si sorgulandığında işlenir; ayrı arka plan worker henüz yoktur.
