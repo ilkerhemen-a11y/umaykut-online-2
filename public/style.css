@@ -254,3 +254,9 @@ body{background:#101812;color:#f4e9ca;font-family:Georgia,serif}
  #village .placed-building.placed-center{min-width:100px;min-height:102px}
  #village .placed-building.placed-center:before{width:60px;height:60px}
 }
+
+/* Illustrated central keep asset */
+.placed-building.placed-center{width:126px;min-width:126px;min-height:122px;padding:5px 7px 7px;background:linear-gradient(160deg,#3a4a36,#17251d);border:1px solid #d8b65b;box-shadow:0 8px 18px #142014aa, inset 0 0 0 2px #f2d78a44}
+.placed-building.placed-center .keep-art{display:block;width:104px;height:82px;object-fit:contain;filter:drop-shadow(0 5px 4px #10180f99)}
+.placed-building.placed-center b{font-size:10px;letter-spacing:1px;color:#ffe8a5}
+.placed-building.placed-center small{font-size:8px;color:#d9c58e}
