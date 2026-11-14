@@ -260,3 +260,70 @@ body{background:#101812;color:#f4e9ca;font-family:Georgia,serif}
 .placed-building.placed-center .keep-art{display:block;width:104px;height:82px;object-fit:contain;filter:drop-shadow(0 5px 4px #10180f99)}
 .placed-building.placed-center b{font-size:10px;letter-spacing:1px;color:#ffe8a5}
 .placed-building.placed-center small{font-size:8px;color:#d9c58e}
+
+
+/* Isometric illustrated game assets: real SVG scene objects, not emoji placeholders */
+#village .village-scene{
+ background-color:#718849;
+ background-image:linear-gradient(180deg,#17271a12,#17271a35),url("/assets/terrain.svg");
+ background-size:cover,256px 256px;
+ background-repeat:no-repeat,repeat;
+}
+#village .village-scene:before{
+ background-image:radial-gradient(ellipse at 50% 50%,#d9c58a24 0 30%,transparent 68%),linear-gradient(32deg,transparent 48%,#e7d7a422 49%,transparent 50%);
+ opacity:.9;
+}
+.placed-building .building-art{
+ display:block;
+ width:clamp(64px,17vw,88px);
+ height:clamp(58px,15vw,78px);
+ object-fit:contain;
+ filter:drop-shadow(0 6px 4px #10180f99);
+}
+.placed-building:not(.placed-center){
+ min-width:78px;
+ min-height:82px;
+ padding:3px 5px 5px;
+ gap:0;
+ border:1px solid #d9c18b;
+ border-radius:10px;
+ background:linear-gradient(150deg,#435b3cF2,#1a2b20F5);
+ box-shadow:0 7px 14px #111d13aa,inset 0 1px #ffffff38;
+}
+.placed-building:not(.placed-center) b{
+ margin-top:-3px;
+ padding:2px 5px;
+ border-radius:4px;
+ background:#17251ddd;
+ color:#f7e7bc;
+ font-size:8px;
+}
+.placed-building:not(.placed-center) small{font-size:7px;color:#dfd0a5}
+.placed-building.placed-center .keep-art{
+ width:116px;
+ height:92px;
+ object-fit:contain;
+}
+.catalog-building-art{
+ display:block;
+ width:58px;
+ height:48px;
+ object-fit:contain;
+ margin:0 auto 3px;
+ filter:drop-shadow(0 3px 3px #0a130c99);
+}
+.building-catalog button{
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ min-height:86px;
+ padding:5px 3px;
+}
+.building-catalog button small{font-size:9px;line-height:1.15}
+@media(max-width:420px){
+ .placed-building:not(.placed-center){min-width:66px;min-height:72px}
+ .placed-building .building-art{width:68px;height:58px}
+ .catalog-building-art{width:50px;height:42px}
+ .building-catalog button{min-height:76px}
+}
