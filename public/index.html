@@ -75,7 +75,18 @@
       </div>
       <div id="armyCarrySummary" class="army-carry-summary">💰 Toplam yağma taşıma kapasitesi: 0</div>
     </div>
-    <nav class="actions"><button data-action="Geliştir">⚒️<b>Geliştir</b></button><button data-action="Üretim">📊<b>Üretim</b></button><button data-action="Pazar">🏪<b>Pazar</b></button><button data-action="Köy Destek">🛡️<b>Köy Destek</b></button></nav>
+    <nav class="actions"><button data-action="Geliştir">⚒️<b>Geliştir</b></button><button data-action="Üretim" id="openEconomy">📊<b>İşçiler / Üretim</b></button><button data-action="Pazar">🏪<b>Pazar</b></button><button data-action="Köy Destek">🛡️<b>Köy Destek</b></button></nav>
+  </section>
+  <section id="economyScreen" class="screen">
+    <div class="screen-top"><button class="menu" id="backVillageFromEconomy" type="button">←</button><span class="server">İŞÇİLER VE HARİTA KAYNAKLARI</span><span class="round">🌾</span></div>
+    <div class="economy-page">
+      <h2>ŞEHRİN İŞÇİLERİ</h2>
+      <div id="workerSummary" class="worker-summary">İşçi bilgileri yükleniyor…</div>
+      <p class="economy-intro">İşçilerini şehir binalarına değil, haritadaki kaynak noktalarına gönder. Her kaynak noktası Merkez Binası seviyesine göre işçi kabul eder.</p>
+      <div id="resourceNodeList" class="resource-node-list"></div>
+      <p id="economyMessage" class="economy-message" role="status"></p>
+      <small class="economy-note">Üretim gerçek zamanlı olarak sunucu saatine göre hesaplanır. Oyundan çıkınca da devam eder.</small>
+    </div>
   </section>
   <section id="unitsScreen" class="screen">
     <div class="screen-top"><button class="menu" id="backVillageFromUnits" type="button">←</button><span class="server" id="unitsFactionTitle">DEVLET ASKERLERİ</span><span class="round">⚔️</span></div>
