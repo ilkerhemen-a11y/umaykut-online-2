@@ -20,3 +20,7 @@ CREATE TABLE IF NOT EXISTS player_cities (
 
 CREATE INDEX IF NOT EXISTS idx_player_cities_coordinates
   ON player_cities (x, y);
+
+-- Kalıcı devlet seçimi. Mevcut hesaplarda NULL kalır ve ilk girişte seçim istenir.
+ALTER TABLE players ADD COLUMN IF NOT EXISTS faction_id VARCHAR(20);
+CREATE INDEX IF NOT EXISTS idx_players_faction_id ON players (faction_id);
