@@ -150,6 +150,61 @@ function renderTrainingStatus(){
 $("#openUnits").addEventListener("click",openUnits);
 $("#backVillageFromUnits").addEventListener("click",()=>show("village"));
 
+
+let economyRefreshTimer=null;
+async function openEconomy(){
+  show("economyScreen");
+  await loadEconomy();
+  if(economyRefreshTimer)clearInterval(economyRefreshTimer);
+  economyRefreshTimer=setInterval(()=>loadEconomy(true),30000);
+}
+async function loadEconomy(silent=false){
+  try{
+    const data=await api("/api/economy/me");
+    renderEconomy(data);
+    const r=data.resources;
+    for(const key of ["food","wood","stone","iron","gold","horses"])$("#"+key).textContent=Number(r[key]||0).toLocaleString("tr-TR");
+  }catch(error){
+    if(!silent)$("#economyMessage").textContent=error.message;
+  }
+}
+function renderEconomy(data){
+  const summary=$("#workerSummary");
+  summary.replaceChildren();
+  const headline=document.createElement("strong");
+  headline.textContent=Number(data.availableWorkers).toLocaleString("tr-TR")+" / "+Number(data.workerPool).toLocaleString("tr-TR")+" boşta işçi";
+  const detail=document.createElement("span");
+  detail.textContent="Atanan: "+Number(data.assignedWorkers).toLocaleString("tr-TR")+" · Merkez seviyesi: "+data.centerLevel+" · Kaynak başına sınır: "+Number(data.maxWorkersPerNode).toLocaleString("tr-TR");
+  summary.append(headline,detail);
+  const list=$("#resourceNodeList");
+  list.replaceChildren();
+  data.nodes.forEach(node=>{
+    const card=document.createElement("article");card.className="resource-node-card";
+    const title=document.createElement("h3");title.textContent=node.icon+" "+node.name;
+    const coords=document.createElement("small");coords.textContent="Harita koordinatı: ("+node.x+", "+node.y+")";
+    const production=document.createElement("p");
+    const perHour=node.workersAssigned*node.yieldPerWorkerHour;
+    production.textContent="Mevcut üretim: "+perHour.toLocaleString("tr-TR",{maximumFractionDigits:2})+" / saat · İşçi sınırı: "+node.maxWorkers;
+    const label=document.createElement("label");label.textContent="Gönderilecek işçi sayısı";
+    const input=document.createElement("input");input.type="number";input.min="0";input.max=String(node.maxWorkers);input.step="1";input.value=String(node.workersAssigned);input.className="worker-input";
+    const save=document.createElement("button");save.type="button";save.className="train-button";save.textContent="İŞÇİLERİ GÖNDER";
+    save.addEventListener("click",async()=>{
+      const amount=Number(input.value);
+      if(!Number.isSafeInteger(amount)||amount<0||amount>node.maxWorkers){$("#economyMessage").textContent="Bu kaynak noktası için 0 ile "+node.maxWorkers+" arasında işçi girmelisin.";return;}
+      save.disabled=true;save.textContent="KAYDEDİLİYOR…";
+      try{
+        const result=await api("/api/economy/assign",{method:"POST",body:JSON.stringify({nodeId:node.id,workers:amount})});
+        $("#economyMessage").textContent=result.message;
+        await loadEconomy(true);
+      }catch(error){$("#economyMessage").textContent=error.message;}
+      finally{save.disabled=false;save.textContent="İŞÇİLERİ GÖNDER";}
+    });
+    card.append(title,coords,production,label,input,save);list.append(card);
+  });
+}
+$("#backVillageFromEconomy").addEventListener("click",()=>show("village"));
+$("#openEconomy").addEventListener("click",openEconomy);
+
 async function loadPlayerData(){
   try{
     const [city,army]=await Promise.all([api("/api/city/me"),api("/api/army/me")]);
@@ -158,7 +213,7 @@ async function loadPlayerData(){
     $("#myVillage small").textContent="Merkez · Sv. "+c.level;
     document.querySelector(".village-title").innerHTML=c.city_name.toUpperCase()+" <small>BOZKIRIN KALBİ</small>";
     document.querySelector("#village .server").textContent=c.city_name.toUpperCase()+" · SEVİYE "+c.level;
-    for(const key of ["wood","stone","iron","food"])$("#"+key).textContent=Number(c[key]).toLocaleString("tr-TR");
+    for(const key of ["wood","stone","iron","food","gold","horses"])$("#"+key).textContent=Number(c[key]||0).toLocaleString("tr-TR");
     renderArmy(army);
   }catch(error){console.error("Oyuncu verileri yüklenemedi:",error);}
 }
@@ -182,6 +237,6 @@ $("#enterVillage").onclick=()=>show("village");$("#goHome").onclick=()=>show("vi
 function modal(title,desc,action="Geliştirme bilgisi"){$("#modalTitle").textContent=title;$("#modalText").textContent=desc;$("#modalAction").textContent=action;$("#modal").classList.add("open");}
 $("#closeModal").onclick=()=>$("#modal").classList.remove("open");
 document.querySelectorAll("[data-building]").forEach(b=>b.onclick=()=>{if(b.dataset.building==="Kışla"||b.dataset.building==="Ahır"){openUnits();return;}modal(b.dataset.building,"Bu yapı köy ekonomisine ve savunmasına katkı sağlar. Gerçek yükseltme sistemi sıradaki aşamada bağlanacak.","Yakında aktif");});
-document.querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>modal(b.dataset.action,"Bu bölümün oyun sistemi bir sonraki geliştirme aşamasında eklenecek."));
+document.querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>{if(b.dataset.action==="Üretim"){openEconomy();return;}modal(b.dataset.action,"Bu bölümün oyun sistemi bir sonraki geliştirme aşamasında eklenecek.");});
 $("#modalAction").onclick=()=>$("#modal").classList.remove("open");
 if(token){api("/api/city/me").then(()=>enterGame({username:"Oyuncu"})).catch(()=>{localStorage.removeItem("umaykut_token");token=null;});}
