@@ -1,7 +1,7 @@
 import { pool } from "./db.js";
 
-// İstatistik sırası: saldırı, fiziksel savunma, özel savunma, hız, yiyecek maliyeti.
-// Değerler kullanıcının sağladığı asker tablosundan aktarılmıştır.
+// İstatistik sırası: saldırı, piyadelere karşı savunma, atlılara karşı savunma, hareket hızı, yağma taşıma kapasitesi.
+// Son değer altın değildir; askerin yağmaya çıktığında taşıyabileceği toplam ganimet miktarıdır.
 const columns = [
   { id: "barracks_1", building: "Kışla", level: 1, role: "Piyade" },
   { id: "archer", building: "Kışla", level: 1, role: "Okçu" },
@@ -36,10 +36,10 @@ export function getFactionUnits(factionId) {
     ...columns[index],
     stats: {
       attack: stats[0],
-      defense: stats[1],
-      specialDefense: stats[2],
-      speed: stats[3],
-      foodCost: stats[4]
+      infantryDefense: stats[1],
+      cavalryDefense: stats[2],
+      movementSpeed: stats[3],
+      carryCapacity: stats[4]
     }
   }));
 }
@@ -53,20 +53,20 @@ export function getUnitCatalog(_req, res) {
       factionName: factionNames[factionId],
       stats: {
         attack: stats[0],
-        defense: stats[1],
-        specialDefense: stats[2],
-        speed: stats[3],
-        foodCost: stats[4]
+        infantryDefense: stats[1],
+        cavalryDefense: stats[2],
+        movementSpeed: stats[3],
+        carryCapacity: stats[4]
       }
     }))
   );
   res.json({
     statLabels: {
       attack: "Saldırı",
-      defense: "Savunma",
-      specialDefense: "Özel savunma",
-      speed: "Hız",
-      foodCost: "Yiyecek maliyeti"
+      infantryDefense: "Piyadelere karşı savunma",
+      cavalryDefense: "Atlılara karşı savunma",
+      movementSpeed: "Hareket hızı",
+      carryCapacity: "Yağma taşıma kapasitesi"
     },
     columns,
     units
@@ -84,10 +84,10 @@ export async function getMyUnitCatalog(req, res) {
     factionName: factionNames[factionId],
     statLabels: {
       attack: "Saldırı",
-      defense: "Savunma",
-      specialDefense: "Özel savunma",
-      speed: "Hız",
-      foodCost: "Yiyecek maliyeti"
+      infantryDefense: "Piyadelere karşı savunma",
+      cavalryDefense: "Atlılara karşı savunma",
+      movementSpeed: "Hareket hızı",
+      carryCapacity: "Yağma taşıma kapasitesi"
     },
     units
   });
