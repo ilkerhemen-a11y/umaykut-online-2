@@ -42,7 +42,7 @@ const server = http.createServer(app);
 const allowedOrigin = process.env.CLIENT_ORIGIN || "*";
 
 app.use(cors({ origin: allowedOrigin === "*" ? true : allowedOrigin }));
-app.use(express.json({ limit: "20kb" }));
+app.use(express.json({ limit: "20kb" }));\napp.use(express.static("public"));
 
 app.get("/health", async (_req, res) => {
   try {
