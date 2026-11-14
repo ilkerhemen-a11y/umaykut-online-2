@@ -20,8 +20,8 @@ export async function ensureCityNodes(client, playerId) {
   // Başlangıç kalesinin çevresindeki üç temel kaynak noktası.
   // Harita görünümünde başlangıç kalesi yaklaşık %50, %50 konumundadır.
   const startingNodes = {
-    wood: { x: 40, y: 39, level: 6 },
-    stone: { x: 55, y: 39, level: 6 },
+    wood: { x: 40, y: 43, level: 6 },
+    stone: { x: 55, y: 43, level: 6 },
     iron: { x: 48, y: 56, level: 6 }
   };
   const occupied = Object.values(startingNodes).map(point => ({ x: point.x, y: point.y }));
@@ -59,8 +59,8 @@ export async function ensureCityNodes(client, playerId) {
                  WHEN 'iron' THEN 48
                END,
            y = CASE resource_type
-                 WHEN 'wood' THEN 39
-                 WHEN 'stone' THEN 39
+                 WHEN 'wood' THEN 43
+                 WHEN 'stone' THEN 43
                  WHEN 'iron' THEN 56
                END,
            level = 6
