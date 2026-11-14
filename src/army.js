@@ -1,5 +1,5 @@
 import { pool } from "./db.js";
-import { getMyUnitCatalog } from "./units.js";
+import { getFactionUnits } from "./units.js";
 
 export async function getMyArmy(req, res) {
   const playerResult = await pool.query(
@@ -10,16 +10,9 @@ export async function getMyArmy(req, res) {
   if (!factionId) return res.status(409).json({ error: "Önce bir devlet seçmelisin." });
 
   // Katalogdaki 7 birim, oyuncunun ordusunda başlangıçta sıfır adetle tutulur.
-  const catalogResponse = {
-    json(payload) { this.payload = payload; },
-    status(code) { this.statusCode = code; return this; }
-  };
-  await getMyUnitCatalog({ player: req.player }, catalogResponse);
-  if (catalogResponse.statusCode) {
-    return res.status(catalogResponse.statusCode).json(catalogResponse.payload);
-  }
+  const units = getFactionUnits(factionId);
+  if (!units) return res.status(500).json({ error: "Oyuncu devletinin asker kataloğu bulunamadı." });
 
-  const units = catalogResponse.payload.units;
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
