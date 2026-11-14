@@ -10,6 +10,7 @@ import { getWorld, getMyCity } from "./world.js";
 import { getFactions, getMyFaction, selectFaction } from "./factions.js";
 import { getUnitCatalog, getMyUnitCatalog } from "./units.js";
 import { getMyArmy } from "./army.js";
+import { getMyTraining, startTraining } from "./training.js";
 
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
   throw new Error("JWT_SECRET en az 32 karakterlik güçlü bir gizli anahtar olmalı.");
@@ -39,6 +40,19 @@ async function ensureSchema() {
       ON player_cities (x, y);
     ALTER TABLE players ADD COLUMN IF NOT EXISTS faction_id VARCHAR(20);
     CREATE INDEX IF NOT EXISTS idx_players_faction_id ON players (faction_id);
+    CREATE TABLE IF NOT EXISTS player_training_queue (
+      id BIGSERIAL PRIMARY KEY,
+      player_id BIGINT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+      faction_id VARCHAR(20) NOT NULL CHECK (faction_id IN ('selcuk', 'hun', 'gokturk')),
+      unit_id VARCHAR(32) NOT NULL,
+      quantity INTEGER NOT NULL CHECK (quantity BETWEEN 1 AND 100),
+      started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      finishes_at TIMESTAMPTZ NOT NULL,
+      status VARCHAR(16) NOT NULL DEFAULT 'training' CHECK (status IN ('training', 'completed')),
+      completed_at TIMESTAMPTZ
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_one_active_training_per_player
+      ON player_training_queue (player_id) WHERE status = 'training';
     CREATE TABLE IF NOT EXISTS player_army (
       player_id BIGINT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
       faction_id VARCHAR(20) NOT NULL CHECK (faction_id IN ('selcuk', 'hun', 'gokturk')),
@@ -74,6 +88,8 @@ app.post("/api/faction/select", requireAuth, selectFaction);
 app.get("/api/units", getUnitCatalog);
 app.get("/api/units/me", requireAuth, getMyUnitCatalog);
 app.get("/api/army/me", requireAuth, getMyArmy);
+app.get("/api/training/me", requireAuth, getMyTraining);
+app.post("/api/training/start", requireAuth, startTraining);
 app.get("/api/world", requireAuth, getWorld);
 app.get("/api/city/me", requireAuth, getMyCity);
 
