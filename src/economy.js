@@ -8,7 +8,6 @@ const RESOURCE_TYPES = Object.freeze([
   { id: "gold", name: "Altın", icon: "🪙", yieldPerWorkerHour: 0.5 },
   { id: "horses", name: "At", icon: "🐎", yieldPerWorkerHour: 0.25 }
 ]);
-const STARTING_WORKERS = 1800;
 const WORKERS_PER_NODE_PER_CENTER_LEVEL = 300;
 
 async function ensureCityNodes(client, playerId) {
@@ -120,9 +119,9 @@ export async function getMyEconomy(req, res) {
     });
     await client.query("COMMIT");
     res.json({
-      workerPool: STARTING_WORKERS,
+      workerPool: Number(city.worker_pool),
       assignedWorkers: assigned,
-      availableWorkers: Math.max(0, STARTING_WORKERS - assigned),
+      availableWorkers: Math.max(0, Number(city.worker_pool) - assigned),
       centerLevel,
       maxWorkersPerNode: centerLevel * WORKERS_PER_NODE_PER_CENTER_LEVEL,
       resources,
@@ -174,7 +173,8 @@ export async function assignWorkers(req, res) {
       "SELECT COALESCE(SUM(workers_assigned), 0)::integer AS assigned FROM city_resource_nodes WHERE city_player_id = $1",
       [req.player.sub]
     );
-    const poolResult = await client.query("SELECT worker_pool FROM player_cities WHERE player_id = $1", [req.player.sub]);\n    const available = Number(poolResult.rows[0].worker_pool) - Number(totals.rows[0].assigned);
+    const poolResult = await client.query("SELECT worker_pool FROM player_cities WHERE player_id = $1", [req.player.sub]);
+    const available = Number(poolResult.rows[0].worker_pool) - Number(totals.rows[0].assigned);
     if (delta > available) {
       await client.query("ROLLBACK");
       return res.status(400).json({ error: `Yeterli boşta işçi yok. Kullanılabilir işçi: ${available}.` });
