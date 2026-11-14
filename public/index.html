@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#17150f"><title>Umaykut Online 2</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="resourcebar">
+  <div class="brand">🐺 <b>UMAYKUT</b><small>ONLINE II</small></div>
+  <div class="resources">
+    <div>🪨 <b id="stone">32.450</b><small>Taş</small></div><div>🌳 <b id="wood">478.569</b><small>Odun</small></div>
+    <div>🌾 <b id="food">357.154</b><small>Yiyecek</small></div><div>⛏️ <b id="iron">18.698</b><small>Demir</small></div>
+    <div>🪙 <b id="gold">1.424</b><small>Altın</small></div><div>🐎 <b id="horses">46</b><small>At</small></div><div>💎 <b id="gems">38</b><small>Elmas</small></div>
+  </div>
+</header>
+<main>
+  <section id="world" class="screen active">
+    <div class="screen-top"><button class="menu">☰</button><span class="server">🟢 BOZKIR 1 · 2X</span><button class="round" id="enterVillage">↗</button></div>
+    <div class="map-world">
+      <div class="map-label">ORTAK DÜNYA · KUZEYDOĞU</div>
+      <div class="world-village home" id="myVillage"><span>🏰</span><b>İlk Yurdum</b><small>Merkez · Sv. 1</small></div>
+      <div class="world-village other one"><span>🏯</span><b>Demirhisar</b><small>Oyuncu · Sv. 3</small></div>
+      <div class="world-village other two"><span>🏰</span><b>Akçakale</b><small>Oyuncu · Sv. 2</small></div>
+      <div class="resource-node n1">🪨<small>Taş 5</small></div><div class="resource-node n2">🌳<small>Odun 4</small></div>
+      <div class="resource-node n3">🌾<small>Tarla 6</small></div><div class="resource-node n4">⛏️<small>Demir 3</small></div>
+      <div class="map-hint">Köyüne dokun ve yönetmeye başla</div>
+    </div>
+    <div class="world-actions"><button id="goHome">🏠 Köyüm</button><button>⇄ Köy Değiştir</button></div>
+  </section>
+  <section id="village" class="screen">
+    <div class="screen-top"><button class="menu" id="backWorld">☰</button><span class="server">İLK YURDUM · SEVİYE 1</span><button class="round">⇄</button></div>
+    <div class="village-scene">
+      <div class="village-title">İLK YURDUM <small>BOZKIRIN KALBİ</small></div>
+      <div class="wall"></div>
+      <button class="building b1" data-building="Atölye">⚒️<small>Atölye · Sv. 1</small></button>
+      <button class="building b2" data-building="Ahır">🐎<small>Ahır · Sv. 1</small></button>
+      <button class="building b3" data-building="Tapınak">🛕<small>Tapınak · Sv. 1</small></button>
+      <button class="building b4" data-building="Değirmen">🌾<small>Değirmen · Sv. 1</small></button>
+      <button class="building b5" data-building="Pazar">🏪<small>Pazar · Sv. 1</small></button>
+      <button class="building b6" data-building="Kışla">🛡️<small>Kışla · Sv. 1</small></button>
+      <button class="building b7" data-building="Tarla">🌱<small>Tarla · Sv. 1</small></button>
+      <button class="building b8" data-building="Sığınak">🏕️<small>Sığınak · Sv. 1</small></button>
+      <button class="main-building" data-building="Merkez Binası">🏛️<b>MERKEZ BİNASI</b><small>Seviye 1 · İnşa</small></button>
+      <div class="gate">⛩️</div>
+    </div>
+    <div class="army-strip">
+      <div class="army-title">⚔️ ORDU BİRLİKLERİ</div>
+      <div class="units">
+        <div>🪓<small>Gulam</small><b>0</b></div><div>🏹<small>Kemankeş</small><b>0</b></div><div>🛡️<small>Selçuk</small><b>0</b></div><div>⚔️<small>Alparslan</small><b>0</b></div><div>🐎<small>Kargılı</small><b>0</b></div><div>🏹<small>Atlı Okçu</small><b>0</b></div><div>🐎<small>Sipahi</small><b>0</b></div>
+      </div>
+    </div>
+    <nav class="actions"><button data-action="Geliştir">⚒️<b>Geliştir</b></button><button data-action="Üretim">📊<b>Üretim</b></button><button data-action="Pazar">🏪<b>Pazar</b></button><button data-action="Köy Destek">🛡️<b>Köy Destek</b></button></nav>
+  </section>
+</main>
+<aside class="side-tabs"><button>Birlik</button><button>Sistem</button><button>Genel Sohbet</button></aside>
+<footer class="bottom-nav"><button>🏯<small>Günlük</small></button><button>⚔️<small>Saldırı</small></button><button>🛡️<small>Destek</small></button><button>📜<small>Rapor</small></button><button>🧭<small>Giden</small></button><button>🎖️<small>Görev</small></button><button>☰<small>Diğer</small></button></footer>
+<div class="modal" id="modal"><div class="modal-card"><button class="close" id="closeModal">✕</button><h2 id="modalTitle">Merkez Binası</h2><p id="modalText">Köyünün kalbi.</p><button class="gold-button" id="modalAction">Geliştirme bilgisi</button></div></div>
+<script src="/game.js"></script>
+</body></html>
