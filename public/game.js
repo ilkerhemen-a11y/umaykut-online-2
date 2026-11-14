@@ -43,7 +43,7 @@ async function loadWorldMap(){
       marker.style.left=Number(node.x)+"%";marker.style.top=Number(node.y)+"%";
       marker.title=names[node.resource_type]+" · 6 Puan · İşçi göndermek için dokun";
       marker.setAttribute("aria-label",names[node.resource_type]+" 6 puanlık sana ait kaynak. İşçi göndermek için dokun.");
-      const icon=document.createElement("span");icon.textContent=icons[node.resource_type];
+      const icon=document.createElement("img");icon.src="/assets/resources/"+node.resource_type+".svg";icon.alt=names[node.resource_type];icon.className="resource-art";
       const level=document.createElement("small");level.className="resource-level";level.textContent="6";
       const kind=document.createElement("small");kind.className="resource-kind";kind.textContent=names[node.resource_type];
       marker.append(icon,level,kind);
