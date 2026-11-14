@@ -32,3 +32,11 @@ Socket.IO bağlantısı `auth: { token }` ile doğrulanır; başarılı bağlant
 
 ## Geliştirme durumu
 Bu kod henüz canlıya alınmış veya üretim güvenliği açısından denetlenmiş değildir. Şehir koordinatlarının çakışmasını önleme, kaynak üretimi, binalar, ordu, savaş, ittifaklar, rate limit, parola sıfırlama, istemci entegrasyonu ve otomatik testler sonraki aşamalardır. Gizli anahtarları GitHub'a yüklemeyin.
+
+## Devletlere özel asker kataloğu
+
+- Her devlet için 7 asker tanımı bulunur: Kışla Seviye 1, Okçu, Kışla Seviye 5, Kışla Seviye 10, Ahır Seviye 1, Ahır Seviye 5 ve Ahır Seviye 10.
+- Kaynak görseldeki beş değer sırasıyla saldırı, savunma, özel savunma, hız ve yiyecek maliyeti olarak geçici biçimde adlandırılmıştır. Özel savunma ve yiyecek maliyeti etiketleri oyun tasarımında teyit bekler.
+- `GET /api/units` tüm devletlerin katalog tanımlarını; `GET /api/units/me` giriş yapan oyuncunun devletine ait 7 birimi getirir.
+- Köyde Kışla/Ahır binalarına veya Ordu Birlikleri başlığına dokununca asker kataloğu açılır.
+- Bu aşama katalog ve istatistik gösterimidir. Asker üretimi, kuyruk, kaynak düşümü, birlik envanteri ve savaş hesabı henüz etkin değildir.
