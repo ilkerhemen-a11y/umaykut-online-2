@@ -53,11 +53,15 @@ async function ensureSchema() {
       resource_type VARCHAR(16) NOT NULL CHECK (resource_type IN ('food','wood','stone','iron','gold','horses')),
       x INTEGER NOT NULL,
       y INTEGER NOT NULL,
+      level INTEGER NOT NULL DEFAULT 4 CHECK (level BETWEEN 4 AND 9),
       workers_assigned INTEGER NOT NULL DEFAULT 0 CHECK (workers_assigned >= 0),
       yield_per_worker_hour NUMERIC(8,3) NOT NULL DEFAULT 1,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       UNIQUE (city_player_id, resource_type)
     );
+    ALTER TABLE city_resource_nodes ADD COLUMN IF NOT EXISTS level INTEGER NOT NULL DEFAULT 4;
+    ALTER TABLE city_resource_nodes DROP CONSTRAINT IF EXISTS city_resource_nodes_level_check;
+    ALTER TABLE city_resource_nodes ADD CONSTRAINT city_resource_nodes_level_check CHECK (level BETWEEN 4 AND 9);
     CREATE INDEX IF NOT EXISTS idx_player_cities_coordinates
       ON player_cities (x, y);
     ALTER TABLE players ADD COLUMN IF NOT EXISTS faction_id VARCHAR(20);
