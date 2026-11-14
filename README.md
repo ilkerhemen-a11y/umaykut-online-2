@@ -40,3 +40,10 @@ Bu kod henüz canlıya alınmış veya üretim güvenliği açısından denetlen
 - `GET /api/units` tüm devletlerin katalog tanımlarını; `GET /api/units/me` giriş yapan oyuncunun devletine ait 7 birimi getirir.
 - Köyde Kışla/Ahır binalarına veya Ordu Birlikleri başlığına dokununca asker kataloğu açılır.
 - Bu aşama katalog ve istatistik gösterimidir. Asker üretimi, kuyruk, kaynak düşümü, birlik envanteri ve savaş hesabı henüz etkin değildir.
+
+## Kalıcı ordu mevcudu (ilk altyapı)
+
+- `player_army` tablosu her oyuncunun kendi devletine ait 7 asker türünü ayrı ayrı saklar.
+- `GET /api/army/me` giriş yapan oyuncunun asker mevcudunu döndürür; ilk istekte 7 birlik sıfır adetle oluşturulur.
+- Köydeki ordu şeridi artık sabit örnek sayılar yerine veritabanından gelen gerçek birlik adetlerini gösterir.
+- Bu adım yalnızca ordu envanterinin kalıcı temelidir. Asker üretimi, kaynak maliyeti, üretim süresi ve kuyruk henüz etkin değildir; son sütunun kaynağı/işlevi teyit edilmeden kaynak düşümü yapılmaz.
