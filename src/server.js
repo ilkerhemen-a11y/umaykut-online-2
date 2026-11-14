@@ -62,6 +62,11 @@ async function ensureSchema() {
     ALTER TABLE city_resource_nodes ADD COLUMN IF NOT EXISTS level INTEGER NOT NULL DEFAULT 4;
     ALTER TABLE city_resource_nodes DROP CONSTRAINT IF EXISTS city_resource_nodes_level_check;
     ALTER TABLE city_resource_nodes ADD CONSTRAINT city_resource_nodes_level_check CHECK (level BETWEEN 4 AND 9);
+    UPDATE city_resource_nodes
+       SET x = 5 + FLOOR(RANDOM() * 91)::integer,
+           y = 5 + FLOOR(RANDOM() * 91)::integer,
+           level = 4 + FLOOR(RANDOM() * 6)::integer
+     WHERE x < 5 OR x > 95 OR y < 5 OR y > 95;
     CREATE INDEX IF NOT EXISTS idx_player_cities_coordinates
       ON player_cities (x, y);
     ALTER TABLE players ADD COLUMN IF NOT EXISTS faction_id VARCHAR(20);
