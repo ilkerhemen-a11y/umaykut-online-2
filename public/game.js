@@ -23,6 +23,26 @@ function finishEnteringWorld(faction){
   $("#playerName").textContent=(currentPlayer?.username||"OYUNCU").toUpperCase()+" · "+faction.name.toLocaleUpperCase("tr-TR");
   $("#world").classList.add("active");
   loadPlayerData();
+  loadWorldMap();
+}
+async function loadWorldMap(){
+  try{
+    const data=await api("/api/world");
+    const layer=$("#resourceMapNodes");
+    if(!layer)return;
+    layer.replaceChildren();
+    const icons={food:"🌾",wood:"🌳",stone:"🪨",iron:"⛏️",gold:"🪙"};
+    const names={food:"Tahıl",wood:"Odun",stone:"Taş",iron:"Demir",gold:"Altın"};
+    (data.resources||[]).forEach(node=>{
+      const marker=document.createElement("button");
+      marker.type="button";marker.className="resource-node";
+      marker.style.left=Number(node.x)+"%";marker.style.top=Number(node.y)+"%";
+      marker.title=names[node.resource_type]+" · Seviye "+node.level;
+      const icon=document.createElement("span");icon.textContent=icons[node.resource_type]||"📍";
+      const label=document.createElement("small");label.textContent=names[node.resource_type]+" · Sv."+node.level;
+      marker.append(icon,label);layer.append(marker);
+    });
+  }catch(error){console.error("Dünya haritası yüklenemedi:",error);}
 }
 async function openFactionSelection(){
   selectedFactionId=null;
