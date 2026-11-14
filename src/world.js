@@ -8,7 +8,13 @@ export async function getWorld(_req, res) {
     ORDER BY p.id
     LIMIT 500
   `);
-  res.json({ world: "bozkir-1", cities: result.rows });
+  const resources = await pool.query(`
+    SELECT n.id, n.city_player_id AS player_id, n.resource_type, n.x, n.y, n.level
+    FROM city_resource_nodes n
+    WHERE n.resource_type IN ('food','wood','stone','iron','gold')
+    ORDER BY n.id
+  `);
+  res.json({ world: "bozkir-1", cities: result.rows, resources: resources.rows });
 }
 
 export async function getMyCity(req, res) {
