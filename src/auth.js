@@ -27,7 +27,12 @@ export async function register(req, res) {
       [player.id, player.username + 'in Yurdu']
     );
     await client.query("COMMIT");
-    return res.status(201).json({ player: { id: player.id, username: player.username } });
+    const token = jwt.sign(
+      { sub: String(player.id), username: player.username },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+    return res.status(201).json({ token, player: { id: player.id, username: player.username } });
   } catch (error) {
     await client.query("ROLLBACK");
     if (error.code === "23505") return res.status(409).json({ error: "Bu oyuncu adı zaten kullanılıyor." });
