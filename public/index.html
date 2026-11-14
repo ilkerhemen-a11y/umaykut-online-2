@@ -57,12 +57,13 @@
       <div class="village-title">İLK YURDUM <small>BOZKIRIN KALBİ</small></div>
       <div class="wall"></div>
       <div id="villageResourceNodes" class="village-resource-nodes" aria-label="Kale içindeki kaynak noktaları"></div>
+      <div id="villageBuildingSlots" class="village-building-slots" aria-label="Merkez binası çevresindeki dokuz inşa alanı"></div>
       <div id="villageBuildingsLayer" class="village-buildings-layer" aria-label="Yerleştirilmiş köy binaları"></div>
       <div class="gate">⛩️</div>
     </div>
-    <div class="building-placement">
-      <div class="placement-heading">🏗️ YAPI YERLEŞTİR</div>
-      <p id="placementHint">Bir bina seç, ardından köy haritasında boş bir noktaya dokun.</p>
+    <div class="building-placement" id="buildingPlacementPanel" hidden>
+      <div class="placement-heading">🏗️ YENİ BİNA İNŞA ET</div>
+      <p id="placementHint">Bu inşa alanına yerleştirmek istediğin binayı seç.</p>
       <div class="building-catalog">
         <button type="button" data-place-building="shelter">🏕️<small>Sığınak</small></button>
         <button type="button" data-place-building="temple">🛕<small>Tapınak</small></button>
@@ -79,6 +80,7 @@
         <button type="button" data-place-building="market">🏪<small>Pazar</small></button>
         <button type="button" data-place-building="wall">🧱<small>Sur</small></button>
       </div>
+      <button type="button" id="cancelBuildingPlacement" class="gold-button">İptal</button>
     </div>
     <div class="army-strip">
       <button class="army-title" id="openUnits" type="button">⚔️ ORDU BİRLİKLERİ · ASKER KATALOĞUNU AÇ</button>
