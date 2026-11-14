@@ -57,16 +57,22 @@
       <div class="village-title">İLK YURDUM <small>BOZKIRIN KALBİ</small></div>
       <div class="wall"></div>
       <div id="villageResourceNodes" class="village-resource-nodes" aria-label="Kale içindeki kaynak noktaları"></div>
-      <button class="building b1" data-building="Atölye">⚒️<small>Atölye · Sv. 1</small></button>
-      <button class="building b2" data-building="Ahır">🐎<small>Ahır · Sv. 1</small></button>
-      <button class="building b3" data-building="Tapınak">🛕<small>Tapınak · Sv. 1</small></button>
-      <button class="building b4" data-building="Değirmen">🌾<small>Değirmen · Sv. 1</small></button>
-      <button class="building b5" data-building="Pazar">🏪<small>Pazar · Sv. 1</small></button>
-      <button class="building b6" data-building="Kışla">🛡️<small>Kışla · Sv. 1</small></button>
-      <button class="building b7" data-building="Tarla">🌱<small>Tarla · Sv. 1</small></button>
-      <button class="building b8" data-building="Sığınak">🏕️<small>Sığınak · Sv. 1</small></button>
-      <button class="main-building" data-building="Merkez Binası">🏛️<b>MERKEZ BİNASI</b><small>Seviye 1 · İnşa</small></button>
+      <div id="villageBuildingsLayer" class="village-buildings-layer" aria-label="Yerleştirilmiş köy binaları"></div>
       <div class="gate">⛩️</div>
+    </div>
+    <div class="building-placement">
+      <div class="placement-heading">🏗️ YAPI YERLEŞTİR</div>
+      <p id="placementHint">Bir bina seç, ardından köy haritasında boş bir noktaya dokun.</p>
+      <div class="building-catalog">
+        <button type="button" data-place-building="workshop">⚒️<small>Atölye</small></button>
+        <button type="button" data-place-building="stable">🐎<small>Ahır</small></button>
+        <button type="button" data-place-building="temple">🛕<small>Tapınak</small></button>
+        <button type="button" data-place-building="mill">🌾<small>Değirmen</small></button>
+        <button type="button" data-place-building="market">🏪<small>Pazar</small></button>
+        <button type="button" data-place-building="barracks">🛡️<small>Kışla</small></button>
+        <button type="button" data-place-building="farm">🌱<small>Tarla</small></button>
+        <button type="button" data-place-building="shelter">🏕️<small>Sığınak</small></button>
+      </div>
     </div>
     <div class="army-strip">
       <button class="army-title" id="openUnits" type="button">⚔️ ORDU BİRLİKLERİ · ASKER KATALOĞUNU AÇ</button>
