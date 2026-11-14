@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 260" role="img" aria-labelledby="t d">
+<title id="t">Bozkır merkez kalesi</title><desc id="d">Taş surlu, dört kuleli, kırmızı çatılı orta çağ kalesi.</desc>
+<defs>
+ <linearGradient id="stone" x2="0" y2="1"><stop stop-color="#e8dfc4"/><stop offset="1" stop-color="#817d6c"/></linearGradient>
+ <linearGradient id="roof" x2="0" y2="1"><stop stop-color="#a84e35"/><stop offset="1" stop-color="#542b25"/></linearGradient>
+ <linearGradient id="shadow" x2="0" y2="1"><stop stop-color="#293a2a"/><stop offset="1" stop-color="#17251d"/></linearGradient>
+ <filter id="ds" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur stdDeviation="6"/></filter>
+</defs>
+<ellipse cx="160" cy="226" rx="128" ry="20" fill="#0c1710" opacity=".45" filter="url(#ds)"/>
+<path d="M35 194 160 224 285 194 160 164Z" fill="#a28b5c" stroke="#4b493b" stroke-width="4"/>
+<path d="M55 185 160 211 265 185 160 159Z" fill="#b6a37a" stroke="#5e5948" stroke-width="3"/>
+<!-- rear towers -->
+<g stroke="#55564d" stroke-width="4">
+ <path d="M65 88h48v106H65z" fill="url(#stone)"/><path d="M207 88h48v106h-48z" fill="url(#stone)"/>
+ <path d="M57 91 89 48l32 43Z" fill="url(#roof)"/><path d="m199 91 32-43 32 43Z" fill="url(#roof)"/>
+ <path d="M145 63h30v145h-30z" fill="url(#stone)"/><path d="m137 66 23-44 23 44Z" fill="url(#roof)"/>
+</g>
+<!-- main keep -->
+<path d="M99 104h122v104H99z" fill="url(#stone)" stroke="#4d5148" stroke-width="5"/>
+<path d="M91 108 160 72l69 36Z" fill="url(#roof)" stroke="#4e3028" stroke-width="5"/>
+<path d="M119 131h19v31h-19zM182 131h19v31h-19z" fill="#34463a" stroke="#d7c9a5" stroke-width="3"/>
+<path d="M143 164h34v44h-34z" fill="#49372b" stroke="#e2d3ae" stroke-width="4"/>
+<path d="M154 180h12v28h-12z" fill="#1b211b"/>
+<!-- battlements -->
+<path d="M59 105v-17h12V76h12v12h12v-12h12v12h12v17ZM204 105V88h12V76h12v12h12V76h12v12h12v17Z" fill="#d9d1ba" stroke="#55564d" stroke-width="4"/>
+<!-- stone masonry -->
+<g stroke="#68675d" stroke-width="2" opacity=".7"><path d="M101 137h118M101 174h42M178 174h42M66 129h46M207 129h46M66 161h46M207 161h46"/><path d="M128 108v18m62-18v18M78 107v17m162-17v17"/></g>
+<!-- gate path -->
+<path d="M145 208 160 230 175 208" fill="#bba276" stroke="#625b47" stroke-width="3"/>
+<path d="M160 18v-8" stroke="#e7c76e" stroke-width="3"/><path d="m160 8 12 5-12 5Z" fill="#a84e35"/>
+</svg>
