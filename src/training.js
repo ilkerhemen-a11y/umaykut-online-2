@@ -9,8 +9,8 @@ const TRAINING_SECONDS = {
   stable_1: 35,
   stable_5: 45,
   stable_10: 60,
-  catapult: 90,
-  artillery: 120
+  mancinik: 90,
+  topcu: 120
 };
 
 async function settleFinishedTraining(client, playerId) {
