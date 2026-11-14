@@ -113,7 +113,9 @@ app.get("/api/army/me", requireAuth, getMyArmy);
 app.get("/api/training/me", requireAuth, getMyTraining);
 app.post("/api/training/start", requireAuth, startTraining);
 app.get("/api/world", requireAuth, getWorld);
-app.get("/api/city/me", requireAuth, getMyCity);\napp.get("/api/economy/me", requireAuth, getMyEconomy);\napp.post("/api/economy/assign", requireAuth, assignWorkers);
+app.get("/api/city/me", requireAuth, getMyCity);
+app.get("/api/economy/me", requireAuth, getMyEconomy);
+app.post("/api/economy/assign", requireAuth, assignWorkers);
 
 const io = new Server(server, {
   cors: { origin: allowedOrigin === "*" ? true : allowedOrigin }
