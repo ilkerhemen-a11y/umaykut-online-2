@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 190" role="img" aria-label="Pazar">
+<defs>
+ <linearGradient id="wall" x2="0" y2="1"><stop stop-color="#e4d9b8"/><stop offset="1" stop-color="#93866b"/></linearGradient>
+ <linearGradient id="roof" x2="0" y2="1"><stop stop-color="#a95f42"/><stop offset="1" stop-color="#663a2d"/></linearGradient>
+ <linearGradient id="ground" x2="0" y2="1"><stop stop-color="#c9b47b"/><stop offset="1" stop-color="#77633e"/></linearGradient>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur stdDeviation="5"/></filter>
+</defs>
+<ellipse cx="120" cy="165" rx="94" ry="13" fill="#10180f" opacity=".4" filter="url(#shadow)"/>
+<path d="M25 143 120 177 215 143 120 111Z" fill="#8d815f" stroke="#514a37" stroke-width="3"/>
+<path d="M37 140 120 168 203 140 120 113Z" fill="url(#ground)" stroke="#d8c18b" stroke-width="2"/>
+<path d="M62 92 120 111 120 158 62 137Z" fill="#b9aa88" stroke="#554d3c" stroke-width="3"/>
+<path d="M120 111 178 92 178 137 120 158Z" fill="#817b69" stroke="#514b3d" stroke-width="3"/>
+<path d="M62 92 120 59 178 92 120 111Z" fill="url(#roof)" stroke="#4a392b" stroke-width="4"/>
+<path d="M62 92 120 111 120 121 62 101Z" fill="#663a2d" opacity=".75"/>
+<path d="M120 111 178 92 178 103 120 121Z" fill="#352e25" opacity=".45"/>
+<path d="M89 104 105 109 105 144 89 138Z" fill="#35463b" stroke="#e1d1a9" stroke-width="2"/>
+<path d="M137 105 153 100 153 137 137 143Z" fill="#344238" stroke="#d9c79c" stroke-width="2"/>
+<path d="M111 128 129 134 129 161 111 155Z" fill="#49372a" stroke="#d8c49a" stroke-width="2"/>
+<path d="M120 59 120 48 127 44 127 64Z" fill="#d8c59a" opacity=".9"/>
+<path d="M49 88 120 48 191 88" fill="none" stroke="#e4d2a6" stroke-width="4" stroke-linecap="round"/>
+<path d="M73 91 73 82 83 76 83 96M157 96 157 76 167 82 167 93" fill="none" stroke="#eadab5" stroke-width="3"/>
+<path d="M62 137 120 158 178 137" fill="none" stroke="#e8d7ad" stroke-width="2"/>
+<path d="M44 145 120 172 196 145" fill="none" stroke="#3f4d32" stroke-width="3"/>
+<text x="120" y="28" text-anchor="middle" fill="#f5e8c4" font-family="Georgia,serif" font-size="17" font-weight="bold" stroke="#332b20" stroke-width="3" paint-order="stroke">P</text>
+</svg>
