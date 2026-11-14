@@ -120,7 +120,7 @@ async function ensureSchema() {
         DELETE FROM city_buildings WHERE building_type <> 'center';
         INSERT INTO app_migrations (name) VALUES ('reset-village-to-nine-build-slots-v1');
       END IF;
-    END
+    END;
     $migration$;
   `);
 
