@@ -1,13 +1,83 @@
 const $=s=>document.querySelector(s);
 const API="";
-let authMode="login", token=localStorage.getItem("umaykut_token"), currentPlayer=null;
-const show=id=>{document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));$("#"+id).classList.add("active");window.scrollTo(0,0)};
+let authMode="login", token=localStorage.getItem("umaykut_token"), currentPlayer=null, selectedFactionId=null, factionList=[];
+const show=id=>{document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));$("#"+id).classList.add("active");window.scrollTo(0,0);};
 function authTab(mode){authMode=mode;$("#loginTab").classList.toggle("selected",mode==="login");$("#registerTab").classList.toggle("selected",mode==="register");$("#authSubmit").textContent=mode==="login"?"Oyuna Giriş":"Hesap Oluştur";$("#password").autocomplete=mode==="login"?"current-password":"new-password";$("#authMessage").textContent="";}
 $("#loginTab").onclick=()=>authTab("login");$("#registerTab").onclick=()=>authTab("register");
 async function api(path,options={}){const response=await fetch(API+path,{...options,headers:{"Content-Type":"application/json",...(token?{Authorization:"Bearer "+token}:{}),...(options.headers||{})}});const data=await response.json().catch(()=>({error:"Sunucu yanıtı okunamadı."}));if(!response.ok)throw new Error(data.error||"İşlem başarısız.");return data;}
-function enterGame(player){currentPlayer=player;$("#playerName").textContent=player.username.toUpperCase();$("#authScreen").classList.add("hidden");$("#world").classList.add("active");loadPlayerData();}
-async function loadPlayerData(){try{const [city,world]=await Promise.all([api("/api/city/me"),api("/api/world")]);const c=city.city;$("#myVillage b").textContent=c.city_name;$("#myVillage small").textContent="Merkez · Sv. "+c.level;document.querySelector(".village-title").innerHTML=c.city_name.toUpperCase()+" <small>BOZKIRIN KALBİ</small>";document.querySelector("#village .server").textContent=c.city_name.toUpperCase()+" · SEVİYE "+c.level;for(const key of ["wood","stone","iron","food"])$("#"+key).textContent=Number(c[key]).toLocaleString("tr-TR");}catch(error){$("#authMessage").textContent=error.message;}}
-$("#authForm").addEventListener("submit",async e=>{e.preventDefault();const username=$("#username").value.trim(),password=$("#password").value;$("#authSubmit").disabled=true;$("#authMessage").textContent="Sunucuya bağlanılıyor…";try{const data=await api(authMode==="login"?"/api/auth/login":"/api/auth/register",{method:"POST",body:JSON.stringify({username,password})});token=data.token;localStorage.setItem("umaykut_token",token);enterGame(data.player);}catch(error){$("#authMessage").textContent=error.message;}finally{$("#authSubmit").disabled=false;}});
+async function enterGame(player){
+  currentPlayer=player;
+  $("#playerName").textContent=player.username.toUpperCase();
+  $("#authScreen").classList.add("hidden");
+  try{
+    const result=await api("/api/faction/me");
+    if(!result.faction){await openFactionSelection();return;}
+    finishEnteringWorld(result.faction);
+  }catch(error){
+    $("#authScreen").classList.remove("hidden");
+    $("#authMessage").textContent=error.message;
+  }
+}
+function finishEnteringWorld(faction){
+  $("#factionScreen").classList.add("hidden");
+  $("#playerName").textContent=(currentPlayer?.username||"OYUNCU").toUpperCase()+" · "+faction.name.toLocaleUpperCase("tr-TR");
+  $("#world").classList.add("active");
+  loadPlayerData();
+}
+async function openFactionSelection(){
+  selectedFactionId=null;
+  $("#confirmFaction").disabled=true;
+  $("#factionMessage").textContent="Devletini seçmek için bir karta dokun.";
+  $("#factionScreen").classList.remove("hidden");
+  try{
+    const data=await api("/api/factions");
+    factionList=data.factions;
+    renderFactionCards();
+  }catch(error){$("#factionMessage").textContent=error.message;}
+}
+function renderFactionCards(){
+  const container=$("#factionCards");
+  container.replaceChildren();
+  factionList.forEach(faction=>{
+    const card=document.createElement("button");
+    card.type="button";
+    card.className="faction-card";
+    card.dataset.factionId=faction.id;
+    card.style.setProperty("--faction-accent",faction.colors[0]);
+    const emblem=document.createElement("span");emblem.className="faction-emblem";emblem.textContent=faction.emblem;
+    const name=document.createElement("strong");name.textContent=faction.name;
+    const style=document.createElement("span");style.className="faction-style";style.textContent=faction.style;
+    const desc=document.createElement("span");desc.className="faction-description";desc.textContent=faction.description;
+    const motto=document.createElement("em");motto.className="faction-motto";motto.textContent="“"+faction.motto+"”";
+    const region=document.createElement("span");region.className="faction-region";region.textContent="Başlangıç yurdu: "+faction.startingRegion;
+    const bonuses=document.createElement("span");bonuses.className="faction-bonuses";bonuses.textContent=faction.bonusLabels.join(" · ");
+    [emblem,name,style,desc,motto,region,bonuses].forEach(node=>card.append(node));
+    card.addEventListener("click",()=>{
+      selectedFactionId=faction.id;
+      container.querySelectorAll(".faction-card").forEach(item=>item.classList.toggle("selected",item.dataset.factionId===faction.id));
+      $("#confirmFaction").disabled=false;
+      $("#factionMessage").textContent=faction.name+" seçildi. Onayladığında devletin hesabına kalıcı olarak kaydedilecek.";
+      $("#confirmFaction").textContent=faction.name.toLocaleUpperCase("tr-TR")+" OLARAK BAŞLA";
+    });
+    container.append(card);
+  });
+}
+$("#confirmFaction").addEventListener("click",async()=>{
+  if(!selectedFactionId)return;
+  const button=$("#confirmFaction");
+  button.disabled=true;button.textContent="KAYDEDİLİYOR…";
+  try{
+    const result=await api("/api/faction/select",{method:"POST",body:JSON.stringify({factionId:selectedFactionId})});
+    $("#factionMessage").textContent=result.message;
+    finishEnteringWorld(result.faction);
+  }catch(error){
+    $("#factionMessage").textContent=error.message;
+    button.disabled=false;
+    button.textContent="DEVLETİMİ SEÇ";
+  }
+});
+async function loadPlayerData(){try{const [city,world]=await Promise.all([api("/api/city/me"),api("/api/world")]);const c=city.city;$("#myVillage b").textContent=c.city_name;$("#myVillage small").textContent="Merkez · Sv. "+c.level;document.querySelector(".village-title").innerHTML=c.city_name.toUpperCase()+" <small>BOZKIRIN KALBİ</small>";document.querySelector("#village .server").textContent=c.city_name.toUpperCase()+" · SEVİYE "+c.level;for(const key of ["wood","stone","iron","food"])$("#"+key).textContent=Number(c[key]).toLocaleString("tr-TR");}catch(error){console.error("Oyuncu verileri yüklenemedi:",error);}}
+$("#authForm").addEventListener("submit",async e=>{e.preventDefault();const username=$("#username").value.trim(),password=$("#password").value;$("#authSubmit").disabled=true;$("#authMessage").textContent="Sunucuya bağlanılıyor…";try{const data=await api(authMode==="login"?"/api/auth/login":"/api/auth/register",{method:"POST",body:JSON.stringify({username,password})});token=data.token;localStorage.setItem("umaykut_token",token);await enterGame(data.player);}catch(error){$("#authMessage").textContent=error.message;}finally{$("#authSubmit").disabled=false;}});
 $("#enterVillage").onclick=()=>show("village");$("#goHome").onclick=()=>show("village");$("#myVillage").onclick=()=>show("village");$("#backWorld").onclick=()=>show("world");
 function modal(title,desc,action="Geliştirme bilgisi"){$("#modalTitle").textContent=title;$("#modalText").textContent=desc;$("#modalAction").textContent=action;$("#modal").classList.add("open");}
 $("#closeModal").onclick=()=>$("#modal").classList.remove("open");
