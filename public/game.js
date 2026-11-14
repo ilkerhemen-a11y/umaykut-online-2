@@ -235,7 +235,7 @@ $("#authForm").addEventListener("submit",async e=>{e.preventDefault();const user
 $("#enterVillage").onclick=()=>show("village");$("#goHome").onclick=()=>show("village");$("#myVillage").onclick=()=>show("village");$("#backWorld").onclick=()=>show("world");
 function modal(title,desc,action="Geliştirme bilgisi"){$("#modalTitle").textContent=title;$("#modalText").textContent=desc;$("#modalAction").textContent=action;$("#modal").classList.add("open");}
 $("#closeModal").onclick=()=>$("#modal").classList.remove("open");
-document.querySelectorAll("[data-building]").forEach(b=>b.onclick=()=>{if(b.dataset.building==="Kışla"||b.dataset.building==="Ahır"){openUnits();return;}modal(b.dataset.building,"Bu yapı köy ekonomisine ve savunmasına katkı sağlar. Gerçek yükseltme sistemi sıradaki aşamada bağlanacak.","Yakında aktif");});
+document.querySelectorAll("[data-building]").forEach(b=>b.onclick=()=>{if(b.dataset.building==="Kışla"||b.dataset.building==="Ahır"||b.dataset.building==="Atölye"){openUnits();return;}modal(b.dataset.building,"Bu yapı köy ekonomisine ve savunmasına katkı sağlar. Gerçek yükseltme sistemi sıradaki aşamada bağlanacak.","Yakında aktif");});
 document.querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>{if(b.dataset.action==="Üretim"){openEconomy();return;}modal(b.dataset.action,"Bu bölümün oyun sistemi bir sonraki geliştirme aşamasında eklenecek.");});
 $("#modalAction").onclick=()=>$("#modal").classList.remove("open");
 if(token){api("/api/city/me").then(()=>enterGame({username:"Oyuncu"})).catch(()=>{localStorage.removeItem("umaykut_token");token=null;});}
