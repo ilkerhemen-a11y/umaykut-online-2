@@ -97,7 +97,7 @@ export async function startTraining(req, res) {
     const result = await client.query(
       `INSERT INTO player_training_queue
        (player_id, faction_id, unit_id, quantity, started_at, finishes_at, status)
-       VALUES ($1, $2, $3, $4, NOW(), NOW() + ($5 * $4) * INTERVAL '1 second', 'training')
+       VALUES ($1, $2, $3, $4, NOW(), NOW() + ($5::integer * $4::integer) * INTERVAL '1 second', 'training')
        RETURNING id, unit_id, quantity, started_at, finishes_at, status`,
       [req.player.sub, factionId, unitId, quantity, duration]
     );
