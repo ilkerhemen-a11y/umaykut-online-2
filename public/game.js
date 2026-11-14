@@ -159,10 +159,13 @@ async function loadPlayerData(){
     document.querySelector(".village-title").innerHTML=c.city_name.toUpperCase()+" <small>BOZKIRIN KALBİ</small>";
     document.querySelector("#village .server").textContent=c.city_name.toUpperCase()+" · SEVİYE "+c.level;
     for(const key of ["wood","stone","iron","food"])$("#"+key).textContent=Number(c[key]).toLocaleString("tr-TR");
-    renderArmy(army.units);
+    renderArmy(army);
   }catch(error){console.error("Oyuncu verileri yüklenemedi:",error);}
 }
-function renderArmy(units){
+function renderArmy(army){
+  const units=army.units||[];
+  const summary=$("#armyCarrySummary");
+  if(summary)summary.textContent="💰 Toplam yağma taşıma kapasitesi: "+Number(army.totalCarryCapacity||0).toLocaleString("tr-TR");
   const strip=document.querySelector(".army-strip .units");
   strip.replaceChildren();
   const icons=["🪓","🏹","🛡️","⚔️","🐎","🏹","🐎"];
