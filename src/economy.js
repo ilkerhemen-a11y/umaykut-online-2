@@ -16,15 +16,24 @@ async function ensureCityNodes(client, playerId) {
     [playerId]
   );
   if (!city.rows[0]) return;
-  const offsets = [[-2, 0], [2, 0], [0, -2], [0, 2], [-2, -2], [2, 2]];
+  const occupied = [];
+  const randomPoint = () => {
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      const point = { x: 5 + Math.floor(Math.random() * 91), y: 5 + Math.floor(Math.random() * 91) };
+      if (occupied.every(other => Math.hypot(other.x - point.x, other.y - point.y) >= 14)) { occupied.push(point); return point; }
+    }
+    const point = { x: 5 + Math.floor(Math.random() * 91), y: 5 + Math.floor(Math.random() * 91) }; occupied.push(point); return point;
+  };
   for (let i = 0; i < RESOURCE_TYPES.length; i += 1) {
     const resource = RESOURCE_TYPES[i];
+    const point = randomPoint();
+    const level = 4 + Math.floor(Math.random() * 6);
     await client.query(
       `INSERT INTO city_resource_nodes
-        (city_player_id, resource_type, x, y, yield_per_worker_hour)
-       VALUES ($1, $2, $3, $4, $5)
+        (city_player_id, resource_type, x, y, level, yield_per_worker_hour)
+       VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT (city_player_id, resource_type) DO NOTHING`,
-      [playerId, resource.id, city.rows[0].x + offsets[i][0], city.rows[0].y + offsets[i][1], resource.yieldPerWorkerHour]
+      [playerId, resource.id, point.x, point.y, level, resource.yieldPerWorkerHour]
     );
   }
 }
@@ -100,7 +109,7 @@ export async function getMyEconomy(req, res) {
       [req.player.sub]
     );
     const nodesResult = await client.query(
-      `SELECT id, resource_type, x, y, workers_assigned, yield_per_worker_hour
+      `SELECT id, resource_type, x, y, level, workers_assigned, yield_per_worker_hour
          FROM city_resource_nodes WHERE city_player_id = $1 ORDER BY id`,
       [req.player.sub]
     );
@@ -112,7 +121,7 @@ export async function getMyEconomy(req, res) {
       const type = RESOURCE_TYPES.find(item => item.id === node.resource_type);
       return {
         id: Number(node.id), resourceType: node.resource_type, name: type.name, icon: type.icon,
-        x: Number(node.x), y: Number(node.y), workersAssigned: Number(node.workers_assigned),
+        x: Number(node.x), y: Number(node.y), level: Number(node.level), workersAssigned: Number(node.workers_assigned),
         maxWorkers: centerLevel * WORKERS_PER_NODE_PER_CENTER_LEVEL,
         yieldPerWorkerHour: Number(node.yield_per_worker_hour)
       };
