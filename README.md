@@ -47,3 +47,12 @@ Bu kod henüz canlıya alınmış veya üretim güvenliği açısından denetlen
 - `GET /api/army/me` giriş yapan oyuncunun asker mevcudunu döndürür; ilk istekte 7 birlik sıfır adetle oluşturulur.
 - Köydeki ordu şeridi artık sabit örnek sayılar yerine veritabanından gelen gerçek birlik adetlerini gösterir.
 - Bu adım yalnızca ordu envanterinin kalıcı temelidir. Asker üretimi, kaynak maliyeti, üretim süresi ve kuyruk henüz etkin değildir; son sütunun kaynağı/işlevi teyit edilmeden kaynak düşümü yapılmaz.
+
+## Asker eğitimi kuyruğu (test sürümü)
+
+- `POST /api/training/start` ile oyuncu kendi devletine ait bir asker türünden 1–100 adet için eğitim başlatır.
+- Her oyuncu için aynı anda tek aktif eğitim bulunur. Süreler test amaçlı asker başına 20–60 saniyedir; adet arttıkça toplam süre doğrusal artar.
+- `GET /api/training/me` sunucu saatine göre tamamlanan eğitimi sonuçlandırır ve askerleri kalıcı ordu envanterine ekler. Oyuncu oyundan çıksa da bitiş zamanı kaybolmaz.
+- Kışla/Ahır ekranında aktif eğitim geri sayımı, asker adedi ve ordudaki mevcut gösterilir.
+- Bu test aşamasında kaynak düşümü uygulanmaz. Görseldeki son satırın yiyecek maliyeti mi, üretim bedeli mi olduğu ve kaynak türleri/üretim maliyetleri kesinleşmeden odun, taş, demir, yiyecek, altın veya at düşülmez.
+- Gerçek zamanlı otomatik tamamlama, oyuncu eğitim ekranını yeniden açtığında veya eğitim durumu API'si sorgulandığında işlenir; ayrı arka plan worker henüz yoktur.
