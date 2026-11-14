@@ -33,9 +33,19 @@ export async function getMyArmy(req, res) {
     );
     await client.query("COMMIT");
     const quantities = new Map(result.rows.map(row => [row.unit_id, Number(row.quantity)]));
+    const armyUnits = units.map(unit => ({
+      ...unit,
+      quantity: quantities.get(unit.id) ?? 0,
+      totalCarryCapacity: unit.stats.carryCapacity * (quantities.get(unit.id) ?? 0)
+    }));
+    const totalCarryCapacity = armyUnits.reduce(
+      (total, unit) => total + unit.totalCarryCapacity,
+      0
+    );
     res.json({
       factionId,
-      units: units.map(unit => ({ ...unit, quantity: quantities.get(unit.id) ?? 0 }))
+      totalCarryCapacity,
+      units: armyUnits
     });
   } catch (error) {
     await client.query("ROLLBACK");
