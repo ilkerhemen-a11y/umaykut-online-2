@@ -11,6 +11,7 @@ import { getFactions, getMyFaction, selectFaction } from "./factions.js";
 import { getUnitCatalog, getMyUnitCatalog } from "./units.js";
 import { getMyArmy } from "./army.js";
 import { getMyTraining, startTraining } from "./training.js";
+import { getMyEconomy, assignWorkers } from "./economy.js";
 
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
   throw new Error("JWT_SECRET en az 32 karakterlik güçlü bir gizli anahtar olmalı.");
@@ -91,7 +92,7 @@ app.get("/api/army/me", requireAuth, getMyArmy);
 app.get("/api/training/me", requireAuth, getMyTraining);
 app.post("/api/training/start", requireAuth, startTraining);
 app.get("/api/world", requireAuth, getWorld);
-app.get("/api/city/me", requireAuth, getMyCity);
+app.get("/api/city/me", requireAuth, getMyCity);\napp.get("/api/economy/me", requireAuth, getMyEconomy);\napp.post("/api/economy/assign", requireAuth, assignWorkers);
 
 const io = new Server(server, {
   cors: { origin: allowedOrigin === "*" ? true : allowedOrigin }
