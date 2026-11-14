@@ -1,7 +1,7 @@
 import { ensureCityNodes } from "./economy.js";
 import { pool } from "./db.js";
 
-export async function getWorld(_req, res) {
+export async function getWorld(req, res) {
   const result = await pool.query(`
     SELECT p.id, p.username, c.city_name, c.x, c.y, c.level
     FROM players p
