@@ -20,9 +20,9 @@ export async function ensureCityNodes(client, playerId) {
   // Başlangıç kalesinin çevresindeki üç temel kaynak noktası.
   // Harita görünümünde başlangıç kalesi yaklaşık %50, %50 konumundadır.
   const startingNodes = {
-    wood: { x: 40, y: 43, level: 6 },
-    stone: { x: 55, y: 43, level: 6 },
-    iron: { x: 48, y: 56, level: 6 }
+    wood: { x: 34, y: 44, level: 6 },
+    stone: { x: 66, y: 44, level: 6 },
+    iron: { x: 50, y: 66, level: 6 }
   };
   const occupied = Object.values(startingNodes).map(point => ({ x: point.x, y: point.y }));
   const randomPoint = () => {
@@ -54,14 +54,14 @@ export async function ensureCityNodes(client, playerId) {
   await client.query(`
     UPDATE city_resource_nodes
        SET x = CASE resource_type
-                 WHEN 'wood' THEN 40
-                 WHEN 'stone' THEN 55
-                 WHEN 'iron' THEN 48
+                 WHEN 'wood' THEN 34
+                 WHEN 'stone' THEN 66
+                 WHEN 'iron' THEN 50
                END,
            y = CASE resource_type
-                 WHEN 'wood' THEN 43
-                 WHEN 'stone' THEN 43
-                 WHEN 'iron' THEN 56
+                 WHEN 'wood' THEN 44
+                 WHEN 'stone' THEN 44
+                 WHEN 'iron' THEN 66
                END,
            level = 6
      WHERE city_player_id = $1
