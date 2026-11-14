@@ -191,85 +191,26 @@ async function loadVillageResources(){
     });
   }catch(error){console.error("Kale kaynakları yüklenemedi:",error);}
 }
-let selectedBuildingType=null;
-const buildingCatalog={
-  center:{name:"Merkez Binası",icon:"🏛️",purpose:"Üretim ve nüfus kapasitesini artırır. 11. seviyeden itibaren Targun bonuslarını açar."},
-  shelter:{name:"Sığınak",icon:"🏕️",purpose:"Düşman yağmalarına karşı kaynaklarının bir bölümünü korur."},
-  temple:{name:"Tapınak",icon:"🛕",purpose:"Şehrinin işçi kapasitesini artırır."},
-  school:{name:"Okul",icon:"📚",purpose:"Üretime katkı sağlar, klan kapasitesini ve hâkimiyet alanını artırır."},
-  barracks:{name:"Kışla",icon:"🛡️",purpose:"Piyade birliklerinin kilidini açar ve eğitimini sağlar."},
-  archery:{name:"Okçu Ocağı",icon:"🏹",purpose:"Okçu birliklerinin kilidini açar ve eğitimini sağlar."},
-  stable:{name:"Ahır",icon:"🐎",purpose:"Süvari birliklerinin kilidini açar ve eğitimini sağlar."},
-  workshop:{name:"Atölye",icon:"⚒️",purpose:"Kuşatma makinelerinin kilidini açar ve üretimini sağlar."},
-  stonemason:{name:"Taşçı",icon:"🪨",purpose:"Haritadaki taş madenlerinden elde edilen verimi artırır."},
-  lumberjack:{name:"Keresteci",icon:"🪵",purpose:"Haritadaki odun kaynaklarından elde edilen verimi artırır."},
-  blacksmith:{name:"Demirci",icon:"⚒️",purpose:"Haritadaki demir madenlerinden elde edilen verimi artırır."},
-  mill:{name:"Değirmen",icon:"🌾",purpose:"Tahıl üretimini destekler."},
-  farm:{name:"Tarla",icon:"🌱",purpose:"Tahıl üretimini sağlar."},
-  market:{name:"Pazar",icon:"🏪",purpose:"Altın üretimi ve kaynak takası sağlar."},
-  wall:{name:"Sur",icon:"🧱",purpose:"Şehrinin savunmasını güçlendirir."}
-};
+let selectedBuildingSlot=null;
+const buildingSlots=[{x:50,y:17},{x:69,y:27},{x:78,y:47},{x:69,y:67},{x:50,y:77},{x:31,y:67},{x:22,y:47},{x:31,y:27},{x:50,y:7}];
+const buildingCatalog={center:{name:"Merkez Binası",icon:"🏛️"},shelter:{name:"Sığınak",icon:"🏕️",purpose:"Yağma koruması sağlar."},temple:{name:"Tapınak",icon:"🛕",purpose:"İşçi kapasitesini artırır."},school:{name:"Okul",icon:"📚",purpose:"Üretime, klan kapasitesine ve hâkimiyet alanına katkı sağlar."},barracks:{name:"Kışla",icon:"🛡️",purpose:"Piyade birliklerini açar ve eğitir."},archery:{name:"Okçu Ocağı",icon:"🏹",purpose:"Okçu birliklerini açar ve eğitir."},stable:{name:"Ahır",icon:"🐎",purpose:"Süvari birliklerini açar ve eğitir."},workshop:{name:"Atölye",icon:"⚒️",purpose:"Kuşatma makinelerini açar ve üretir."},stonemason:{name:"Taşçı",icon:"🪨",purpose:"Taş madeni verimini artırır."},lumberjack:{name:"Keresteci",icon:"🪵",purpose:"Odun verimini artırır."},blacksmith:{name:"Demirci",icon:"⚒️",purpose:"Demir verimini artırır."},mill:{name:"Değirmen",icon:"🌾",purpose:"Tahıl üretimini destekler."},farm:{name:"Tarla",icon:"🌱",purpose:"Tahıl üretir."},market:{name:"Pazar",icon:"🏪",purpose:"Altın ve takas sağlar."},wall:{name:"Sur",icon:"🧱",purpose:"Şehir savunmasını güçlendirir."}};
+function showBuildingCatalog(index){selectedBuildingSlot=index;$("#buildingPlacementPanel").hidden=false;$("#placementHint").textContent=(index+1)+". inşa alanı seçildi. Bu alana yerleştirmek istediğin binayı seç.";$("#buildingPlacementPanel").scrollIntoView({behavior:"smooth",block:"nearest"});}
 async function loadVillageBuildings(){
-  try{
-    const data=await api("/api/buildings/me");
-    const layer=$("#villageBuildingsLayer");
-    if(!layer)return;
-    layer.replaceChildren();
-    data.buildings.forEach(building=>{
-      const marker=document.createElement("button");
-      marker.type="button";
-      marker.className="placed-building"+(building.type==="center"?" placed-center":"");
-      marker.style.left=building.x+"%";
-      marker.style.top=building.y+"%";
-      marker.dataset.building=building.name;
-      marker.setAttribute("aria-label",building.name+" seviye "+building.level);
-      const icon=document.createElement("span");icon.textContent=building.icon;
-      const name=document.createElement("b");name.textContent=building.name;
-      const level=document.createElement("small");level.textContent="Sv. "+building.level;
-      marker.append(icon,name,level);
-      marker.addEventListener("click",event=>{
-        event.stopPropagation();
-        if(selectedBuildingType){return;}
-        if(["stable","barracks","archery","workshop"].includes(building.type)){openUnits();return;}
-        modal(building.name,buildingCatalog[building.type]?.purpose||"Bu bina şehrine katkı sağlar.","Anladım");
-      });
-      layer.append(marker);
-    });
-    document.querySelectorAll("[data-place-building]").forEach(button=>{
-      const alreadyPlaced=data.buildings.some(item=>item.type===button.dataset.placeBuilding);
-      button.disabled=alreadyPlaced;
-      button.classList.toggle("built",alreadyPlaced);
-      if(alreadyPlaced)button.title="Bu bina zaten yerleştirildi";
-    });
-  }catch(error){console.error("Köy binaları yüklenemedi:",error);}
+ try{
+  const data=await api("/api/buildings/me"),layer=$("#villageBuildingsLayer"),slots=$("#villageBuildingSlots");if(!layer||!slots)return;
+  layer.replaceChildren();slots.replaceChildren();
+  const occupied=new Set();
+  data.buildings.filter(v=>v.type!=="center").forEach(v=>{const n=buildingSlots.map((p,i)=>({i,d:Math.hypot(p.x-v.x,p.y-v.y)})).sort((x,y)=>x.d-y.d)[0];if(n&&n.d<9)occupied.add(n.i);});
+  buildingSlots.forEach((p,i)=>{if(occupied.has(i))return;const s=document.createElement("button");s.type="button";s.className="building-slot";s.style.left=p.x+"%";s.style.top=p.y+"%";s.innerHTML="<span>＋</span><small>İNŞA ET</small>";s.addEventListener("click",()=>showBuildingCatalog(i));slots.append(s);});
+  data.buildings.forEach(v=>{const m=document.createElement("button");m.type="button";m.className="placed-building"+(v.type==="center"?" placed-center":"");m.style.left=v.x+"%";m.style.top=v.y+"%";const i=document.createElement("span");i.textContent=v.icon;const n=document.createElement("b");n.textContent=v.name;const l=document.createElement("small");l.textContent="Sv. "+v.level;m.append(i,n,l);m.addEventListener("click",e=>{e.stopPropagation();if(v.type==="center")return;if(["stable","barracks","archery","workshop"].includes(v.type)){openUnits();return;}modal(v.name,buildingCatalog[v.type]?.purpose||"Şehir binası.","Anladım");});layer.append(m);});
+ }catch(e){console.error("Köy binaları yüklenemedi:",e);}
 }
-document.querySelectorAll("[data-place-building]").forEach(button=>{
-  button.addEventListener("click",()=>{
-    if(button.disabled)return;
-    selectedBuildingType=button.dataset.placeBuilding;
-    document.querySelectorAll("[data-place-building]").forEach(item=>item.classList.toggle("selected",item===button));
-    $("#placementHint").textContent=buildingCatalog[selectedBuildingType].name+" seçildi. Şimdi köy haritasında boş bir yere dokun.";
-  });
-});
-$(".village-scene").addEventListener("click",async event=>{
-  if(!selectedBuildingType)return;
-  if(event.target.closest(".placed-building"))return;
-  const scene=$(".village-scene");
-  const rect=scene.getBoundingClientRect();
-  const x=Math.round(((event.clientX-rect.left)/rect.width)*10000)/100;
-  const y=Math.round(((event.clientY-rect.top)/rect.height)*10000)/100;
-  const type=selectedBuildingType;
-  try{
-    const result=await api("/api/buildings/place",{method:"POST",body:JSON.stringify({type,x,y})});
-    selectedBuildingType=null;
-    document.querySelectorAll("[data-place-building]").forEach(item=>item.classList.remove("selected"));
-    $("#placementHint").textContent=result.building.name+" köyüne yerleştirildi. Başka bir bina seçebilirsin.";
-    await loadVillageBuildings();
-  }catch(error){
-    $("#placementHint").textContent=error.message;
-  }
-});
-
+document.querySelectorAll("[data-place-building]").forEach(btn=>btn.addEventListener("click",async()=>{
+ if(selectedBuildingSlot===null)return;const p=buildingSlots[selectedBuildingSlot];btn.disabled=true;
+ try{const r=await api("/api/buildings/place",{method:"POST",body:JSON.stringify({type:btn.dataset.placeBuilding,x:p.x,y:p.y})});selectedBuildingSlot=null;$("#buildingPlacementPanel").hidden=true;await loadVillageBuildings();modal(r.building.name,"Seçtiğin inşa alanına yerleştirildi.","Tamam");}
+ catch(e){btn.disabled=false;$("#placementHint").textContent=e.message;}
+}));
+$("#cancelBuildingPlacement").addEventListener("click",()=>{selectedBuildingSlot=null;$("#buildingPlacementPanel").hidden=true;});
 function openWorkerAssignment(node){
   const field=$("#modalWorkerField"),input=$("#workerAmount");
   $("#modalTitle").textContent=node.icon+" "+node.name+" kaynağı";
