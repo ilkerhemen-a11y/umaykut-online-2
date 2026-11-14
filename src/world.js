@@ -1,3 +1,4 @@
+import { ensureCityNodes } from "./economy.js";
 import { pool } from "./db.js";
 
 export async function getWorld(_req, res) {
@@ -8,6 +9,7 @@ export async function getWorld(_req, res) {
     ORDER BY p.id
     LIMIT 500
   `);
+  for (const city of result.rows) await ensureCityNodes(pool, city.id);
   const resources = await pool.query(`
     SELECT n.id, n.city_player_id AS player_id, n.resource_type, n.x, n.y, n.level
     FROM city_resource_nodes n
