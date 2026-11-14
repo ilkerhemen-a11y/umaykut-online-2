@@ -35,7 +35,28 @@ async function ensureSchema() {
       stone INTEGER NOT NULL DEFAULT 100,
       iron INTEGER NOT NULL DEFAULT 60,
       food INTEGER NOT NULL DEFAULT 150,
+      gold BIGINT NOT NULL DEFAULT 0,
+      horses BIGINT NOT NULL DEFAULT 0,
+      worker_pool INTEGER NOT NULL DEFAULT 1800,
+      production_remainders JSONB NOT NULL DEFAULT '{}'::jsonb,
+      last_production_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    ALTER TABLE player_cities ADD COLUMN IF NOT EXISTS gold BIGINT NOT NULL DEFAULT 0;
+    ALTER TABLE player_cities ADD COLUMN IF NOT EXISTS horses BIGINT NOT NULL DEFAULT 0;
+    ALTER TABLE player_cities ADD COLUMN IF NOT EXISTS worker_pool INTEGER NOT NULL DEFAULT 1800;
+    ALTER TABLE player_cities ADD COLUMN IF NOT EXISTS production_remainders JSONB NOT NULL DEFAULT '{}'::jsonb;
+    ALTER TABLE player_cities ADD COLUMN IF NOT EXISTS last_production_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+    CREATE TABLE IF NOT EXISTS city_resource_nodes (
+      id BIGSERIAL PRIMARY KEY,
+      city_player_id BIGINT NOT NULL REFERENCES player_cities(player_id) ON DELETE CASCADE,
+      resource_type VARCHAR(16) NOT NULL CHECK (resource_type IN ('food','wood','stone','iron','gold','horses')),
+      x INTEGER NOT NULL,
+      y INTEGER NOT NULL,
+      workers_assigned INTEGER NOT NULL DEFAULT 0 CHECK (workers_assigned >= 0),
+      yield_per_worker_hour NUMERIC(8,3) NOT NULL DEFAULT 1,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (city_player_id, resource_type)
     );
     CREATE INDEX IF NOT EXISTS idx_player_cities_coordinates
       ON player_cities (x, y);
