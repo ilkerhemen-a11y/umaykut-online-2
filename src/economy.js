@@ -16,18 +16,32 @@ export async function ensureCityNodes(client, playerId) {
     [playerId]
   );
   if (!city.rows[0]) return;
-  const occupied = [];
+
+  // Başlangıç kalesinin çevresindeki üç temel kaynak noktası.
+  // Harita görünümünde başlangıç kalesi yaklaşık %50, %50 konumundadır.
+  const startingNodes = {
+    wood: { x: 34, y: 40, level: 6 },
+    stone: { x: 57, y: 40, level: 6 },
+    iron: { x: 50, y: 60, level: 6 }
+  };
+  const occupied = Object.values(startingNodes).map(point => ({ x: point.x, y: point.y }));
   const randomPoint = () => {
     for (let attempt = 0; attempt < 100; attempt += 1) {
       const point = { x: 5 + Math.floor(Math.random() * 91), y: 5 + Math.floor(Math.random() * 91) };
-      if (occupied.every(other => Math.hypot(other.x - point.x, other.y - point.y) >= 14)) { occupied.push(point); return point; }
+      if (occupied.every(other => Math.hypot(other.x - point.x, other.y - point.y) >= 14)) {
+        occupied.push(point);
+        return point;
+      }
     }
-    const point = { x: 5 + Math.floor(Math.random() * 91), y: 5 + Math.floor(Math.random() * 91) }; occupied.push(point); return point;
+    const point = { x: 5 + Math.floor(Math.random() * 91), y: 5 + Math.floor(Math.random() * 91) };
+    occupied.push(point);
+    return point;
   };
-  for (let i = 0; i < RESOURCE_TYPES.length; i += 1) {
-    const resource = RESOURCE_TYPES[i];
-    const point = randomPoint();
-    const level = 4 + Math.floor(Math.random() * 6);
+
+  for (const resource of RESOURCE_TYPES) {
+    const starting = startingNodes[resource.id];
+    const point = starting || randomPoint();
+    const level = starting ? starting.level : 4 + Math.floor(Math.random() * 6);
     await client.query(
       `INSERT INTO city_resource_nodes
         (city_player_id, resource_type, x, y, level, yield_per_worker_hour)
