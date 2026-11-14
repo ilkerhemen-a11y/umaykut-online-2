@@ -193,15 +193,21 @@ async function loadVillageResources(){
 }
 let selectedBuildingType=null;
 const buildingCatalog={
-  center:{name:"Merkez Binası",icon:"🏛️"},
-  workshop:{name:"Atölye",icon:"⚒️"},
-  stable:{name:"Ahır",icon:"🐎"},
-  temple:{name:"Tapınak",icon:"🛕"},
-  mill:{name:"Değirmen",icon:"🌾"},
-  market:{name:"Pazar",icon:"🏪"},
-  barracks:{name:"Kışla",icon:"🛡️"},
-  farm:{name:"Tarla",icon:"🌱"},
-  shelter:{name:"Sığınak",icon:"🏕️"}
+  center:{name:"Merkez Binası",icon:"🏛️",purpose:"Üretim ve nüfus kapasitesini artırır. 11. seviyeden itibaren Targun bonuslarını açar."},
+  shelter:{name:"Sığınak",icon:"🏕️",purpose:"Düşman yağmalarına karşı kaynaklarının bir bölümünü korur."},
+  temple:{name:"Tapınak",icon:"🛕",purpose:"Şehrinin işçi kapasitesini artırır."},
+  school:{name:"Okul",icon:"📚",purpose:"Üretime katkı sağlar, klan kapasitesini ve hâkimiyet alanını artırır."},
+  barracks:{name:"Kışla",icon:"🛡️",purpose:"Piyade birliklerinin kilidini açar ve eğitimini sağlar."},
+  archery:{name:"Okçu Ocağı",icon:"🏹",purpose:"Okçu birliklerinin kilidini açar ve eğitimini sağlar."},
+  stable:{name:"Ahır",icon:"🐎",purpose:"Süvari birliklerinin kilidini açar ve eğitimini sağlar."},
+  workshop:{name:"Atölye",icon:"⚒️",purpose:"Kuşatma makinelerinin kilidini açar ve üretimini sağlar."},
+  stonemason:{name:"Taşçı",icon:"🪨",purpose:"Haritadaki taş madenlerinden elde edilen verimi artırır."},
+  lumberjack:{name:"Keresteci",icon:"🪵",purpose:"Haritadaki odun kaynaklarından elde edilen verimi artırır."},
+  blacksmith:{name:"Demirci",icon:"⚒️",purpose:"Haritadaki demir madenlerinden elde edilen verimi artırır."},
+  mill:{name:"Değirmen",icon:"🌾",purpose:"Tahıl üretimini destekler."},
+  farm:{name:"Tarla",icon:"🌱",purpose:"Tahıl üretimini sağlar."},
+  market:{name:"Pazar",icon:"🏪",purpose:"Altın üretimi ve kaynak takası sağlar."},
+  wall:{name:"Sur",icon:"🧱",purpose:"Şehrinin savunmasını güçlendirir."}
 };
 async function loadVillageBuildings(){
   try{
@@ -224,8 +230,8 @@ async function loadVillageBuildings(){
       marker.addEventListener("click",event=>{
         event.stopPropagation();
         if(selectedBuildingType){return;}
-        if(building.type==="stable"||building.type==="barracks"){openUnits();return;}
-        modal(building.name,"Bu bina köyüne yerleştirildi. Bina geliştirme ve üretim işlevleri sonraki aşamada bağlanacak.","Anladım");
+        if(["stable","barracks","archery","workshop"].includes(building.type)){openUnits();return;}
+        modal(building.name,buildingCatalog[building.type]?.purpose||"Bu bina şehrine katkı sağlar.","Anladım");
       });
       layer.append(marker);
     });
