@@ -98,7 +98,7 @@ $("#confirmFaction").addEventListener("click",async()=>{
   }
 });
 
-let trainingPoll=null,trainingClock=null,activeTraining=null;
+let activeTraining=null;
 async function openUnits(){
   show("unitsScreen");
   $("#unitCatalog").textContent="Askerler yükleniyor…";
@@ -109,10 +109,6 @@ async function openUnits(){
     renderUnits(catalog.units.map(unit=>({...unit,quantity:counts.get(unit.id)||0})));
     activeTraining=training.activeTraining;
     renderTrainingStatus();
-    if(trainingPoll)clearInterval(trainingPoll);
-    if(trainingClock)clearInterval(trainingClock);
-    trainingPoll=setInterval(refreshTraining,5000);
-    trainingClock=setInterval(updateTrainingCountdown,1000);
   }catch(error){$("#unitCatalog").textContent=error.message;}
 }
 const siegeImages={mancinik:"data:image/jpeg;base64,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",topcu:"data:image/jpeg;base64,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"};
@@ -131,45 +127,25 @@ function renderUnits(units){
     [["⚔️","Saldırı",unit.stats.attack],["🛡️","Piyadelere karşı savunma",unit.stats.infantryDefense],["🟣","Atlılara karşı savunma",unit.stats.cavalryDefense],["🏃","Hareket hızı",unit.stats.movementSpeed],["💰","Yağma taşıma kapasitesi",unit.stats.carryCapacity]].forEach(([icon,label,value])=>{const row=document.createElement("div");const dt=document.createElement("dt");dt.textContent=icon+" "+label;const dd=document.createElement("dd");dd.textContent=String(value);row.append(dt,dd);stats.append(row);});
     const quantityLabel=document.createElement("label");quantityLabel.className="training-quantity-label";quantityLabel.textContent="Eğitilecek asker";
     const quantity=document.createElement("input");quantity.type="number";quantity.min="1";quantity.max="100";quantity.value="1";quantity.className="training-quantity";quantity.setAttribute("aria-label",unit.role+" eğitim adedi");
-    const button=document.createElement("button");button.type="button";button.className="train-button";button.textContent="EĞİTİME BAŞLA";button.addEventListener("click",()=>beginTraining(unit.id,quantity.value,button));
+    const button=document.createElement("button");button.type="button";button.className="train-button";button.textContent="ANINDA EĞİT";button.addEventListener("click",()=>beginTraining(unit.id,quantity.value,button));
     card.append(art,heading,meta,count,stats,quantityLabel,quantity,button);container.append(card);
   });
 }
 async function beginTraining(unitId,quantity,button){
-  button.disabled=true;button.textContent="BAŞLATILIYOR…";
+  button.disabled=true;button.textContent="ORDUYA EKLENİYOR…";
   try{
     const result=await api("/api/training/start",{method:"POST",body:JSON.stringify({unitId,quantity:Number(quantity)})});
-    activeTraining=result.activeTraining;renderTrainingStatus();
+    activeTraining=null;
+    modal("Askerler hazır!",result.message||"Askerlerin anında orduna eklendi.","Harika");
+    await openUnits();
     await loadPlayerData();
   }catch(error){modal("Eğitim başlatılamadı",error.message,"Tamam");}
-  finally{button.disabled=false;button.textContent="EĞİTİME BAŞLA";}
-}
-async function refreshTraining(){
-  try{
-    const previous=activeTraining?.id;
-    const result=await api("/api/training/me");
-    activeTraining=result.activeTraining;
-    renderTrainingStatus();
-    if(previous&&!activeTraining)await loadPlayerData();
-  }catch(error){console.error("Eğitim durumu alınamadı:",error);}
-}
-function updateTrainingCountdown(){
-  const countdown=$("#trainingCountdown");
-  if(!countdown||!activeTraining)return;
-  const remaining=Math.max(0,Math.ceil((new Date(activeTraining.finishes_at).getTime()-Date.now())/1000));
-  const minutes=Math.floor(remaining/60),seconds=remaining%60;
-  countdown.textContent=minutes+":"+String(seconds).padStart(2,"0");
+  finally{button.disabled=false;button.textContent="ANINDA EĞİT";}
 }
 function renderTrainingStatus(){
   const panel=$("#trainingStatus");panel.replaceChildren();
   const title=document.createElement("b");title.textContent="ASKER EĞİTİMİ";panel.append(title);
-  if(!activeTraining){
-    const message=document.createElement("p");message.textContent="Şu anda aktif eğitim yok. Bir asker seçerek eğitime başlayabilirsin.";panel.append(message);return;
-  }
-  const unitNames={barracks_1:"Piyade",archer:"Okçu",barracks_5:"Kalkanlı",barracks_10:"Elit muhafız",stable_1:"Hafif süvari",stable_5:"Atlı okçu",stable_10:"Ağır süvari",mancinik:"Mancınık",topcu:"Topçu"};
-  const message=document.createElement("p");message.textContent=(unitNames[activeTraining.unit_id]||activeTraining.unit_id)+" · "+activeTraining.quantity+" asker hazırlanıyor.";panel.append(message);
-  const timer=document.createElement("strong");timer.id="trainingCountdown";timer.className="training-countdown";panel.append(timer);updateTrainingCountdown();
-  const note=document.createElement("small");note.textContent="Eğitim sunucu saatine göre ilerler. Tamamlandığında askerler otomatik olarak orduya eklenir.";panel.append(note);
+  const message=document.createElement("p");message.textContent="Bekleme süresi yok! Seçtiğin askerler eğit düğmesine bastığında anında orduna eklenir.";panel.append(message);
 }
 $("#openUnits").addEventListener("click",openUnits);
 $("#backVillageFromUnits").addEventListener("click",()=>show("village"));
