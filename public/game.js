@@ -8,6 +8,7 @@ async function api(path,options={}){const response=await fetch(API+path,{...opti
 async function enterGame(player){
   currentPlayer=player;
   $("#playerName").textContent=player.username.toUpperCase();
+  const villagePlayer=$("#villagePlayerName");if(villagePlayer)villagePlayer.textContent=player.username+" Bey";
   $("#authScreen").classList.add("hidden");
   try{
     const result=await api("/api/faction/me");
@@ -344,5 +345,5 @@ function setActiveNav(id){document.querySelectorAll(".bottom-nav button").forEac
 $("#navVillage").addEventListener("click",()=>{setActiveNav("navVillage");show("village");loadVillageBuildings();loadVillageResources();});
 $("#navTroops").addEventListener("click",()=>{setActiveNav("navTroops");openUnits();});
 $("#navBuild").addEventListener("click",()=>{setActiveNav("navBuild");show("village");loadVillageBuildings().then(()=>{const first=document.querySelector(".building-slot");if(first)first.click();else modal("İnşa alanları dolu","Yeni bina yerleştirmek için önce bir alan açılmalı.","Anladım");});});
-$("#navQuests").addEventListener("click",()=>{setActiveNav("navQuests");modal("Görevler","Görev sistemi sonraki geliştirme aşamasında bağlanacak.","Tamam");});
+$("#navQuests").addEventListener("click",()=>{setActiveNav("navQuests");show("world");});
 $("#navShop").addEventListener("click",()=>{setActiveNav("navShop");modal("Mağaza","Mağaza arayüzü sonraki geliştirme aşamasında açılacak.","Tamam");});
