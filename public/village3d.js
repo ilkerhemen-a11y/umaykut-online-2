@@ -3,20 +3,32 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.m
 const canvas=document.getElementById("village3dCanvas");
 if(canvas){
  const scene=new THREE.Scene();
- scene.background=new THREE.Color(0x91b96c);
- scene.fog=new THREE.Fog(0x91b96c,24,48);
+ scene.background=new THREE.Color(0xb8d3e8);
+ scene.fog=new THREE.Fog(0xb8d3e8,28,58);
  const camera=new THREE.PerspectiveCamera(34,1,.1,100);
  camera.position.set(13,17,22);camera.lookAt(0,1.4,0);
  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
- renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.7));
+ renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.45));
  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
  renderer.outputColorSpace=THREE.SRGBColorSpace;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
  scene.add(new THREE.HemisphereLight(0xe8f3d2,0x6b5636,2.0));
  const sun=new THREE.DirectionalLight(0xffe0a0,3.1);sun.position.set(-9,16,10);sun.castShadow=true;
- sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-18;sun.shadow.camera.right=18;sun.shadow.camera.top=18;sun.shadow.camera.bottom=-18;scene.add(sun);
+ sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-18;sun.shadow.camera.right=18;sun.shadow.camera.top=18;sun.shadow.camera.bottom=-18;scene.add(sun);
  const mat=(color,roughness=.88,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
+ function makeSurfaceTexture(kind){
+  const canvas=document.createElement("canvas");canvas.width=256;canvas.height=256;const ctx=canvas.getContext("2d");
+  const p=kind==="stone"?["#b8a27e","#cbb58e","#9e8968"]:kind==="roof"?["#7b4130","#9b5740","#67372d"]:kind==="wood"?["#4a2d19","#684326","#805a35"]:["#718b45","#829b50","#627d3b"];
+  ctx.fillStyle=p[0];ctx.fillRect(0,0,256,256);
+  if(kind==="stone"){for(let y=0;y<256;y+=32){const o=(Math.floor(y/32)%2)*22;for(let x=-30;x<286;x+=54){ctx.fillStyle=p[(Math.floor(x/54)+Math.floor(y/32)+1)%p.length];ctx.fillRect(x+o+2,y+2,50,27);ctx.strokeStyle="#5f503b";ctx.lineWidth=2;ctx.strokeRect(x+o+2,y+2,50,27);}}}
+  else if(kind==="roof"){for(let y=0;y<256;y+=22)for(let x=-18;x<280;x+=32){const xx=x+(Math.floor(y/22)%2)*16;ctx.fillStyle=p[(Math.floor(x/32)+Math.floor(y/22))%p.length];ctx.beginPath();ctx.roundRect(xx+2,y+2,27,18,5);ctx.fill();ctx.strokeStyle="#4a2a24";ctx.lineWidth=1.5;ctx.stroke();}}
+  else if(kind==="wood"){for(let i=0;i<90;i++){ctx.strokeStyle=i%3?"#2d1b12":"#b18a52";ctx.globalAlpha=.12+(i%4)*.04;ctx.lineWidth=1+(i%3);ctx.beginPath();const y=i*3;ctx.moveTo(0,y);ctx.bezierCurveTo(70,y-7,150,y+8,256,y-2);ctx.stroke();}ctx.globalAlpha=1;}
+  else{for(let i=0;i<1800;i++){ctx.fillStyle=i%2?"#d5e29b":"#354f2b";ctx.globalAlpha=.12;ctx.fillRect((i*73)%256,(i*137)%256,2,2);}ctx.globalAlpha=1;}
+  const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(2,2);return t;
+ }
+ const stoneTexture=makeSurfaceTexture("stone"),roofTexture=makeSurfaceTexture("roof"),woodTexture=makeSurfaceTexture("wood"),grassTexture=makeSurfaceTexture("grass");
  const grass=mat(0x78994d),grass2=mat(0x88a957),stone=mat(0xb9a17a),stoneLight=mat(0xd8c49a),stoneDark=mat(0x766348),gold=mat(0xd5a53d,.36,.58),goldLight=mat(0xf1d477,.3,.48),tile=mat(0x287d83,.42,.12),dark=mat(0x173b3e),wood=mat(0x654326),leaf=mat(0x426d35),leaf2=mat(0x628b3e);
+ grass.map=grassTexture;stone.map=stoneTexture;stoneLight.map=stoneTexture;stoneDark.map=stoneTexture;wood.map=woodTexture;tile.map=roofTexture;[grass,stone,stoneLight,stoneDark,wood,tile].forEach(m=>m.needsUpdate=true);
  function mesh(geo,material,x,y,z,sx=1,sy=1,sz=1){const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
  function box(x,y,z,sx,sy,sz,material){return mesh(new THREE.BoxGeometry(sx,sy,sz),material,x,y,z);}
  // rolling earth platform and grass detailing
@@ -231,6 +243,7 @@ if(canvas){
   wall:mat(0xc8b58f),roof:mat(0x80513a),wood:mat(0x58391f),door:mat(0x38251a),
   trim:mat(0xe0c78f),tile:mat(0x287d83,.48,.1),metal:mat(0xc69b42,.38,.55)
  };
+ buildingMaterials.wall.map=stoneTexture;buildingMaterials.roof.map=roofTexture;buildingMaterials.wood.map=woodTexture;buildingMaterials.tile.map=roofTexture;Object.values(buildingMaterials).forEach(m=>m.needsUpdate=true);
  const buildingAnchors=[
   [-4.8,-6.0],[0,-7.3],[4.8,-6.0],[7.1,-2.0],[7.1,3.0],
   [2.8,6.6],[-2.8,6.6],[-7.1,3.0],[-7.1,-2.0]
