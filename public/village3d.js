@@ -274,21 +274,30 @@ if(canvas){
   // Raised dressed-stone plinth and corner quoins.
   addBox(w+.42,.25,d+.42,0,.125,0,M.trim);
   addBox(w+.16,.1,d+.16,0,.29,0,M.metal);
-  addBox(w,h,d,0,.34+h/2,0,M.wall);
-  for(const x of [-w/2+.09,w/2-.09])for(const z of [-d/2+.09,d/2-.09])
-   addBox(.17,h+.04,.17,x,.34+h/2,z,M.trim);
-  // Timber frame, carved lintel and recessed arched entrance.
-  for(const x of [-w/2+.18,w/2-.18])addBox(.12,h+.06,.13,x,.36+h/2,d/2+.035,M.wood);
-  addBox(.58,.98,.10,0,.79,d/2+.065,M.door);
-  addBox(.78,.13,.15,0,1.31,d/2+.07,M.trim);
-  addMesh(new THREE.TorusGeometry(.29,.055,8,20,Math.PI),M.metal,0,1.28,d/2+.12).rotation.z=Math.PI;
-  for(const x of [-.68,.68]){
-   addBox(.34,.43,.09,x,1.12,d/2+.065,M.tile);
-   addBox(.48,.09,.13,x,1.38,d/2+.07,M.trim);
-   addBox(.08,.5,.11,x,1.12,d/2+.12,M.metal);
+  if(type!=="shelter"){
+   addBox(w,h,d,0,.34+h/2,0,M.wall);
+   for(const x of [-w/2+.09,w/2-.09])for(const z of [-d/2+.09,d/2-.09])
+    addBox(.17,h+.04,.17,x,.34+h/2,z,M.trim);
+   // Timber frame, carved lintel and recessed arched entrance.
+   for(const x of [-w/2+.18,w/2-.18])addBox(.12,h+.06,.13,x,.36+h/2,d/2+.035,M.wood);
+   addBox(.58,.98,.10,0,.79,d/2+.065,M.door);
+   addBox(.78,.13,.15,0,1.31,d/2+.07,M.trim);
+   addMesh(new THREE.TorusGeometry(.29,.055,8,20,Math.PI),M.metal,0,1.28,d/2+.12).rotation.z=Math.PI;
+   for(const x of [-.68,.68]){
+    addBox(.34,.43,.09,x,1.12,d/2+.065,M.tile);
+    addBox(.48,.09,.13,x,1.38,d/2+.07,M.trim);
+    addBox(.08,.5,.11,x,1.12,d/2+.12,M.metal);
+   }
   }
   // Distinct architectural silhouette for every building family.
-  if(type==="temple"){
+  if(type==="shelter"){
+   addMesh(new THREE.CylinderGeometry(1.18,1.28,1.25,16),M.wall,0,1.0,0);
+   addMesh(new THREE.CylinderGeometry(1.24,1.24,.12,16),M.wood,0,1.66,0);
+   addMesh(new THREE.ConeGeometry(1.34,.9,16),M.roof,0,2.12,0);
+   addMesh(new THREE.CylinderGeometry(.22,.24,.16,12),M.trim,0,2.62,0);
+   for(let a=0;a<8;a++){const ang=a*Math.PI/4;const rib=addBox(.07,.82,.08,Math.cos(ang)*.58,2.08,Math.sin(ang)*.58,M.metal);rib.rotation.y=-ang;}
+   addBox(.62,.78,.08,0,.9,1.18,M.door);
+  }else if(type==="temple"){
    addBox(w+.22,.18,d+.22,0,1.98,0,M.trim);
    addBox(1.18,.85,1.18,0,2.38,0,M.tile);
    addMesh(new THREE.CylinderGeometry(.72,.82,.38,12),M.metal,0,2.98,0);
@@ -361,11 +370,7 @@ if(canvas){
   // Signature props: each trade building receives a readable 3D identity.
   const sign=(material=M.tile)=>{addBox(.82,.3,.09,0,1.92,d/2+.17,material);addBox(.92,.07,.12,0,2.1,d/2+.17,M.metal);};
   if(type==="shelter"){
-   addMesh(new THREE.CylinderGeometry(1.18,1.28,1.25,16),M.wall,0,1.0,0);
-   addMesh(new THREE.ConeGeometry(1.34,.9,16),M.roof,0,2.08,0);
-   addMesh(new THREE.CylinderGeometry(.22,.24,.16,12),M.trim,0,2.62,0);
-   for(let a=0;a<8;a++){const ang=a*Math.PI/4;const rib=addBox(.07,.82,.08,Math.cos(ang)*.58,2.08,Math.sin(ang)*.58,M.metal);rib.rotation.y=-ang;}
-   addBox(.62,.78,.08,0,.9,1.18,M.door);
+   addBox(.82,.3,.09,0,1.92,d/2+.17,M.tile);
   }else if(type==="school"){
    sign();for(let x=-.65;x<=.66;x+=.32){addBox(.1,.55,.1,x,.9,d/2+.17,M.wood);addBox(.18,.07,.12,x,1.2,d/2+.18,M.trim);}
    addBox(.72,.08,.18,0,2.62,0,M.metal);addMesh(new THREE.OctahedronGeometry(.2,0),M.metal,0,2.82,0);
