@@ -804,3 +804,62 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
 .market-page{max-width:760px;margin:0 auto;padding:18px 14px 90px}.market-page h2{color:#f5d36c;text-align:center;letter-spacing:2px}.market-wallet,.market-note{padding:12px;margin:10px 0;background:#211d15;border:1px solid #8d6b30;border-radius:10px;color:#f7e4b3}.market-wallet b{float:right;color:#ffe08a}.market-item-list{display:grid;gap:10px}.market-item{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;padding:12px;background:linear-gradient(145deg,#342a1b,#17130e);border:1px solid #927238;border-radius:12px;box-shadow:0 4px 12px #0006}.market-item-icon{font-size:30px;text-align:center}.market-item-info b,.market-item-info small,.market-item-info strong{display:block}.market-item-info b{color:#ffe08a}.market-item-info small{font-size:11px;color:#ddcfaa;margin:4px 0}.market-item-info strong{font-size:12px;color:#f2d071}.market-item button{padding:9px 12px;font-size:11px}.market-item button:disabled{opacity:.5}
 
 .construction-workers-display{display:flex;align-items:center;justify-content:center;gap:9px;padding:9px;background:#211d15;border:1px solid #80652e;border-radius:9px;color:#f5d36c}.construction-worker{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#393326;border:1px solid #9a7b42;font-size:19px;filter:grayscale(1);opacity:.55}.construction-worker.working{filter:none;opacity:1;background:#4a3218;box-shadow:0 0 9px #dcae4d66}.construction-workers-display b{margin-left:5px;font-size:11px}
+
+/* Büyük dünya haritası: sürükle, yakınlaştır ve keşfet */
+#world .map-world{position:relative;overflow:hidden;isolation:isolate;touch-action:none;cursor:grab;background:radial-gradient(ellipse at 17% 23%,#a6c45a 0,transparent 28%),radial-gradient(ellipse at 78% 72%,#b0a45c 0,transparent 26%),radial-gradient(ellipse at 48% 48%,#789b3d 0,#547a32 62%,#304e26 100%)}
+#world .map-world.dragging{cursor:grabbing}
+#world .world-map-content{position:absolute;left:50%;top:50%;width:1600px;height:1200px;margin:0;transform-origin:center center;will-change:transform;overflow:hidden;border:8px solid #66502b;border-radius:26px;box-shadow:0 0 0 5px #d2b36b66,0 22px 55px #10180e99;background:radial-gradient(ellipse at 20% 20%,#a8c75c 0,transparent 27%),radial-gradient(ellipse at 72% 70%,#b0a65c 0,transparent 28%),radial-gradient(ellipse at 50% 45%,#8dad45 0,#6c913a 48%,#42682d 100%)}
+#world .world-map-content:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;background-image:radial-gradient(#e2e99b66 1px,transparent 2px),radial-gradient(#263e1c66 2px,transparent 3px),repeating-linear-gradient(25deg,transparent 0 57px,#f1e7a311 58px 60px,transparent 61px 118px);background-size:37px 41px,63px 57px,100% 100%}
+#world .map-terrain{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#world .terrain-routes{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#world .river-shadow{fill:none;stroke:#315c50;stroke-width:45;stroke-linecap:round;opacity:.45}
+#world .river{fill:none;stroke:#66b4b4;stroke-width:27;stroke-linecap:round;filter:drop-shadow(0 3px 2px #244f43);opacity:.92}
+#world .road{fill:none;stroke:#c9aa70;stroke-width:18;stroke-linecap:round;stroke-dasharray:2 1;opacity:.88;filter:drop-shadow(0 2px 1px #493b22)}
+#world .trail{fill:none;stroke:#e2c78a;stroke-width:7;stroke-linecap:round;stroke-dasharray:18 15;opacity:.8}
+#world .terrain-label{position:absolute;color:#f6e7b8;text-shadow:0 2px 5px #172514;font-size:20px;font-weight:900;letter-spacing:5px;opacity:.72}
+#world .label-west{left:5%;top:48%}#world .label-east{right:5%;top:28%}#world .label-south{left:40%;bottom:5%}
+#world .terrain-forest{position:absolute;font-size:44px;line-height:1.25;letter-spacing:4px;filter:drop-shadow(0 7px 4px #1f351eaa);opacity:.94;text-align:center}
+#world .forest-a{left:7%;top:9%}#world .forest-b{right:6%;top:73%}#world .forest-c{left:22%;bottom:5%}
+#world .terrain-hills{position:absolute;font-size:95px;filter:drop-shadow(0 8px 5px #23351d99);opacity:.9}
+#world .hill-a{left:68%;top:7%}#world .hill-b{right:5%;top:43%}#world .hill-c{left:8%;bottom:8%}
+#world .terrain-ruin{position:absolute;display:grid;justify-items:center;color:#fff0c4;font-size:43px;text-shadow:0 3px 5px #172514;filter:drop-shadow(0 5px 4px #1c291b)}
+#world .terrain-ruin small{font-size:13px;background:#251e14c9;border:1px solid #a98a4a;border-radius:9px;padding:4px 8px;white-space:nowrap}
+#world .ruin-a{left:28%;top:15%}#world .ruin-b{right:26%;bottom:13%}
+#world .terrain-lake{position:absolute;left:72%;top:52%;width:150px;height:90px;display:grid;place-items:center;border-radius:50%;font-size:48px;background:radial-gradient(ellipse,#8cc7bd 0,#4d9992 52%,#315f50 75%,transparent 76%);box-shadow:0 0 22px #b4d9a466}
+#world .world-village.home{left:50%;top:46%;transform:translate(-50%,-50%);padding:22px;border:3px solid #70e7a2;border-radius:50%;background:#69be4a33;box-shadow:0 0 0 14px #d9ed9a22,0 0 40px #d5e8a766;z-index:4}
+#world .world-village.other.one{left:18%;top:28%;z-index:3}#world .world-village.other.two{right:17%;top:70%;z-index:3}
+#world .world-village span{font-size:70px}
+#world .world-village b{font-size:17px;padding:5px 10px}
+#world .world-village small{font-size:12px}
+#world .resource-map-nodes{z-index:5}
+#world .resource-map-nodes .resource-node{transform:translate(-50%,-50%);width:76px;height:78px;border:2px solid #e2c16c;border-radius:16px;background:linear-gradient(145deg,#2a3822ef,#172319ed);box-shadow:0 7px 16px #15201388;padding:5px;display:grid;justify-items:center;align-content:center;gap:1px}
+#world .resource-map-nodes .resource-node .resource-art{width:47px;height:47px;object-fit:contain;filter:drop-shadow(0 3px 3px #0008)}
+#world .resource-map-nodes .resource-node .resource-level{position:absolute;top:-8px;right:-8px;display:grid;place-items:center;width:23px;height:23px;border-radius:50%;background:#214b29;border:2px solid #e4d18b;color:#fff;font-size:11px;font-weight:900}
+#world .resource-map-nodes .resource-node .resource-kind{font-size:11px;color:#fff0c4;background:#172217dd;border-radius:6px;padding:2px 5px}
+#world .map-label{z-index:8;top:12px}
+#world .map-controls{position:absolute;right:12px;top:58px;z-index:12;display:grid;gap:7px}
+#world .map-controls button{width:40px;height:40px;border:1px solid #c9a85d;border-radius:12px;background:#211b13ef;color:#f6d77d;font-size:25px;box-shadow:0 3px 10px #0007}
+#world .map-coordinate{position:absolute;left:12px;bottom:52px;z-index:8;background:#201b14dd;border:1px solid #a7894b;border-radius:9px;padding:6px 9px;color:#f6e4b5;font-size:10px;letter-spacing:1px}
+#world .map-hint{z-index:8;bottom:10px;max-width:calc(100% - 130px);font-size:10px}
+@media(max-width:699px){
+ #world .map-world{min-height:0}
+ #world .world-map-content{width:1400px;height:1100px;border-width:5px;border-radius:18px}
+ #world .world-village.home{padding:13px}
+ #world .world-village span{font-size:58px}
+ #world .world-village b{font-size:13px}
+ #world .world-village small{font-size:10px}
+ #world .terrain-forest{font-size:35px}
+ #world .terrain-hills{font-size:76px}
+ #world .terrain-label{font-size:15px;letter-spacing:3px}
+ #world .terrain-ruin{font-size:34px}
+ #world .terrain-ruin small{font-size:10px}
+ #world .terrain-lake{width:120px;height:72px;font-size:36px}
+ #world .resource-map-nodes .resource-node{width:62px;height:65px;border-radius:13px}
+ #world .resource-map-nodes .resource-node .resource-art{width:39px;height:39px}
+ #world .resource-map-nodes .resource-node .resource-kind{display:block;font-size:9px}
+ #world .resource-map-nodes .resource-node .resource-level{width:20px;height:20px;font-size:10px}
+ #world .map-controls{right:8px;top:54px;gap:6px}
+ #world .map-controls button{width:36px;height:36px;font-size:22px}
+ #world .map-coordinate{left:8px;bottom:47px;font-size:9px}
+ #world .map-hint{bottom:8px;font-size:9px;max-width:calc(100% - 115px);white-space:normal;text-align:center}
+}
