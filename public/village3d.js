@@ -448,8 +448,62 @@ if(canvas){
  };
 
  // Render and resize
- function resize(){const w=canvas.clientWidth||innerWidth,h=canvas.clientHeight||500;const aspect=w/h;renderer.setSize(w,h,false);camera.aspect=aspect;if(aspect<.78){camera.fov=58;camera.position.set(14.5,24,34);camera.lookAt(0,1.1,0);}else{camera.fov=34;camera.position.set(13,17,22);camera.lookAt(0,1.4,0);}camera.updateProjectionMatrix();}
+ const cameraTarget=new THREE.Vector3(0,1.35,0);
+ let orbitTheta=.38,orbitPhi=.94,cameraRadius=34;
+ function applyCamera(){
+  const sinPhi=Math.sin(orbitPhi);
+  camera.position.set(
+   cameraTarget.x+cameraRadius*sinPhi*Math.sin(orbitTheta),
+   cameraTarget.y+cameraRadius*Math.cos(orbitPhi),
+   cameraTarget.z+cameraRadius*sinPhi*Math.cos(orbitTheta)
+  );
+  camera.lookAt(cameraTarget);camera.updateMatrixWorld();camera.updateProjectionMatrix();
+  window.dispatchEvent(new Event("umaykut3dcamera"));
+ }
+ function resize(){
+  const w=canvas.clientWidth||innerWidth,h=canvas.clientHeight||500,aspect=w/h;
+  renderer.setSize(w,h,false);camera.aspect=aspect;
+  if(aspect<.78){camera.fov=49;cameraRadius=34;orbitTheta=.38;orbitPhi=.94;}
+  else{camera.fov=36;cameraRadius=31;orbitTheta=.48;orbitPhi=.92;}
+  applyCamera();
+ }
  new ResizeObserver(resize).observe(canvas);resize();
+ // Drag to orbit the settlement; pinch and wheel to zoom. Camera stays inside safe limits.
+ canvas.style.touchAction="none";
+ const activePointers=new Map();let dragPoint=null,lastPinch=0;
+ const pinchDistance=()=>{const p=[...activePointers.values()];return p.length<2?0:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);};
+ canvas.addEventListener("pointerdown",event=>{
+  activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+  canvas.setPointerCapture(event.pointerId);
+  if(activePointers.size===1)dragPoint={x:event.clientX,y:event.clientY};
+  else{dragPoint=null;lastPinch=pinchDistance();}
+ });
+ canvas.addEventListener("pointermove",event=>{
+  if(!activePointers.has(event.pointerId))return;
+  const previous=activePointers.get(event.pointerId);
+  activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+  if(activePointers.size===1&&dragPoint){
+   const dx=event.clientX-dragPoint.x,dy=event.clientY-dragPoint.y;
+   orbitTheta-=dx*.0065;orbitPhi=Math.max(.62,Math.min(1.24,orbitPhi+dy*.0045));
+   dragPoint={x:event.clientX,y:event.clientY};applyCamera();
+  }else if(activePointers.size>=2){
+   const next=pinchDistance();
+   if(lastPinch>0&&next>0){cameraRadius=Math.max(25,Math.min(48,cameraRadius-(next-lastPinch)*.045));applyCamera();}
+   lastPinch=next;
+  }
+ });
+ const releasePointer=event=>{
+  activePointers.delete(event.pointerId);
+  if(activePointers.size===1){const p=[...activePointers.values()][0];dragPoint={x:p.x,y:p.y};}
+  else dragPoint=null;
+  lastPinch=pinchDistance();
+ };
+ canvas.addEventListener("pointerup",releasePointer);
+ canvas.addEventListener("pointercancel",releasePointer);
+ canvas.addEventListener("wheel",event=>{
+  event.preventDefault();cameraRadius=Math.max(25,Math.min(48,cameraRadius*Math.exp(event.deltaY*.001)));
+  applyCamera();
+ },{passive:false});
  window.dispatchEvent(new Event("umaykut3dready"));
  let frame=0;
  function animate(){requestAnimationFrame(animate);frame+=.003;sun.position.x=-9+Math.sin(frame)*1.5;playerBuildings.traverse(o=>{if(o.userData.rotates)o.rotation.z+=.012;});renderer.render(scene,camera);}
