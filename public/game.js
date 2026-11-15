@@ -206,6 +206,7 @@ function showBuildingCatalog(index){selectedBuildingSlot=index;$("#buildingPlace
 async function loadVillageBuildings(){
  try{
   const data=await api("/api/buildings/me"),layer=$("#villageBuildingsLayer"),slots=$("#villageBuildingSlots");if(!layer||!slots)return;
+  if(window.umaykut3d?.setBuildings)window.umaykut3d.setBuildings(data.buildings||[]);
   layer.replaceChildren();slots.replaceChildren();
   const occupied=new Set();
   data.buildings.filter(v=>v.type!=="center").forEach(v=>{const n=buildingSlots.map((p,i)=>({i,d:Math.hypot(p.x-v.x,p.y-v.y)})).sort((x,y)=>x.d-y.d)[0];if(n&&n.d<9)occupied.add(n.i);});
