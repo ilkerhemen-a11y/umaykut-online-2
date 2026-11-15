@@ -70,6 +70,16 @@ if(canvas){
  for(let i=0;i<12;i++){const a=i*Math.PI/6;const rib=mesh(new THREE.TorusGeometry(1.55,.025,5,24,Math.PI/2),goldLight,0,4.18,0);rib.rotation.y=a;}
  mesh(new THREE.CylinderGeometry(.055,.08,.55,8),goldLight,0,5.48,0);
  mesh(new THREE.SphereGeometry(.12,12,8),goldLight,0,5.8,0);
+ // Fortified corner towers and a carved royal balcony crown the central palace.
+ for(const [tx,tz] of [[-2.65,-2.2],[2.65,-2.2],[-2.65,2.2],[2.65,2.2]]){
+  mesh(new THREE.BoxGeometry(.72,2.05,.72),stoneLight,tx,2.18,tz);
+  mesh(new THREE.BoxGeometry(.9,.18,.9),gold,tx,3.27,tz);
+  mesh(new THREE.ConeGeometry(.58,.82,8),tile,tx,3.76,tz);
+  mesh(new THREE.SphereGeometry(.09,8,6),goldLight,tx,4.2,tz);
+ }
+ box(0,2.55,2.72,2.15,.16,.48,stoneLight);
+ for(const bx of [-.82,-.42,0,.42,.82])box(bx,2.37,2.72,.08,.22,.12,gold);
+ 
  // twin minarets with balconies, turquoise bands, pointed roofs and crescents
  function minaret(x,z){
   mesh(new THREE.CylinderGeometry(.48,.68,4.3,12),stoneLight,x,2.35,z);
@@ -348,6 +358,54 @@ if(canvas){
    addBox(.32,.7,.32,.72,2.05,-.62,M.wall);
    addBox(.4,.1,.4,.72,2.42,-.62,M.trim);
   }
+  // Signature props: each trade building receives a readable 3D identity.
+  const sign=(material=M.tile)=>{addBox(.82,.3,.09,0,1.92,d/2+.17,material);addBox(.92,.07,.12,0,2.1,d/2+.17,M.metal);};
+  if(type==="shelter"){
+   addMesh(new THREE.CylinderGeometry(1.18,1.28,1.25,16),M.wall,0,1.0,0);
+   addMesh(new THREE.ConeGeometry(1.34,.9,16),M.roof,0,2.08,0);
+   addMesh(new THREE.CylinderGeometry(.22,.24,.16,12),M.trim,0,2.62,0);
+   for(let a=0;a<8;a++){const ang=a*Math.PI/4;const rib=addBox(.07,.82,.08,Math.cos(ang)*.58,2.08,Math.sin(ang)*.58,M.metal);rib.rotation.y=-ang;}
+   addBox(.62,.78,.08,0,.9,1.18,M.door);
+  }else if(type==="school"){
+   sign();for(let x=-.65;x<=.66;x+=.32){addBox(.1,.55,.1,x,.9,d/2+.17,M.wood);addBox(.18,.07,.12,x,1.2,d/2+.18,M.trim);}
+   addBox(.72,.08,.18,0,2.62,0,M.metal);addMesh(new THREE.OctahedronGeometry(.2,0),M.metal,0,2.82,0);
+  }else if(type==="barracks"){
+   sign(M.roof);for(let x=-.72;x<=.73;x+=.48){addBox(.12,.62,.13,x,.88,-d/2-.12,M.wood);addMesh(new THREE.TorusGeometry(.19,.045,7,18),M.metal,x,1.22,-d/2-.2);}
+   addMesh(new THREE.ConeGeometry(.24,.34,5),M.metal,0,2.8,0);
+  }else if(type==="archery"){
+   sign();for(const x of [-.68,.68]){const target=addMesh(new THREE.CylinderGeometry(.32,.32,.08,24),M.trim,x,.95,-d/2-.22);target.rotation.x=Math.PI/2;const ring=addMesh(new THREE.TorusGeometry(.22,.035,7,24),M.roof,x,.95,-d/2-.16);ring.rotation.y=Math.PI/2;addMesh(new THREE.SphereGeometry(.07,8,6),M.metal,x,.95,-d/2-.11);}
+   for(let i=0;i<3;i++){const arrow=addBox(.045,.85,.045,-.75+i*.15,1.25,d/2+.25,M.metal);arrow.rotation.z=-.28;}
+  }else if(type==="stable"){
+   sign(M.roof);for(const hx of [-.62,.62]){
+    addMesh(new THREE.SphereGeometry(.3,10,8),M.wood,hx,.82,-.15).scale.set(1.25,.72,.65);
+    addMesh(new THREE.SphereGeometry(.16,8,6),M.wood,hx+.24,1.1,.02).scale.set(.7,1.2,.7);
+    for(const [lx,lz] of [[-.12,-.23],[.15,-.23],[.28,-.1],[-.27,-.1]])addMesh(new THREE.CylinderGeometry(.055,.07,.5,7),M.wood,hx+lx,.42,lz);
+   }
+  }else if(type==="workshop"||type==="blacksmith"){
+   sign(M.roof);addBox(.58,.62,.12,0,.82,d/2+.18,M.door);
+   const fire=new THREE.MeshStandardMaterial({color:0xff7b22,emissive:0xff4a08,emissiveIntensity:1.25});
+   addMesh(new THREE.SphereGeometry(.2,10,8),fire,0,.75,d/2+.27).scale.set(1,.65,.5);
+   addBox(.34,1.0,.34,-.78,2.15,-.55,M.wall);addBox(.46,.12,.46,-.78,2.7,-.55,M.metal);
+   addMesh(new THREE.CylinderGeometry(.16,.2,.36,8),M.metal,.62,1.38,.18);addBox(.72,.13,.5,.62,1.58,.18,M.metal);
+  }else if(type==="stonemason"){
+   sign();for(let i=0;i<3;i++){const block=addBox(.42,.38,.42,-.7+i*.7,.65,-d/2-.22,M.trim);block.rotation.y=(i-1)*.18;}
+   addMesh(new THREE.ConeGeometry(.18,.62,6),M.metal,.72,1.65,d/2+.2);
+  }else if(type==="lumberjack"){
+   sign(M.roof);for(let i=0;i<4;i++){const log=addMesh(new THREE.CylinderGeometry(.14,.14,.88,9),M.wood,-.75+i*.42,-.1,-.72);log.rotation.z=Math.PI/2;}
+   const axe=addBox(.1,.72,.08,.78,1.0,d/2+.2,M.metal);axe.rotation.z=-.55;addBox(.36,.12,.12,.58,1.28,d/2+.2,M.wood);
+  }else if(type==="mill"){
+   sign();for(let i=0;i<4;i++){const blade=addBox(.18,1.5,.08,0,2.15,d/2+.29,M.trim);blade.rotation.z=i*Math.PI/2;}
+  }else if(type==="farm"){
+   for(let row=0;row<4;row++)for(let col=0;col<3;col++){const x=-.78+row*.5,z=-.7+col*.55;const stalk=addBox(.035,.5,.035,x,.48,z,M.trim);stalk.rotation.z=col%2?.12:-.12;addMesh(new THREE.SphereGeometry(.08,6,5),M.metal,x,.75,z);}
+  }else if(type==="market"){
+   sign(M.roof);for(let i=0;i<3;i++){addMesh(new THREE.CylinderGeometry(.2,.24,.22,10),M.wood,-.65+i*.65,.62,d/2+.26);addMesh(new THREE.SphereGeometry(.12,8,6),i%2?M.trim:M.metal,-.65+i*.65,.8,d/2+.26);}
+  }else if(type==="temple"){
+   for(let x=-.82;x<=.83;x+=.41){addMesh(new THREE.CylinderGeometry(.075,.09,.9,8),M.trim,x,1.85,d/2+.2);addMesh(new THREE.CylinderGeometry(.13,.13,.08,8),M.metal,x,2.33,d/2+.2);}
+  }else if(type==="wall"){
+   for(let i=0;i<5;i++)addBox(.22,.25,.78,-.9+i*.45,1.85,0,M.trim);
+   addMesh(new THREE.CylinderGeometry(.12,.12,.4,8),M.metal,0,2.12,0);
+  }
+
   // Stone stair, lantern and level-up crown details.
   addBox(.92,.15,.42,0,.075,d/2+.28,M.trim);
   addBox(.12,.48,.12,-w/2-.12,1.0,d/2+.04,M.metal);
