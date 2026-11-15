@@ -50,13 +50,14 @@ export async function getMyBuildings(req, res) {
     await ensureStartingBuildings(pool, req.player.sub);
     await completeExpiredUpgrades(pool, req.player.sub);
     const result = await pool.query("SELECT id, building_type, x, y, level, upgrade_finishes_at FROM city_buildings WHERE city_player_id = $1 ORDER BY CASE WHEN building_type = 'center' THEN 0 ELSE 1 END, id", [req.player.sub]);
+    const itemResult = await pool.query("SELECT quantity FROM player_items WHERE player_id = $1 AND item_code = 'building_speedup_5m'", [req.player.sub]);
     const buildings = result.rows.map(row => ({
       id: Number(row.id), type: row.building_type, name: BUILDINGS[row.building_type]?.name || row.building_type,
       icon: BUILDINGS[row.building_type]?.icon || "🏘️", x: Number(row.x), y: Number(row.y), level: Number(row.level),
       upgradeFinishesAt: row.upgrade_finishes_at,
       nextUpgrade: Number(row.level) < MAX_LEVEL ? quoteUpgrade(Number(row.level)) : null
     }));
-    res.json({ maxLevel: MAX_LEVEL, buildings });
+    res.json({ maxLevel: MAX_LEVEL, speedupsAvailable: Number(itemResult.rows[0]?.quantity || 0), buildings });
   } catch (error) {
     console.error("Bina yerleşimi alınamadı:", error);
     res.status(500).json({ error: "Başlangıç köyü yüklenemedi." });
