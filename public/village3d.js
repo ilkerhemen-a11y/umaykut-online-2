@@ -448,7 +448,7 @@ if(canvas){
  };
 
  // Render and resize
- function resize(){const w=canvas.clientWidth||innerWidth,h=canvas.clientHeight||500;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+ function resize(){const w=canvas.clientWidth||innerWidth,h=canvas.clientHeight||500;const aspect=w/h;renderer.setSize(w,h,false);camera.aspect=aspect;if(aspect<.78){camera.fov=58;camera.position.set(14.5,24,34);camera.lookAt(0,1.1,0);}else{camera.fov=34;camera.position.set(13,17,22);camera.lookAt(0,1.4,0);}camera.updateProjectionMatrix();}
  new ResizeObserver(resize).observe(canvas);resize();
  window.dispatchEvent(new Event("umaykut3dready"));
  let frame=0;
