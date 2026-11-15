@@ -109,17 +109,15 @@ function walls(){
  tower(x-rx*.58,y-ry*.82,.82);tower(x+rx*.58,y-ry*.82,.82);
 }
 function details(){
+ // Broad stone dais directly beneath the central Seljuk keep.
+ oval(W*.5,H*.535,W*.155,H*.082,"#17291e88");
+ oval(W*.5,H*.525,W*.15,H*.075,"#9b8a68","#554a35",2);
+ oval(W*.5,H*.516,W*.128,H*.06,"#c7b58b","#e2d2a8",2);
+ oval(W*.5,H*.51,W*.105,H*.047,"#8d9a6b","#6b7952",1);
  [[.07,.22,.9],[.15,.15,.72],[.92,.2,.85],[.84,.14,.7],[.07,.8,.8],[.92,.78,.9],[.18,.89,.68],[.82,.89,.7],[.29,.15,.55],[.72,.15,.58]]
  .forEach(([x,y,s])=>tree(W*x,H*y,s));
  [[.2,.4],[.8,.4],[.18,.58],[.82,.58],[.34,.83],[.66,.83],[.27,.22],[.73,.22]]
  .forEach(([x,y],i)=>bush(W*x,H*y,.7+(i%3)*.1));
- // timber and market sheds beside the inner road
- for(const side of [-1,1]){
-  const x=W*(side<0?.23:.77),y=H*.49;
-  poly([[x-23,y],[x,y-15],[x+23,y],[x+23,y+18],[x,y+28],[x-23,y+18]],"#9a7c4c","#51402a",1);
-  poly([[x-25,y],[x,y-20],[x+25,y],[x,y+10]],"#765136","#392d20",1);
-  box(x-5,y+4,10,15,2,"#392a1b");
- }
 }
 function render(){
  if(!W||!H)return;

@@ -724,3 +724,56 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
  #village .placed-building:not(.placed-center) .building-art{width:52px;height:46px}
  #village .placed-building:not(.placed-center){min-width:56px}
 }
+
+
+/* Central village corrections: restore the keep and enforce correct layer order. */
+#village .village-building-slots{z-index:5!important}
+#village .village-buildings-layer{
+  display:block!important;
+  position:absolute;
+  inset:0;
+  z-index:6!important;
+  pointer-events:none;
+}
+#village .village-buildings-layer>.placed-building{pointer-events:auto;z-index:1}
+#village .village-buildings-layer>.placed-building.placed-center{
+  display:flex!important;
+  pointer-events:none;
+  z-index:2;
+  width:clamp(132px,36vw,176px);
+  min-width:clamp(132px,36vw,176px);
+  min-height:0;
+  padding:0;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  filter:drop-shadow(0 9px 8px #10180fcc);
+}
+#village .village-buildings-layer>.placed-building.placed-center .keep-art{
+  display:block;
+  width:100%;
+  height:clamp(112px,30vw,154px);
+  object-fit:contain;
+}
+#village .village-buildings-layer>.placed-building.placed-center b{
+  margin-top:-4px;
+  padding:3px 8px;
+  border:1px solid #d7b65f;
+  border-radius:7px;
+  background:#17251feF;
+  color:#fff0c2;
+  font-size:9px;
+  letter-spacing:.7px;
+}
+#village .village-buildings-layer>.placed-building.placed-center small{display:none}
+#village .village-resource-nodes{z-index:7!important}
+#village2dCanvas{pointer-events:none}
+@media(max-width:420px){
+  #village .village-buildings-layer>.placed-building.placed-center{
+    width:clamp(126px,38vw,154px);
+    min-width:clamp(126px,38vw,154px);
+  }
+  #village .village-buildings-layer>.placed-building.placed-center .keep-art{
+    height:clamp(108px,32vw,132px);
+  }
+}
