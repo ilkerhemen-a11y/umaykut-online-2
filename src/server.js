@@ -13,6 +13,7 @@ import { getMyArmy } from "./army.js";
 import { getMyTraining, startTraining } from "./training.js";
 import { getMyEconomy, assignWorkers } from "./economy.js";
 import { getMyBuildings, placeBuilding, upgradeBuilding, speedUpBuilding } from "./buildings.js";
+import { getMarket, buyMarketItem } from "./market.js";
 
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
   throw new Error("JWT_SECRET en az 32 karakterlik güçlü bir gizli anahtar olmalı.");
@@ -156,6 +157,8 @@ app.get("/api/buildings/me", requireAuth, getMyBuildings);
 app.post("/api/buildings/place", requireAuth, placeBuilding);
 app.post("/api/buildings/upgrade", requireAuth, upgradeBuilding);
 app.post("/api/buildings/speed-up", requireAuth, speedUpBuilding);
+app.get("/api/market/me", requireAuth, getMarket);
+app.post("/api/market/buy", requireAuth, buyMarketItem);
 app.get("/api/economy/me", requireAuth, getMyEconomy);
 app.post("/api/economy/assign", requireAuth, assignWorkers);
 
