@@ -168,7 +168,7 @@ $("#backVillageFromUnits").addEventListener("click",()=>show("village"));
 
 
 let villageEconomy=null;
-const villageResourcePositions={wood:[24,31],stone:[76,31],iron:[50,77],food:[23,69],gold:[77,69],horses:[50,20]};
+const villageResourcePositions={wood:[12,37],stone:[88,37],iron:[50,88],food:[12,65],gold:[88,65],horses:[50,13]};
 async function loadVillageResources(){
   try{
     const data=await api("/api/economy/me");
@@ -193,8 +193,8 @@ async function loadVillageResources(){
   }catch(error){console.error("Kale kaynakları yüklenemedi:",error);}
 }
 let selectedBuildingSlot=null;
-const fallbackBuildingSlots=[{x:50,y:17},{x:69,y:27},{x:78,y:47},{x:69,y:67},{x:50,y:77},{x:31,y:67},{x:22,y:47},{x:31,y:27},{x:50,y:7}];
-const getBuildingSlots=()=>window.umaykut3d?.getSlotPositions?.()||fallbackBuildingSlots;
+const fallbackBuildingSlots=[{x:50,y:23},{x:67.4,y:29.6},{x:76.6,y:44},{x:73.1,y:63.4},{x:59.2,y:70.6},{x:40.8,y:70.6},{x:26.9,y:63.4},{x:23.4,y:44},{x:32.6,y:29.6}];
+const getBuildingSlots=()=>fallbackBuildingSlots;
 const buildingCatalog={center:{name:"Merkez Binası",icon:"🏛️"},shelter:{name:"Sığınak",icon:"🏕️",purpose:"Yağma koruması sağlar."},temple:{name:"Tapınak",icon:"🛕",purpose:"İşçi kapasitesini artırır."},school:{name:"Okul",icon:"📚",purpose:"Üretime, klan kapasitesine ve hâkimiyet alanına katkı sağlar."},barracks:{name:"Kışla",icon:"🛡️",purpose:"Piyade birliklerini açar ve eğitir."},archery:{name:"Okçu Ocağı",icon:"🏹",purpose:"Okçu birliklerini açar ve eğitir."},stable:{name:"Ahır",icon:"🐎",purpose:"Süvari birliklerini açar ve eğitir."},workshop:{name:"Atölye",icon:"⚒️",purpose:"Kuşatma makinelerini açar ve üretir."},stonemason:{name:"Taşçı",icon:"🪨",purpose:"Taş madeni verimini artırır."},lumberjack:{name:"Keresteci",icon:"🪵",purpose:"Odun verimini artırır."},blacksmith:{name:"Demirci",icon:"⚒️",purpose:"Demir verimini artırır."},mill:{name:"Değirmen",icon:"🌾",purpose:"Tahıl üretimini destekler."},farm:{name:"Tarla",icon:"🌱",purpose:"Tahıl üretir."},market:{name:"Pazar",icon:"🏪",purpose:"Altın ve takas sağlar."},wall:{name:"Sur",icon:"🧱",purpose:"Şehir savunmasını güçlendirir."}};
 const buildingArt={shelter:"shelter",temple:"temple",school:"school",barracks:"barracks",archery:"archery",stable:"stable",workshop:"workshop",stonemason:"stonemason",lumberjack:"lumberjack",blacksmith:"blacksmith",mill:"mill",farm:"farm",market:"market",wall:"wall"};
 document.querySelectorAll("[data-place-building]").forEach(button=>{
@@ -209,22 +209,18 @@ async function loadVillageBuildings(){
  try{
   const data=await api("/api/buildings/me"),layer=$("#villageBuildingsLayer"),slots=$("#villageBuildingSlots");if(!layer||!slots)return;
   const buildingSlots=getBuildingSlots();
-  if(window.umaykut3d?.setBuildings)window.umaykut3d.setBuildings(data.buildings||[]);
+  
   layer.replaceChildren();slots.replaceChildren();
   const occupied=new Set();
-  data.buildings.filter(v=>v.type!=="center").forEach(v=>{const n=buildingSlots.map((p,i)=>({i,d:Math.hypot(p.x-v.x,p.y-v.y)})).sort((x,y)=>x.d-y.d)[0];if(n&&n.d<9)occupied.add(n.i);});
+  const buildingSlotById=new Map();
+  data.buildings.filter(v=>v.type!=="center").forEach(v=>{const n=buildingSlots.map((p,i)=>({i,d:Math.hypot(p.x-v.x,p.y-v.y)})).sort((x,y)=>x.d-y.d)[0];if(n){occupied.add(n.i);buildingSlotById.set(v.id??v.type+":"+v.x+":"+v.y,n.i);}});
   buildingSlots.forEach((p,i)=>{if(occupied.has(i))return;const s=document.createElement("button");s.type="button";s.className="building-slot";s.dataset.slotIndex=String(i);s.style.left=p.x+"%";s.style.top=p.y+"%";s.innerHTML="<span>＋</span><small>İNŞA ET</small>";s.addEventListener("click",()=>showBuildingCatalog(i));slots.append(s);});
-  data.buildings.forEach(v=>{const m=document.createElement("button");m.type="button";m.className="placed-building"+(v.type==="center"?" placed-center":"");m.style.left=v.x+"%";m.style.top=v.y+"%";const i=document.createElement("img");i.src=v.type==="center"?"/assets/seljuk-center.svg":"/assets/buildings/"+(buildingArt[v.type]||"shelter")+".svg";i.alt=v.name;i.className=v.type==="center"?"keep-art":"building-art";const n=document.createElement("b");n.textContent=v.name;const l=document.createElement("small");l.textContent="Sv. "+v.level;m.append(i,n,l);m.addEventListener("click",e=>{e.stopPropagation();if(v.type==="center")return;if(["stable","barracks","archery","workshop"].includes(v.type)){openUnits();return;}modal(v.name,buildingCatalog[v.type]?.purpose||"Şehir binası.","Anladım");});layer.append(m);});
+  data.buildings.forEach(v=>{const m=document.createElement("button");m.type="button";m.className="placed-building"+(v.type==="center"?" placed-center":"");const slotIndex=v.type==="center"?null:buildingSlotById.get(v.id??v.type+":"+v.x+":"+v.y);
+  const displayPoint=v.type==="center"?{x:50,y:48}:(slotIndex===undefined?{x:v.x,y:v.y}:buildingSlots[slotIndex]);
+  m.style.left=displayPoint.x+"%";m.style.top=displayPoint.y+"%";const i=document.createElement("img");i.src=v.type==="center"?"/assets/seljuk-center.svg":"/assets/buildings/"+(buildingArt[v.type]||"shelter")+".svg";i.alt=v.name;i.className=v.type==="center"?"keep-art":"building-art";const n=document.createElement("b");n.textContent=v.name;const l=document.createElement("small");l.textContent="Sv. "+v.level;m.append(i,n,l);m.addEventListener("click",e=>{e.stopPropagation();if(v.type==="center")return;if(["stable","barracks","archery","workshop"].includes(v.type)){openUnits();return;}modal(v.name,buildingCatalog[v.type]?.purpose||"Şehir binası.","Anladım");});layer.append(m);});
  }catch(e){console.error("Köy binaları yüklenemedi:",e);}
 }
-window.addEventListener("umaykut3dcamera",()=>{
- const positions=getBuildingSlots();
- document.querySelectorAll("#villageBuildingSlots .building-slot").forEach(button=>{
-  const p=positions[Number(button.dataset.slotIndex)];if(!p)return;
-  button.style.left=p.x+"%";button.style.top=p.y+"%";
- });
-});
-window.addEventListener("umaykut3dready",()=>loadVillageBuildings());
+window.addEventListener("umaykut2dready",()=>loadVillageBuildings());
 document.querySelectorAll("[data-place-building]").forEach(btn=>btn.addEventListener("click",async()=>{
  if(selectedBuildingSlot===null)return;const p=getBuildingSlots()[selectedBuildingSlot];if(!p){btn.disabled=false;return;}btn.disabled=true;
  try{const r=await api("/api/buildings/place",{method:"POST",body:JSON.stringify({type:btn.dataset.placeBuilding,x:p.x,y:p.y})});selectedBuildingSlot=null;$("#buildingPlacementPanel").hidden=true;await loadVillageBuildings();modal(r.building.name,"Seçtiğin inşa alanına yerleştirildi.","Tamam");}
