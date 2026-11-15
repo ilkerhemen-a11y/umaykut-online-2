@@ -9,12 +9,13 @@
 <header class="resourcebar">
   <div class="brand">🐺 <b>UMAYKUT</b><small>ONLINE II · <span id="playerName">OYUNCU</span></small></div>
   <div class="resources">
-    <div><span>🪙</span><b id="gold">1.424</b><small>ALTIN</small></div>
-    <div><span>🪵</span><b id="wood">478.569</b><small>ODUN</small></div>
-    <div><span>🪨</span><b id="stone">32.450</b><small>TAŞ</small></div>
+    <div><span>🪙</span><b id="gold">0</b><small>ALTIN</small></div>
+    <div><span>🪵</span><b id="wood">0</b><small>ODUN</small></div>
+    <div><span>🌾</span><b id="food">0</b><small>TAHIL</small></div>
+    <div><span>🪨</span><b id="stone">0</b><small>TAŞ</small></div>
     <div><span>⚒️</span><b id="iron">0</b><small>DEMİR</small></div>
-    <div><span>🌾</span><b id="food">357.154</b><small>YİYECEK</small></div>
-  </div><div class="resource-data-hidden" aria-hidden="true"><span id="horses">0</span></div>
+    <div><span>🐎</span><b id="horses">0</b><small>AT</small></div>
+  </div>
 </header>
 <section id="authScreen" class="auth-screen">
   <div class="auth-card">
@@ -59,7 +60,7 @@
       <div class="village-title">İLK YURDUM <small>BOZKIRIN KALBİ</small></div>
       <div class="village-player-card"><span class="player-crest">♛</span><div><b id="villagePlayerName">İlker Bey</b><small>Seviye 12 · İlk Yurdum</small></div><span class="player-star">★</span></div>
       <div class="village-next-level"><span>⌛</span><div><small>BİR SONRAKİ SEVİYE</small><b>15.000 ALTIN</b></div><span>›</span></div>
-      <canvas id="village3dCanvas" aria-label="Gerçek zamanlı üç boyutlu Selçuklu köy sahnesi"></canvas><div class="wall"></div>
+      <canvas id="village3dCanvas" aria-label="Gerçek zamanlı üç boyutlu Selçuklu köy sahnesi"></canvas><div id="villageResourceNodes" class="village-resource-nodes" aria-label="Kale çevresindeki kaynak noktaları"></div><div class="wall"></div>
       <div id="villageBuildingSlots" class="village-building-slots" aria-label="Merkez binası çevresindeki dokuz inşa alanı"></div>
       <div id="villageBuildingsLayer" class="village-buildings-layer" aria-label="Yerleştirilmiş köy binaları"></div>
       <div class="gate">⛩️</div>
