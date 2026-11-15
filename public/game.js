@@ -672,3 +672,10 @@ $("#closeModal").onclick=()=>$("#modal").classList.remove("open");
 document.querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>{if(b.dataset.action==="Üretim"){openEconomy();return;}modal(b.dataset.action,"Bu bölümün oyun sistemi bir sonraki geliştirme aşamasında eklenecek.");});
 $("#modalAction").onclick=()=>$("#modal").classList.remove("open");
 if(token){api("/api/city/me").then(()=>enterGame({username:"Oyuncu"})).catch(()=>{localStorage.removeItem("umaykut_token");token=null;});}
+
+function setActiveNav(id){document.querySelectorAll(".bottom-nav button").forEach(button=>button.classList.toggle("active",button.id===id));}
+$("#navVillage").addEventListener("click",()=>{setActiveNav("navVillage");show("village");loadVillageBuildings();loadVillageResources();});
+$("#navTroops").addEventListener("click",()=>{setActiveNav("navTroops");openUnits();});
+$("#navBuild").addEventListener("click",()=>{setActiveNav("navBuild");show("village");loadVillageBuildings().then(()=>{const first=document.querySelector(".building-slot");if(first)first.click();else modal("İnşa alanları dolu","Yeni bina yerleştirmek için önce bir alan açılmalı.","Anladım");});});
+$("#navQuests").addEventListener("click",()=>{setActiveNav("navQuests");modal("Görevler","Görev sistemi sonraki geliştirme aşamasında bağlanacak.","Tamam");});
+$("#navShop").addEventListener("click",()=>{setActiveNav("navShop");modal("Mağaza","Mağaza arayüzü sonraki geliştirme aşamasında açılacak.","Tamam");});
