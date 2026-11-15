@@ -127,6 +127,104 @@ if(canvas){
   p.rotation.y=(i%2?.025:-.025);
  }
 
+
+ // Premium environment pass: textured courtyard, layered paths, vegetation, banners and lighting.
+ const earthMat=mat(0x92794e), pavingA=mat(0xc9b58e), pavingB=mat(0xa99570), moss=mat(0x526f37), shrubMat=mat(0x315b32), shrubLight=mat(0x648b43), bannerRed=mat(0x8d3028), bannerGold=mat(0xd5ad54,.48,.22);
+ // Slightly raised inner courtyard with irregular stone paving, not a flat coloured disk.
+ mesh(new THREE.CylinderGeometry(8.95,9.15,.12,72),earthMat,0,.055,0,1,1,.82);
+ for(let ring=0;ring<5;ring++){
+  const radius=2.25+ring*1.05;
+  for(let i=0;i<Math.floor(radius*5);i++){
+   const a=i/Math.floor(radius*5)*Math.PI*2+(ring%2)*.11;
+   const x=Math.cos(a)*radius,z=Math.sin(a)*radius*.82;
+   const p=mesh(new THREE.BoxGeometry(.48+((i+ring)%3)*.08,.055,.36),((i+ring)%2)?pavingA:pavingB,x,.13,z);
+   p.rotation.y=-a+.15;p.rotation.z=(i%3-1)*.018;
+  }
+ }
+ // Main ceremonial road: stone pavers widen towards the gate.
+ for(let i=0;i<17;i++){
+  const z=8.05-i*.43;
+  const width=.74+Math.max(0,5-i)*.11;
+  for(const side of [-1,1]){
+   const p=mesh(new THREE.BoxGeometry(width,.09,.38),i%3===0?pavingA:pavingB,side*width*.53,.16,z);
+   p.rotation.y=side*.035;
+  }
+ }
+ // Small side paths and decorative drainage channels.
+ for(const side of [-1,1]){
+  for(let i=0;i<7;i++){
+   const z=4.4-i*.58;
+   const p=mesh(new THREE.BoxGeometry(.42,.06,.34),pavingA,side*(2.25+i*.1),.14,z);
+   p.rotation.y=side*.16;
+  }
+ }
+ // Layered broadleaf trees with visible trunks, roots and varied crowns.
+ function makeTree(x,z,s=1,variant=0){
+  const trunk=mesh(new THREE.CylinderGeometry(.12*s,.22*s,1.45*s,9),wood,x,.72*s,z);
+  trunk.rotation.z=(variant%2?.08:-.07);
+  for(let r=0;r<4;r++){
+   const angle=r*Math.PI/2+variant*.7;
+   const root=mesh(new THREE.CylinderGeometry(.035*s,.13*s,.62*s,7),wood,x+Math.cos(angle)*.22*s,.2*s,z+Math.sin(angle)*.2*s);
+   root.rotation.z=Math.cos(angle)*.55;root.rotation.x=Math.sin(angle)*.55;
+  }
+  const crownMat=variant%2?leaf:leaf2;
+  for(const [dx,dy,dz,sc] of [[0,1.65,0,1],[-.38,1.45,.12,.72],[.34,1.5,-.12,.78],[0,2.05,.08,.68]]){
+   mesh(new THREE.IcosahedronGeometry(.68*s,1),crownMat,x+dx*s,dy*s,z+dz*s,sc,sc*.92,sc);
+  }
+  // Small sunlit leaf clusters create a less uniform silhouette.
+  for(let k=0;k<7;k++){
+   const a=k*2.4+variant;
+   mesh(new THREE.SphereGeometry(.12*s,7,5),k%2?leaf2:leaf,x+Math.cos(a)*.55*s,1.75*s+(k%3)*.16*s,z+Math.sin(a)*.42*s);
+  }
+ }
+ // Keep the central courtyard clear; trees frame the fortification and outer approach.
+ [[-10,-5,1.05],[-10,1,.9],[-9,6,.85],[10,-5,1],[10,1,.9],[9,6,.82],[-6,-9,.85],[6,-9,.9],[-6,9,.82],[6,9,.82]].forEach((v,i)=>makeTree(v[0],v[1],v[2],i));
+ // Shrub clusters, rocks and tufts break up empty ground around the walls.
+ for(let i=0;i<34;i++){
+  const a=i*2.399,r=8.5+(i%5)*.62,x=Math.cos(a)*r,z=Math.sin(a)*r*.82;
+  if(Math.abs(x)<8&&Math.abs(z)<7)continue;
+  for(let j=0;j<3;j++)mesh(new THREE.IcosahedronGeometry(.22+(j%2)*.07,0),j%2?shrubMat:shrubLight,x+(j-1)*.22,.22,z+((j%2)-.5)*.22,1,.72,1);
+ }
+ for(let i=0;i<20;i++){
+  const a=i*2.1,r=7.7+(i%4)*.55,x=Math.cos(a)*r,z=Math.sin(a)*r*.8;
+  const rock=mesh(new THREE.DodecahedronGeometry(.22+(i%3)*.08,0),i%2?stoneDark:stone,x,.18,z,1,.65,.85);
+  rock.rotation.set(i*.2,i*.7,i*.13);
+ }
+ // Seljuk standards at the gate and beside the keep.
+ function makeBanner(x,z){
+  mesh(new THREE.CylinderGeometry(.045,.065,3.7,8),gold,x,1.85,z);
+  mesh(new THREE.SphereGeometry(.09,8,6),goldLight,x,3.75,z);
+  const cloth=mesh(new THREE.BoxGeometry(.72,1.0,.045),bannerRed,x+.34,3.05,z);
+  cloth.rotation.z=-.06;
+  for(let i=0;i<3;i++)mesh(new THREE.BoxGeometry(.74,.045,.055),bannerGold,x+.34,3.42-i*.3,z+.035);
+  mesh(new THREE.TorusGeometry(.16,.035,7,20),goldLight,x+.34,3.05,z+.05);
+ }
+ makeBanner(-2.65,7.8);makeBanner(2.65,7.8);
+ // Warm courtyard lanterns with gold housings and softly glowing glass.
+ const lanternGlass=new THREE.MeshStandardMaterial({color:0xffd47a,emissive:0xffa52c,emissiveIntensity:.55,roughness:.3});
+ for(const [x,z] of [[-5.4,-3.8],[5.4,-3.8],[-5.4,4.2],[5.4,4.2],[-2.4,7.1],[2.4,7.1]]){
+  mesh(new THREE.CylinderGeometry(.055,.075,1.05,8),wood,x,.55,z);
+  mesh(new THREE.BoxGeometry(.34,.38,.34),gold,x,1.22,z);
+  mesh(new THREE.BoxGeometry(.23,.27,.23),lanternGlass,x,1.22,z);
+  mesh(new THREE.ConeGeometry(.25,.2,8),gold,x,1.5,z);
+ }
+ // A subtle turquoise water basin adds a focal point without obstructing building pads.
+ mesh(new THREE.CylinderGeometry(.86,.96,.22,24),stoneLight,-5.35, .2,-.1);
+ mesh(new THREE.CylinderGeometry(.68,.68,.035,24),mat(0x3d9290,.22,.18),-5.35,.33,-.1);
+ mesh(new THREE.CylinderGeometry(.1,.14,.62,8),gold,-5.35,.62,-.1);
+ mesh(new THREE.SphereGeometry(.16,10,8),goldLight,-5.35,.98,-.1);
+ // Decorative carved stone caps on the main gate and wall towers.
+ for(const x of [-1.65,1.65]){
+  mesh(new THREE.ConeGeometry(.34,.48,8),tile,x,2.55,9.02);
+  mesh(new THREE.SphereGeometry(.11,8,6),goldLight,x,2.83,9.02);
+ }
+ // Add a few irregular stone courses around the outer wall to give it depth.
+ for(let i=0;i<72;i++){
+  const a=i*Math.PI*2/72,x=Math.sin(a)*10.02,z=Math.cos(a)*8.2;
+  const block=mesh(new THREE.BoxGeometry(.42,.16,.12),i%3?stoneLight:carvedStone,x,.52,z);
+  block.rotation.y=a;
+ }
+
  // Player buildings: real 3D meshes synchronized with the city API.
  const playerBuildings=new THREE.Group();scene.add(playerBuildings);
  const buildingMaterials={
