@@ -276,6 +276,7 @@ if(canvas){
  // Render and resize
  function resize(){const w=canvas.clientWidth||innerWidth,h=canvas.clientHeight||500;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
  new ResizeObserver(resize).observe(canvas);resize();
+ window.dispatchEvent(new Event("umaykut3dready"));
  let frame=0;
  function animate(){requestAnimationFrame(animate);frame+=.003;sun.position.x=-9+Math.sin(frame)*1.5;playerBuildings.traverse(o=>{if(o.userData.rotates)o.rotation.z+=.012;});renderer.render(scene,camera);}
  animate();
