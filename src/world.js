@@ -15,7 +15,6 @@ export async function getWorld(req, res) {
     SELECT n.id, n.city_player_id AS player_id, n.resource_type, n.x, n.y, n.level
     FROM city_resource_nodes n
     WHERE n.city_player_id = $1
-      AND n.resource_type IN ('wood','stone','iron')
     ORDER BY n.id
   `, [req.player.sub]);
   res.json({ world: "bozkir-1", cities: result.rows, resources: resources.rows });
