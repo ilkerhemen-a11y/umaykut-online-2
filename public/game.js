@@ -167,7 +167,7 @@ $("#openUnits").addEventListener("click",openUnits);
 $("#backVillageFromUnits").addEventListener("click",()=>show("village"));
 
 
-let villageEconomy=null;
+let villageEconomy=null, marketItems=[], constructionWorkers={active:0,max:3,available:3};
 let selectedUpgradeBuilding=null, buildingSpeedupsAvailable=0, buildingTimerInterval=null;
 const buildingCatalog={center:{name:"Merkez Binası",purpose:"Köyünün kalbi. Tüm şehir gelişimini yönetir."},shelter:{name:"Sığınak",purpose:"Düşman yağmalarına karşı kaynaklarının bir bölümünü korur."},temple:{name:"Tapınak",purpose:"Şehrinin işçi kapasitesini artırır."},school:{name:"Okul",purpose:"Üretime katkı sağlar, klan kapasitesini ve hâkimiyet alanını artırır."},barracks:{name:"Kışla",purpose:"Piyade birliklerinin kilidini açar ve eğitimini sağlar."},archery:{name:"Okçu Ocağı",purpose:"Okçu birliklerinin kilidini açar ve eğitimini sağlar."},stable:{name:"Ahır",purpose:"Süvari birliklerinin kilidini açar ve eğitimini sağlar."},workshop:{name:"Atölye",purpose:"Kuşatma makinelerinin kilidini açar ve üretimini sağlar."},stonemason:{name:"Taşçı",purpose:"Haritadaki taş madenlerinden elde edilen verimi artırır."},lumberjack:{name:"Keresteci",purpose:"Haritadaki odun kaynaklarından elde edilen verimi artırır."},blacksmith:{name:"Demirci",purpose:"Haritadaki demir madenlerinden elde edilen verimi artırır."},mill:{name:"Değirmen",purpose:"Tahıl üretimini destekler."},farm:{name:"Tarla",purpose:"Tahıl üretimini sağlar."},market:{name:"Pazar",purpose:"Altın üretimi ve kaynak takası sağlar."},wall:{name:"Sur",purpose:"Şehrinin savunmasını güçlendirir."}};
 const buildingArt={shelter:"shelter",temple:"temple",school:"school",barracks:"barracks",archery:"archery",stable:"stable",workshop:"workshop",stonemason:"stonemason",lumberjack:"lumberjack",blacksmith:"blacksmith",mill:"mill",farm:"farm",market:"market",wall:"wall"};
@@ -176,13 +176,13 @@ function updateBuildingTimer(){
  const el=$("#buildingUpgradeTimer");if(!el||!selectedUpgradeBuilding)return;
  if(!selectedUpgradeBuilding.upgradeFinishesAt){el.textContent="Geliştirme başlatılmadı.";return;}
  const remaining=(new Date(selectedUpgradeBuilding.upgradeFinishesAt).getTime()-Date.now())/1000;
- if(remaining<=0){el.textContent="Geliştirme tamamlandı!";return;}
+ if(remaining<=0){el.textContent="Geliştirme tamamlandı!";if(!selectedUpgradeBuilding._completionRefresh){selectedUpgradeBuilding._completionRefresh=true;refreshBuildingsAndCity().then(()=>loadPlayerData()).catch(console.error);}return;}
  el.textContent="Kalan süre: "+formatBuildTime(remaining);
 }
 function openBuildingUpgrade(v){
  selectedUpgradeBuilding=v;
  $("#modalTitle").textContent=v.name+" · Seviye "+v.level+"/10";
- $("#modalText").textContent=buildingCatalog[v.type]?.purpose||"Şehir binası.";
+ $("#modalText").textContent=(buildingCatalog[v.type]?.purpose||"Şehir binası.")+" İnşaat ekipleri: "+constructionWorkers.active+"/"+constructionWorkers.max+" çalışıyor.";
  $("#modalWorkerField").hidden=true;
  $("#buildingUpgradeActions").hidden=false;
  $("#modalAction").textContent="Kapat";
@@ -193,7 +193,7 @@ function openBuildingUpgrade(v){
  }else{
   const q=v.nextUpgrade;
   cost.textContent="Sonraki seviye: "+(v.level+1)+" · Gerekli: 🪵 "+q.wood+" odun · 🪨 "+q.stone+" taş · ⚒️ "+q.iron+" demir · ⏱️ "+formatBuildTime(q.durationSeconds);
-  start.disabled=!!v.upgradeFinishesAt;start.textContent=v.upgradeFinishesAt?"Geliştirme devam ediyor":"Seviyeyi yükselt";
+  start.disabled=!!v.upgradeFinishesAt||constructionWorkers.available<1;start.textContent=v.upgradeFinishesAt?"Geliştirme devam ediyor":(constructionWorkers.available<1?"İşçi ekipleri dolu":"Seviyeyi yükselt");
  }
  speed.disabled=!v.upgradeFinishesAt||buildingSpeedupsAvailable<1;
  speed.textContent=buildingSpeedupsAvailable>0?"⏩ 5 dk hızlandır · "+buildingSpeedupsAvailable+" adet":"⏩ 5 dk hızlandırma · Pazar yakında";
@@ -205,6 +205,7 @@ function openBuildingUpgrade(v){
 async function refreshBuildingsAndCity(){
  const data=await api("/api/buildings/me");
  buildingSpeedupsAvailable=data.speedupsAvailable||0;
+ constructionWorkers={active:data.activeUpgradeCount||0,max:data.maxConcurrentUpgrades||3,available:data.availableConstructionWorkers||0};
  const layer=$("#villageBuildingsLayer");if(!layer)return;
  layer.replaceChildren();
  (data.buildings||[]).forEach(v=>{
@@ -365,4 +366,7 @@ $("#navVillage").addEventListener("click",()=>{setActiveNav("navVillage");show("
 $("#navTroops").addEventListener("click",()=>{setActiveNav("navTroops");openUnits();});
 
 $("#navQuests").addEventListener("click",()=>{setActiveNav("navQuests");show("world");});
-$("#navShop").addEventListener("click",()=>{setActiveNav("navShop");modal("Mağaza","Mağaza arayüzü sonraki geliştirme aşamasında açılacak.","Tamam");});
+$("#navShop").addEventListener("click",()=>{setActiveNav("navShop");openMarket();});
+async function openMarket(){show("shopScreen");const list=$("#marketItemList");list.textContent="Pazar tezgâhları hazırlanıyor…";try{const data=await api("/api/market/me");$("#marketGold").textContent=Number(data.gold).toLocaleString("tr-TR")+" altın";$("#marketInventory").textContent="⏩ 5 dk hızlandırma: "+data.speedupsAvailable+" adet";list.replaceChildren();data.items.forEach(item=>{const card=document.createElement("article");card.className="market-item";const icon=document.createElement("div");icon.className="market-item-icon";icon.textContent=item.icon;const info=document.createElement("div");info.className="market-item-info";const title=document.createElement("b");title.textContent=item.name;const desc=document.createElement("small");desc.textContent=item.description;const price=document.createElement("strong");price.textContent="🪙 "+item.price+" altın";const buy=document.createElement("button");buy.className="gold-button";buy.textContent="Satın al";buy.addEventListener("click",()=>purchaseMarketItem(item.code,buy));info.append(title,desc,price);card.append(icon,info,buy);list.append(card);});}catch(e){list.textContent=e.message;}}
+async function purchaseMarketItem(code,button){button.disabled=true;try{const result=await api("/api/market/buy",{method:"POST",body:JSON.stringify({code})});await loadPlayerData();await openMarket();$("#marketInventory").textContent=result.message+" · "+$("#marketInventory").textContent;}catch(e){modal("Satın alma başarısız",e.message,"Tamam");button.disabled=false;}}
+$("#backVillageFromShop").addEventListener("click",()=>{setActiveNav("navVillage");show("village");});
