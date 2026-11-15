@@ -315,6 +315,6 @@ if(token){api("/api/city/me").then(()=>enterGame({username:"Oyuncu"})).catch(()=
 function setActiveNav(id){document.querySelectorAll(".bottom-nav button").forEach(button=>button.classList.toggle("active",button.id===id));}
 $("#navVillage").addEventListener("click",()=>{setActiveNav("navVillage");show("village");loadVillageBuildings();});
 $("#navTroops").addEventListener("click",()=>{setActiveNav("navTroops");openUnits();});
-$("#navBuild").addEventListener("click",()=>{setActiveNav("navBuild");show("village");loadVillageBuildings().then(()=>{const first=document.querySelector(".building-slot");if(first)first.click();else modal("İnşa alanları dolu","Yeni bina yerleştirmek için önce bir alan açılmalı.","Anladım");});});
+
 $("#navQuests").addEventListener("click",()=>{setActiveNav("navQuests");show("world");});
 $("#navShop").addEventListener("click",()=>{setActiveNav("navShop");modal("Mağaza","Mağaza arayüzü sonraki geliştirme aşamasında açılacak.","Tamam");});
