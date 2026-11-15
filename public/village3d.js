@@ -75,6 +75,61 @@ if(canvas){
   mesh(new THREE.SphereGeometry(.55,9,7),leaf2,x+.35,1.75,z-.15);
  }
  for(let i=0;i<10;i++){const x=(i-4.5)*.72;box(x,.12,6.6,.42,.16,.42,stoneLight);}
+
+ // Player buildings: real 3D meshes synchronized with the city API.
+ const playerBuildings=new THREE.Group();scene.add(playerBuildings);
+ const buildingMaterials={
+  wall:mat(0xc8b58f),roof:mat(0x80513a),wood:mat(0x58391f),door:mat(0x38251a),
+  trim:mat(0xe0c78f),tile:mat(0x287d83,.48,.1),metal:mat(0xc69b42,.38,.55)
+ };
+ const buildingAnchors=[
+  [-5.8,-4.4],[-.2,-6.7],[5.7,-4.3],[7.0,.7],[5.4,5.0],
+  [.1,6.5],[-5.5,4.9],[-7.0,.4],[-3.2,-.3]
+ ];
+ function makePlayerBuilding(item,index){
+  const group=new THREE.Group();
+  const type=String(item.type||"").toLowerCase();
+  const isMilitary=/barracks|stable|archery|workshop|siege/.test(type);
+  const isStorage=/store|warehouse|depo/.test(type);
+  const width=isMilitary?2.35:2.05,depth=isMilitary?2.7:2.25,height=isMilitary?1.75:1.45;
+  const base=new THREE.Mesh(new THREE.BoxGeometry(width+.32,.24,depth+.32),buildingMaterials.trim);base.position.y=.12;group.add(base);
+  const body=new THREE.Mesh(new THREE.BoxGeometry(width,height,depth),buildingMaterials.wall);body.position.y=.24+height/2;body.castShadow=true;body.receiveShadow=true;group.add(body);
+  // Timber framing and stone corner blocks.
+  for(const x of [-width/2+.12,width/2-.12]){
+   const beam=new THREE.Mesh(new THREE.BoxGeometry(.13,height+.08,.14),buildingMaterials.wood);beam.position.set(x,.28+height/2,depth/2+.025);group.add(beam);
+  }
+  const door=new THREE.Mesh(new THREE.BoxGeometry(.48,.92,.09),buildingMaterials.door);door.position.set(0,.49,depth/2+.055);group.add(door);
+  for(const x of [-.62,.62]){
+   const win=new THREE.Mesh(new THREE.BoxGeometry(.32,.43,.08),buildingMaterials.tile);win.position.set(x,1.02,depth/2+.06);group.add(win);
+   const lintel=new THREE.Mesh(new THREE.BoxGeometry(.44,.1,.11),buildingMaterials.trim);lintel.position.set(x,1.28,depth/2+.06);group.add(lintel);
+  }
+  const roofGeo=new THREE.ConeGeometry(isMilitary?1.85:1.62,.95,4);
+  const roof=new THREE.Mesh(roofGeo,buildingMaterials.roof);roof.rotation.y=Math.PI/4;roof.position.y=.24+height+.42;roof.scale.set(1.08,.9,depth/2/1.62);roof.castShadow=true;group.add(roof);
+  const ridge=new THREE.Mesh(new THREE.BoxGeometry(.12,.13,depth+.15),buildingMaterials.metal);ridge.position.y=.24+height+.88;group.add(ridge);
+  if(isMilitary){
+   const tower=new THREE.Mesh(new THREE.CylinderGeometry(.36,.43,1.05,8),buildingMaterials.wall);tower.position.set(0,2.45,-.25);group.add(tower);
+   const cap=new THREE.Mesh(new THREE.ConeGeometry(.48,.62,8),buildingMaterials.roof);cap.position.set(0,3.25,-.25);group.add(cap);
+   const flag=new THREE.Mesh(new THREE.BoxGeometry(.55,.32,.035),buildingMaterials.tile);flag.position.set(.32,3.25,-.25);group.add(flag);
+  }else if(isStorage){
+   const vent=new THREE.Mesh(new THREE.BoxGeometry(.5,.32,.5),buildingMaterials.wood);vent.position.set(0,1.95,0);group.add(vent);
+  }else{
+   const chimney=new THREE.Mesh(new THREE.BoxGeometry(.28,.75,.3),buildingMaterials.wall);chimney.position.set(.58,2.05,-.55);group.add(chimney);
+  }
+  // Small stone steps and a name plaque give each structure readable scale.
+  const step=new THREE.Mesh(new THREE.BoxGeometry(.82,.16,.38),buildingMaterials.trim);step.position.set(0,.08,depth/2+.25);group.add(step);
+  const [x,z]=buildingAnchors[index%buildingAnchors.length];group.position.set(x,0,z);
+  group.rotation.y=(index%4)*Math.PI/2;
+  group.scale.setScalar(item.level>1?1+Math.min(Number(item.level)-1,5)*.035:1);
+  group.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+  return group;
+ }
+ window.umaykut3d={
+  setBuildings(buildings){
+   while(playerBuildings.children.length)playerBuildings.remove(playerBuildings.children[0]);
+   (buildings||[]).filter(b=>b.type!=="center").slice(0,9).forEach((b,i)=>playerBuildings.add(makePlayerBuilding(b,i)));
+  }
+ };
+
  // Render and resize
  function resize(){const w=canvas.clientWidth||innerWidth,h=canvas.clientHeight||500;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
  new ResizeObserver(resize).observe(canvas);resize();
