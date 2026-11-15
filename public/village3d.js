@@ -76,6 +76,57 @@ if(canvas){
  }
  for(let i=0;i<10;i++){const x=(i-4.5)*.72;box(x,.12,6.6,.42,.16,.42,stoneLight);}
 
+ // Seljuk architectural detailing: carved facade, stone courses and nine true 3D build pads.
+ const carvedStone=mat(0xe4d2a8), turquoise=mat(0x1b7778,.48,.16), shadowStone=mat(0x4b4030);
+ // Layered masonry courses on the central palace.
+ for(let y=.82;y<2.25;y+=.34){
+  for(let side of [-1,1]){
+   for(let x=-2.55;x<=2.55;x+=.72){
+    if(Math.abs(x)<.48 && y>1.05) continue;
+    const block=box(x,y,side*2.515,.66,.045,.035,y%2?carvedStone:stoneLight);
+    block.castShadow=false;
+   }
+  }
+ }
+ // Carved portal frame and turquoise geometric spandrels.
+ for(const x of [-1.05,1.05]){
+  box(x,1.45,2.61,.16,1.9,.18,carvedStone);
+  box(x,2.42,2.61,.34,.14,.2,gold);
+ }
+ box(0,2.88,2.55,2.35,.16,.18,turquoise);
+ for(let i=-4;i<=4;i++){
+  const motif=mesh(new THREE.OctahedronGeometry(.13,0),goldLight,i*.43,2.88,2.68,.9,1.15,.35);
+ }
+ // Repeated arched windows with deep reveals.
+ for(const x of [-2.15,2.15]){
+  for(const z of [-1.35,0,1.35]){
+   box(x,1.52,z, .52,.86,.13,dark);
+   mesh(new THREE.TorusGeometry(.25,.065,8,20,Math.PI),carvedStone,x,1.95,z+.08);
+   box(x,1.1,z,.68,.1,.2,gold);
+  }
+ }
+ // Nine circular, stone-rimmed construction foundations around the keep.
+ const buildPadPositions=[[-5.8,-4.4],[-.2,-6.7],[5.7,-4.3],[7.0,.7],[5.4,5.0],[.1,6.5],[-5.5,4.9],[-7.0,.4],[-3.2,-.3]];
+ const padBase=mat(0x9b8969), padInner=mat(0x6d7950), padGlow=mat(0xd8b45d,.42,.35);
+ buildPadPositions.forEach(([x,z],i)=>{
+  const base=mesh(new THREE.CylinderGeometry(1.22,1.28,.22,40),padBase,x,.12,z);
+  const inset=mesh(new THREE.CylinderGeometry(1.04,1.04,.035,40),padInner,x,.245,z);
+  const rim=mesh(new THREE.TorusGeometry(1.12,.095,10,48),padGlow,x,.28,z);
+  rim.rotation.x=Math.PI/2;
+  for(let j=0;j<8;j++){
+   const a=j*Math.PI/4;
+   mesh(new THREE.BoxGeometry(.16,.08,.12),carvedStone,x+Math.cos(a)*1.13,.31,z+Math.sin(a)*1.13);
+  }
+  const marker=mesh(new THREE.CylinderGeometry(.13,.13,.025,16),goldLight,x,.29,z);
+  marker.userData.buildSlot=i+1;
+ });
+ // Stone paths link the keep to the gate and outer construction ring.
+ for(let i=0;i<13;i++){
+  const z=7.9-i*.58;
+  const p=mesh(new THREE.BoxGeometry(.72,.08,.48),i%2?stoneLight:carvedStone,0,.035,z);
+  p.rotation.y=(i%2?.025:-.025);
+ }
+
  // Player buildings: real 3D meshes synchronized with the city API.
  const playerBuildings=new THREE.Group();scene.add(playerBuildings);
  const buildingMaterials={
