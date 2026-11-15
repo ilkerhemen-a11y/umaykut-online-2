@@ -610,3 +610,61 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
     height:clamp(106px,30vw,124px);
   }
 }
+
+
+/* Nine build plots: carved stone foundations integrated into the village ground */
+#village .building-slot{
+  position:absolute;
+  width:clamp(48px,12vw,62px);
+  height:clamp(48px,12vw,62px);
+  padding:0;
+  border:2px solid #d7c49a;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 34% 27%,#f2e7c5 0 3%,transparent 4%),
+    radial-gradient(circle at 50% 45%,#66734f 0 34%,#394a34 53%,#253629 68%,#18261e 72%);
+  box-shadow:
+    0 0 0 3px #18251caa,
+    0 0 0 6px #c5a96a55,
+    0 8px 13px #0b140ecc,
+    inset 0 2px 4px #fff3c866,
+    inset 0 -5px 8px #10190f;
+  color:#fff0c2;
+  transition:transform .16s ease,filter .16s ease,box-shadow .16s ease;
+}
+#village .building-slot:before{
+  content:"";
+  position:absolute;
+  inset:6px;
+  border:1px dashed #e4d3a0a8;
+  border-radius:50%;
+  box-shadow:inset 0 0 0 2px #17271b55;
+  pointer-events:none;
+}
+#village .building-slot span{
+  position:relative;
+  z-index:1;
+  font-size:25px;
+  line-height:24px;
+  color:#fff0b8;
+  text-shadow:0 2px 4px #10180f;
+}
+#village .building-slot small{
+  position:relative;
+  z-index:1;
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.4px;
+  color:#fff4d2;
+  text-shadow:0 1px 3px #000;
+}
+#village .building-slot:active{
+  transform:translate(-50%,-50%) scale(.92);
+  filter:brightness(1.2);
+}
+@media(max-width:420px){
+  #village .building-slot{width:44px;height:44px}
+  #village .building-slot:before{inset:5px}
+  #village .building-slot span{font-size:21px;line-height:20px}
+  #village .building-slot small{font-size:6px}
+}
