@@ -52,4 +52,47 @@
 <path d="M337 60a12 12 0 1 0 13-16 10 10 0 1 1-13 16Z" fill="#f5d36b" stroke="#80551f" stroke-width="1.5"/>
 <!-- decorative stone joints -->
 <g stroke="#8c7858" stroke-width="1.5" opacity=".7"><path d="M130 218h42m76 0h42M130 267h42m76 0h42M143 183v16m134-16v16M150 246v16m120-16v16"/><path d="M91 180h15m-15 38h15m208-38h15m-15 38h15"/></g>
+
+<!-- Seljuk craftsmanship: carved portal, turquoise tilework and gilded dome ribs -->
+<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M166 126Q210 15 254 126" stroke="#fff0ad" stroke-width="2" opacity=".7"/>
+ <path d="M184 132Q210 70 236 132M197 137Q210 104 223 137" stroke="#9c681f" stroke-width="2" opacity=".8"/>
+ <path d="M210 49V125M190 75 202 137M230 75 218 137" stroke="#fff0a6" stroke-width="1.6" opacity=".55"/>
+ <path d="M130 190 210 218 290 190M130 198 210 226 290 198" stroke="#f3d99b" stroke-width="1.5"/>
+ <path d="M133 205 210 232 287 205" stroke="#236b70" stroke-width="2"/>
+ <path d="M185 258V229Q210 197 235 229V258" stroke="#f0cf78" stroke-width="2"/>
+ <path d="M193 256V232Q210 211 227 232V256" stroke="#8a5a29" stroke-width="2"/>
+ <path d="M210 231V258M194 241H226M194 250H226" stroke="#c58e42" stroke-width="1.5"/>
+</g>
+<!-- jeweled portal medallions -->
+<g stroke="#f6dfa0" stroke-width="2">
+ <path d="M155 208 162 215 155 222 148 215Z" fill="#1e6870"/>
+ <path d="M265 208 272 215 265 222 258 215Z" fill="#1e6870"/>
+ <circle cx="210" cy="185" r="7" fill="#d6a944"/>
+ <circle cx="210" cy="185" r="3" fill="#1d5962" stroke="none"/>
+</g>
+<!-- crenellated roofline and carved corner stones -->
+<g fill="#e7d4ad" stroke="#756044" stroke-width="1.5">
+ <path d="M112 166v-9h9v9h9v-9h9v15z"/>
+ <path d="M281 172v-15h9v9h9v-9h9v9z"/>
+ <path d="M73 170v-8h8v8h8v-8h8v8z"/>
+ <path d="M322 170v-8h8v8h8v-8h8v8z"/>
+</g>
+<!-- turquoise minaret bands -->
+<g fill="none" stroke="#d9c58e" stroke-width="2">
+ <path d="M69 117H97M70 224H96M323 117H351M324 224H350"/>
+ <path d="M75 139H91M75 178H91M329 139H345M329 178H345"/>
+</g>
+<!-- royal blue pennants -->
+<g stroke="#d9bd73" stroke-width="1.5">
+ <path d="M83 66V22L119 31 109 42 119 51 83 46Z" fill="#173e66"/>
+ <path d="M337 66V22L373 31 363 42 373 51 337 46Z" fill="#173e66"/>
+ <path d="M88 30 111 35M88 38 111 43M342 30 365 35M342 38 365 43" stroke="#d8b75c" opacity=".8"/>
+</g>
+<!-- warm windows and stone relief -->
+<g fill="#f2cf79" opacity=".9">
+ <rect x="80" y="153" width="6" height="16" rx="3"/><rect x="80" y="192" width="6" height="16" rx="3"/>
+ <rect x="334" y="153" width="6" height="16" rx="3"/><rect x="334" y="192" width="6" height="16" rx="3"/>
+</g>
+
 </svg>
