@@ -1,6 +1,7 @@
 import { pool } from "./db.js";
 
 const MAX_LEVEL = 10;
+const MAX_CONCURRENT_UPGRADES = 3;
 const BUILDINGS = Object.freeze({
   center: { name: "Merkez Binası", icon: "🏛️", purpose: "Üretim ve nüfus kapasitesini artırır." },
   shelter: { name: "Sığınak", icon: "🏕️", purpose: "Düşman yağmalarına karşı kaynaklarının bir bölümünü korur." },
@@ -49,6 +50,8 @@ export async function getMyBuildings(req, res) {
     await ensureBuildingSchema();
     await ensureStartingBuildings(pool, req.player.sub);
     await completeExpiredUpgrades(pool, req.player.sub);
+    const activeResult = await pool.query("SELECT COUNT(*)::integer AS active FROM city_buildings WHERE city_player_id = $1 AND upgrade_finishes_at > NOW()", [req.player.sub]);
+    const activeUpgradeCount = Number(activeResult.rows[0]?.active || 0);
     const result = await pool.query("SELECT id, building_type, x, y, level, upgrade_finishes_at FROM city_buildings WHERE city_player_id = $1 ORDER BY CASE WHEN building_type = 'center' THEN 0 ELSE 1 END, id", [req.player.sub]);
     const itemResult = await pool.query("SELECT quantity FROM player_items WHERE player_id = $1 AND item_code = 'building_speedup_5m'", [req.player.sub]);
     const buildings = result.rows.map(row => ({
@@ -57,7 +60,7 @@ export async function getMyBuildings(req, res) {
       upgradeFinishesAt: row.upgrade_finishes_at,
       nextUpgrade: Number(row.level) < MAX_LEVEL ? quoteUpgrade(Number(row.level)) : null
     }));
-    res.json({ maxLevel: MAX_LEVEL, speedupsAvailable: Number(itemResult.rows[0]?.quantity || 0), buildings });
+    res.json({ maxLevel: MAX_LEVEL, maxConcurrentUpgrades: MAX_CONCURRENT_UPGRADES, activeUpgradeCount, availableConstructionWorkers: Math.max(0, MAX_CONCURRENT_UPGRADES - activeUpgradeCount), speedupsAvailable: Number(itemResult.rows[0]?.quantity || 0), buildings });
   } catch (error) {
     console.error("Bina yerleşimi alınamadı:", error);
     res.status(500).json({ error: "Başlangıç köyü yüklenemedi." });
@@ -72,6 +75,12 @@ export async function upgradeBuilding(req, res) {
     await ensureBuildingSchema(client);
     await ensureStartingBuildings(client, req.player.sub);
     const city = await client.query("SELECT wood, stone, iron FROM player_cities WHERE player_id = $1 FOR UPDATE", [req.player.sub]);
+    await completeExpiredUpgrades(client, req.player.sub);
+    const active = await client.query("SELECT COUNT(*)::integer AS count FROM city_buildings WHERE city_player_id = $1 AND upgrade_finishes_at > NOW()", [req.player.sub]);
+    if (Number(active.rows[0].count) >= MAX_CONCURRENT_UPGRADES) {
+      await client.query("ROLLBACK");
+      return res.status(409).json({ error: "Üç inşaat işçisi de çalışıyor. Yeni yükseltme başlatmak için bir ekibin işini bitirmesini bekle.", activeUpgradeCount: 3, maxConcurrentUpgrades: 3 });
+    }
     if (!city.rows[0]) { await client.query("ROLLBACK"); return res.status(404).json({ error: "Şehir bulunamadı." }); }
     const result = await client.query("SELECT id, level, upgrade_finishes_at FROM city_buildings WHERE city_player_id = $1 AND building_type = $2 FOR UPDATE", [req.player.sub, type]);
     const building = result.rows[0];
