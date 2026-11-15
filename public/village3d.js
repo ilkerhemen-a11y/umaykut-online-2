@@ -253,10 +253,23 @@ if(canvas){
   group.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
   return group;
  }
+ function projectedBuildSlots(){
+  camera.updateMatrixWorld();camera.updateProjectionMatrix();
+  return buildPadPositions.map(([x,z])=>{
+   const p=new THREE.Vector3(x,.38,z).project(camera);
+   return {x:(p.x*.5+.5)*100,y:(.5-p.y*.5)*100};
+  });
+ }
  window.umaykut3d={
+  getSlotPositions(){return projectedBuildSlots();},
   setBuildings(buildings){
    while(playerBuildings.children.length)playerBuildings.remove(playerBuildings.children[0]);
-   (buildings||[]).filter(b=>b.type!=="center").slice(0,9).forEach((b,i)=>playerBuildings.add(makePlayerBuilding(b,i)));
+   const slots=projectedBuildSlots();
+   (buildings||[]).filter(b=>b.type!=="center").slice(0,9).forEach((b,i)=>{
+    const px=Number(b.x),py=Number(b.y);
+    const nearest=slots.map((p,index)=>({index,d:Math.hypot(p.x-px,p.y-py)})).sort((a,b)=>a.d-b.d)[0];
+    playerBuildings.add(makePlayerBuilding(b,nearest&&nearest.d<8?nearest.index:i));
+   });
   }
  };
 
@@ -264,7 +277,7 @@ if(canvas){
  function resize(){const w=canvas.clientWidth||innerWidth,h=canvas.clientHeight||500;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
  new ResizeObserver(resize).observe(canvas);resize();
  let frame=0;
- function animate(){requestAnimationFrame(animate);frame+=.003;sun.position.x=-9+Math.sin(frame)*1.5;renderer.render(scene,camera);}
+ function animate(){requestAnimationFrame(animate);frame+=.003;sun.position.x=-9+Math.sin(frame)*1.5;playerBuildings.traverse(o=>{if(o.userData.rotates)o.rotation.z+=.012;});renderer.render(scene,camera);}
  animate();
  window.addEventListener("orientationchange",resize);
 }
