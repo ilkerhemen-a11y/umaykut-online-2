@@ -455,3 +455,6 @@ body{background:#0d131b;color:#f4e7c5;font-family:Georgia,serif}
 #village .gate{display:none}
 #village .placed-building.placed-center{display:none}
 #village .building-slot{background:radial-gradient(circle at 35% 25%,#fff7ceaa,#80602ddd 72%);border:2px dashed #ffe49a;box-shadow:0 4px 12px #14200e99, inset 0 0 12px #fff1b455}
+
+/* Use the actual Three.js meshes as the only representation of placed buildings. */
+#village .village-buildings-layer{display:none!important}
