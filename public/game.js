@@ -196,8 +196,8 @@ function openBuildingUpgrade(v){
   cost.textContent="Sonraki seviye: "+(v.level+1)+" · Gerekli: 🪵 "+q.wood+" odun · 🪨 "+q.stone+" taş · ⚒️ "+q.iron+" demir · ⏱️ "+formatBuildTime(q.durationSeconds);
   start.disabled=!!v.upgradeFinishesAt||constructionWorkers.available<1;start.textContent=v.upgradeFinishesAt?"Geliştirme devam ediyor":(constructionWorkers.available<1?"İşçi ekipleri dolu":"Seviyeyi yükselt");
  }
- speed.disabled=!v.upgradeFinishesAt||buildingSpeedupsAvailable<1;
- speed.textContent=buildingSpeedupsAvailable>0?"⏩ 5 dk hızlandır · "+buildingSpeedupsAvailable+" adet":"⏩ 5 dk hızlandırma · Pazar yakında";
+ speed.disabled=!v.upgradeFinishesAt;
+ speed.textContent=buildingSpeedupsAvailable>0?"⏩ 5 dk hızlandır · "+buildingSpeedupsAvailable+" adet":"🏪 Pazar’dan 5 dk hızlandırma al";
  updateBuildingTimer();
  if(buildingTimerInterval)clearInterval(buildingTimerInterval);
  buildingTimerInterval=setInterval(updateBuildingTimer,1000);
@@ -238,6 +238,7 @@ $("#startBuildingUpgrade").addEventListener("click",async()=>{
 });
 $("#speedUpBuilding").addEventListener("click",async()=>{
  if(!selectedUpgradeBuilding)return;
+ if(buildingSpeedupsAvailable<1){$("#modal").classList.remove("open");if(buildingTimerInterval){clearInterval(buildingTimerInterval);buildingTimerInterval=null;}setActiveNav("navShop");openMarket();return;}
  const button=$("#speedUpBuilding");button.disabled=true;
  try{
   await api("/api/buildings/speed-up",{method:"POST",body:JSON.stringify({type:selectedUpgradeBuilding.type})});
