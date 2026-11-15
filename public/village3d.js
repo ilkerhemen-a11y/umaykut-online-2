@@ -106,7 +106,7 @@ if(canvas){
   }
  }
  // Nine circular, stone-rimmed construction foundations around the keep.
- const buildPadPositions=[[-5.8,-4.4],[-.2,-6.7],[5.7,-4.3],[7.0,.7],[5.4,5.0],[.1,6.5],[-5.5,4.9],[-7.0,.4],[-3.2,-.3]];
+ const buildPadPositions=[[-4.8,-6.0],[0,-7.3],[4.8,-6.0],[7.1,-2.0],[7.1,3.0],[2.8,6.6],[-2.8,6.6],[-7.1,3.0],[-7.1,-2.0]];
  const padBase=mat(0x9b8969), padInner=mat(0x6d7950), padGlow=mat(0xd8b45d,.42,.35);
  buildPadPositions.forEach(([x,z],i)=>{
   const base=mesh(new THREE.CylinderGeometry(1.22,1.28,.22,40),padBase,x,.12,z);
@@ -134,43 +134,122 @@ if(canvas){
   trim:mat(0xe0c78f),tile:mat(0x287d83,.48,.1),metal:mat(0xc69b42,.38,.55)
  };
  const buildingAnchors=[
-  [-5.8,-4.4],[-.2,-6.7],[5.7,-4.3],[7.0,.7],[5.4,5.0],
-  [.1,6.5],[-5.5,4.9],[-7.0,.4],[-3.2,-.3]
+  [-4.8,-6.0],[0,-7.3],[4.8,-6.0],[7.1,-2.0],[7.1,3.0],
+  [2.8,6.6],[-2.8,6.6],[-7.1,3.0],[-7.1,-2.0]
  ];
  function makePlayerBuilding(item,index){
   const group=new THREE.Group();
   const type=String(item.type||"").toLowerCase();
-  const isMilitary=/barracks|stable|archery|workshop|siege/.test(type);
-  const isStorage=/store|warehouse|depo/.test(type);
-  const width=isMilitary?2.35:2.05,depth=isMilitary?2.7:2.25,height=isMilitary?1.75:1.45;
-  const base=new THREE.Mesh(new THREE.BoxGeometry(width+.32,.24,depth+.32),buildingMaterials.trim);base.position.y=.12;group.add(base);
-  const body=new THREE.Mesh(new THREE.BoxGeometry(width,height,depth),buildingMaterials.wall);body.position.y=.24+height/2;body.castShadow=true;body.receiveShadow=true;group.add(body);
-  // Timber framing and stone corner blocks.
-  for(const x of [-width/2+.12,width/2-.12]){
-   const beam=new THREE.Mesh(new THREE.BoxGeometry(.13,height+.08,.14),buildingMaterials.wood);beam.position.set(x,.28+height/2,depth/2+.025);group.add(beam);
+  const M=buildingMaterials;
+  const addBox=(w,h,d,x,y,z,material)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);o.position.set(x,y,z);group.add(o);return o;};
+  const addMesh=(geo,material,x,y,z)=>{const o=new THREE.Mesh(geo,material);o.position.set(x,y,z);group.add(o);return o;};
+  const addRoof=(w,d,y,material=M.roof)=>{
+   const roof=addMesh(new THREE.ConeGeometry(Math.max(w,d)*.76,.9,4),material,0,y,0);
+   roof.rotation.y=Math.PI/4;roof.scale.set(w/2.1,.9,d/2.1);
+   addBox(.12,.12,d+.12,0,y+.43,0,M.metal);
+  };
+  const long=/stable|lumberjack|workshop/.test(type);
+  const w=long?2.5:2.12,d=long?2.9:2.35,h=type==="temple"?1.55:1.42;
+  // Raised dressed-stone plinth and corner quoins.
+  addBox(w+.42,.25,d+.42,0,.125,0,M.trim);
+  addBox(w+.16,.1,d+.16,0,.29,0,M.metal);
+  addBox(w,h,d,0,.34+h/2,0,M.wall);
+  for(const x of [-w/2+.09,w/2-.09])for(const z of [-d/2+.09,d/2-.09])
+   addBox(.17,h+.04,.17,x,.34+h/2,z,M.trim);
+  // Timber frame, carved lintel and recessed arched entrance.
+  for(const x of [-w/2+.18,w/2-.18])addBox(.12,h+.06,.13,x,.36+h/2,d/2+.035,M.wood);
+  addBox(.58,.98,.10,0,.79,d/2+.065,M.door);
+  addBox(.78,.13,.15,0,1.31,d/2+.07,M.trim);
+  addMesh(new THREE.TorusGeometry(.29,.055,8,20,Math.PI),M.metal,0,1.28,d/2+.12).rotation.z=Math.PI;
+  for(const x of [-.68,.68]){
+   addBox(.34,.43,.09,x,1.12,d/2+.065,M.tile);
+   addBox(.48,.09,.13,x,1.38,d/2+.07,M.trim);
+   addBox(.08,.5,.11,x,1.12,d/2+.12,M.metal);
   }
-  const door=new THREE.Mesh(new THREE.BoxGeometry(.48,.92,.09),buildingMaterials.door);door.position.set(0,.49,depth/2+.055);group.add(door);
-  for(const x of [-.62,.62]){
-   const win=new THREE.Mesh(new THREE.BoxGeometry(.32,.43,.08),buildingMaterials.tile);win.position.set(x,1.02,depth/2+.06);group.add(win);
-   const lintel=new THREE.Mesh(new THREE.BoxGeometry(.44,.1,.11),buildingMaterials.trim);lintel.position.set(x,1.28,depth/2+.06);group.add(lintel);
-  }
-  const roofGeo=new THREE.ConeGeometry(isMilitary?1.85:1.62,.95,4);
-  const roof=new THREE.Mesh(roofGeo,buildingMaterials.roof);roof.rotation.y=Math.PI/4;roof.position.y=.24+height+.42;roof.scale.set(1.08,.9,depth/2/1.62);roof.castShadow=true;group.add(roof);
-  const ridge=new THREE.Mesh(new THREE.BoxGeometry(.12,.13,depth+.15),buildingMaterials.metal);ridge.position.y=.24+height+.88;group.add(ridge);
-  if(isMilitary){
-   const tower=new THREE.Mesh(new THREE.CylinderGeometry(.36,.43,1.05,8),buildingMaterials.wall);tower.position.set(0,2.45,-.25);group.add(tower);
-   const cap=new THREE.Mesh(new THREE.ConeGeometry(.48,.62,8),buildingMaterials.roof);cap.position.set(0,3.25,-.25);group.add(cap);
-   const flag=new THREE.Mesh(new THREE.BoxGeometry(.55,.32,.035),buildingMaterials.tile);flag.position.set(.32,3.25,-.25);group.add(flag);
-  }else if(isStorage){
-   const vent=new THREE.Mesh(new THREE.BoxGeometry(.5,.32,.5),buildingMaterials.wood);vent.position.set(0,1.95,0);group.add(vent);
+  // Distinct architectural silhouette for every building family.
+  if(type==="temple"){
+   addBox(w+.22,.18,d+.22,0,1.98,0,M.trim);
+   addBox(1.18,.85,1.18,0,2.38,0,M.tile);
+   addMesh(new THREE.CylinderGeometry(.72,.82,.38,12),M.metal,0,2.98,0);
+   addMesh(new THREE.SphereGeometry(.78,16,12),M.metal,0,3.42,0).scale.y=.68;
+   addMesh(new THREE.ConeGeometry(.12,.45,8),M.metal,0,4.0,0);
+   for(const x of [-.82,.82]){addMesh(new THREE.CylinderGeometry(.16,.2,.8,8),M.trim,x,2.45,-.55);addMesh(new THREE.ConeGeometry(.23,.42,8),M.tile,x,3.02,-.55);}
+  }else if(type==="school"){
+   addRoof(w+.15,d+.15,2.25,M.tile);
+   addBox(.95,.08,.18,0,2.03,d/2+.09,M.metal);
+   for(let i=0;i<3;i++)addBox(.12,.55,.12,-.38+i*.38,1.0,d/2+.12,M.metal);
+  }else if(type==="barracks"){
+   addRoof(w+.2,d+.2,2.24);
+   for(const x of [-.78,.78]){addMesh(new THREE.CylinderGeometry(.23,.28,.85,8),M.trim,x,2.35,-.45);addMesh(new THREE.ConeGeometry(.34,.5,8),M.roof,x,3.0,-.45);}
+   addBox(.58,.36,.07,0,2.7,d/2+.12,M.tile);
+  }else if(type==="archery"){
+   addRoof(w+.15,d+.15,2.2);
+   for(const x of [-.72,.72]){
+    addMesh(new THREE.TorusGeometry(.22,.045,8,20),M.metal,x,1.75,d/2+.15);
+    addBox(.08,.72,.08,x,1.75,d/2+.15,M.wood);
+   }
+   addBox(.72,.12,.12,0,2.0,d/2+.15,M.trim);
+  }else if(type==="stable"){
+   addRoof(w+.2,d+.2,2.18);
+   for(const x of [-.72,0,.72]){addBox(.09,1.0,.12,x,.85,d/2+.12,M.wood);addBox(.62,.1,.12,x,.43,d/2+.12,M.trim);}
+   addMesh(new THREE.TorusGeometry(.28,.055,8,20),M.metal,.72,1.5,d/2+.17);
+  }else if(type==="workshop"||type==="blacksmith"){
+   addRoof(w+.15,d+.15,2.18);
+   addBox(.48,.8,.46,.7,2.0,-.62,M.wall);
+   addBox(.58,.13,.56,.7,2.44,-.62,M.trim);
+   addMesh(new THREE.CylinderGeometry(.12,.16,.5,8),M.wood,-.72,1.85,.35);
+   addBox(.62,.16,.52,-.62,1.42,.35,M.metal);
+   addMesh(new THREE.CylinderGeometry(.12,.12,.55,8),M.metal,-.62,1.78,.35);
+  }else if(type==="stonemason"){
+   addRoof(w+.1,d+.1,2.16);
+   for(let i=0;i<3;i++)addBox(.48,.36,.42,-.72+i*.72,.58+i*.16,d/2+.28,M.trim);
+   addMesh(new THREE.ConeGeometry(.22,.55,6),M.metal,.72,1.85,d/2+.2);
+  }else if(type==="lumberjack"){
+   addRoof(w+.15,d+.15,2.16);
+   for(let i=0;i<4;i++)addMesh(new THREE.CylinderGeometry(.15,.18,.78,8),M.wood,-.85+i*.45,1.05,-.8);
+   addMesh(new THREE.CylinderGeometry(.18,.18,.12,10),M.trim,.5,1.7,d/2+.2);
+   addBox(.65,.12,.16,.5,1.55,d/2+.2,M.metal);
+  }else if(type==="mill"){
+   addRoof(w+.1,d+.1,2.12);
+   addMesh(new THREE.CylinderGeometry(.2,.2,.18,12),M.metal,0,2.2,d/2+.16);
+   const sail=new THREE.Group();sail.position.set(0,2.2,d/2+.23);group.add(sail);
+   for(let i=0;i<4;i++){const blade=new THREE.Mesh(new THREE.BoxGeometry(.2,1.25,.07),M.trim);blade.position.y=.72;blade.rotation.z=i*Math.PI/2;sail.add(blade);}
+   sail.userData.rotates=true;
+  }else if(type==="farm"){
+   addBox(w+.2,.12,d+.2,0,.08,0,M.trim);
+   for(let i=0;i<5;i++){
+    const row=addBox(.12,.13,d-.3,-.78+i*.39,.22,0,M.wood);row.rotation.z=-.05;
+    for(let j=0;j<4;j++)addMesh(new THREE.ConeGeometry(.08,.35,5),M.tile,-.78+i*.39,.43,-.78+j*.5);
+   }
+   addBox(.55,.8,.55,.72,.5,-.65,M.wood);
+  }else if(type==="market"){
+   addBox(w+.12,.14,d+.12,0,1.78,0,M.wood);
+   for(const x of [-.88,.88])for(const z of [-.9,.9])addBox(.12,1.55,.12,x,1.0,z,M.wood);
+   addBox(w+.25,.13,d+.25,0,2.0,0,M.tile);
+   for(let i=0;i<5;i++)addBox(.36,.08,d+.28,-.9+i*.45,2.08,0,i%2?M.trim:M.tile);
+   for(const x of [-.62,0,.62])addBox(.42,.35,.42,x,.72,d/2+.2,M.trim);
+  }else if(type==="wall"){
+   addBox(w+.25,.75,.65,0,.72,0,M.trim);
+   for(let x=-.9;x<=.91;x+=.6)addBox(.35,.42,.72,x,1.3,0,M.wall);
+   addMesh(new THREE.ConeGeometry(.18,.38,4),M.roof,0,1.75,0);
   }else{
-   const chimney=new THREE.Mesh(new THREE.BoxGeometry(.28,.75,.3),buildingMaterials.wall);chimney.position.set(.58,2.05,-.55);group.add(chimney);
+   addRoof(w+.15,d+.15,2.16);
+   addBox(.32,.7,.32,.72,2.05,-.62,M.wall);
+   addBox(.4,.1,.4,.72,2.42,-.62,M.trim);
   }
-  // Small stone steps and a name plaque give each structure readable scale.
-  const step=new THREE.Mesh(new THREE.BoxGeometry(.82,.16,.38),buildingMaterials.trim);step.position.set(0,.08,depth/2+.25);group.add(step);
-  const [x,z]=buildingAnchors[index%buildingAnchors.length];group.position.set(x,0,z);
+  // Stone stair, lantern and level-up crown details.
+  addBox(.92,.15,.42,0,.075,d/2+.28,M.trim);
+  addBox(.12,.48,.12,-w/2-.12,1.0,d/2+.04,M.metal);
+  addMesh(new THREE.SphereGeometry(.12,8,6),M.metal,-w/2-.12,1.28,d/2+.04);
+  const level=Math.max(1,Math.min(10,Number(item.level)||1));
+  if(level>1){
+   addBox(w+.28,.1,d+.28,0,.43+h,0,M.metal);
+   for(const x of [-w/2,w/2])addMesh(new THREE.ConeGeometry(.16,.32,6),M.tile,x,2.35,-d/2);
+  }
+  const [x,z]=buildingAnchors[index%buildingAnchors.length];
+  group.position.set(x,.31,z);
   group.rotation.y=(index%4)*Math.PI/2;
-  group.scale.setScalar(item.level>1?1+Math.min(Number(item.level)-1,5)*.035:1);
+  group.scale.setScalar(1+Math.min(level-1,5)*.025);
   group.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
   return group;
  }
