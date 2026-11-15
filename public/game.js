@@ -213,10 +213,17 @@ async function loadVillageBuildings(){
   layer.replaceChildren();slots.replaceChildren();
   const occupied=new Set();
   data.buildings.filter(v=>v.type!=="center").forEach(v=>{const n=buildingSlots.map((p,i)=>({i,d:Math.hypot(p.x-v.x,p.y-v.y)})).sort((x,y)=>x.d-y.d)[0];if(n&&n.d<9)occupied.add(n.i);});
-  buildingSlots.forEach((p,i)=>{if(occupied.has(i))return;const s=document.createElement("button");s.type="button";s.className="building-slot";s.style.left=p.x+"%";s.style.top=p.y+"%";s.innerHTML="<span>＋</span><small>İNŞA ET</small>";s.addEventListener("click",()=>showBuildingCatalog(i));slots.append(s);});
+  buildingSlots.forEach((p,i)=>{if(occupied.has(i))return;const s=document.createElement("button");s.type="button";s.className="building-slot";s.dataset.slotIndex=String(i);s.style.left=p.x+"%";s.style.top=p.y+"%";s.innerHTML="<span>＋</span><small>İNŞA ET</small>";s.addEventListener("click",()=>showBuildingCatalog(i));slots.append(s);});
   data.buildings.forEach(v=>{const m=document.createElement("button");m.type="button";m.className="placed-building"+(v.type==="center"?" placed-center":"");m.style.left=v.x+"%";m.style.top=v.y+"%";const i=document.createElement("img");i.src=v.type==="center"?"/assets/seljuk-center.svg":"/assets/buildings/"+(buildingArt[v.type]||"shelter")+".svg";i.alt=v.name;i.className=v.type==="center"?"keep-art":"building-art";const n=document.createElement("b");n.textContent=v.name;const l=document.createElement("small");l.textContent="Sv. "+v.level;m.append(i,n,l);m.addEventListener("click",e=>{e.stopPropagation();if(v.type==="center")return;if(["stable","barracks","archery","workshop"].includes(v.type)){openUnits();return;}modal(v.name,buildingCatalog[v.type]?.purpose||"Şehir binası.","Anladım");});layer.append(m);});
  }catch(e){console.error("Köy binaları yüklenemedi:",e);}
 }
+window.addEventListener("umaykut3dcamera",()=>{
+ const positions=getBuildingSlots();
+ document.querySelectorAll("#villageBuildingSlots .building-slot").forEach(button=>{
+  const p=positions[Number(button.dataset.slotIndex)];if(!p)return;
+  button.style.left=p.x+"%";button.style.top=p.y+"%";
+ });
+});
 window.addEventListener("umaykut3dready",()=>loadVillageBuildings());
 document.querySelectorAll("[data-place-building]").forEach(btn=>btn.addEventListener("click",async()=>{
  if(selectedBuildingSlot===null)return;const p=getBuildingSlots()[selectedBuildingSlot];if(!p){btn.disabled=false;return;}btn.disabled=true;
