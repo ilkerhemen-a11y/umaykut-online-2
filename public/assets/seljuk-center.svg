@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 340" role="img" aria-labelledby="title desc">
+<title id="title">Selçuklu merkez sarayı</title><desc id="desc">Altın kubbeli, turkuaz çinili, hilalli minareleri ve taş revakları olan görkemli Selçuklu merkez yapısı.</desc>
+<defs>
+ <linearGradient id="stone" x2="0" y2="1"><stop stop-color="#f1e5c9"/><stop offset=".55" stop-color="#c4ad83"/><stop offset="1" stop-color="#79654b"/></linearGradient>
+ <linearGradient id="shadow" x2="0" y2="1"><stop stop-color="#26352b"/><stop offset="1" stop-color="#101b16"/></linearGradient>
+ <linearGradient id="gold" x2=".2" y2="1"><stop stop-color="#fff0a2"/><stop offset=".35" stop-color="#e8bd4e"/><stop offset="1" stop-color="#96621c"/></linearGradient>
+ <linearGradient id="blue" x2="0" y2="1"><stop stop-color="#3d9b9b"/><stop offset="1" stop-color="#164e59"/></linearGradient>
+ <linearGradient id="roof" x2="0" y2="1"><stop stop-color="#e5c56d"/><stop offset="1" stop-color="#8b5c22"/></linearGradient>
+ <filter id="blur" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur stdDeviation="8"/></filter>
+ <pattern id="tile" width="18" height="18" patternUnits="userSpaceOnUse"><path d="M9 1 16 9 9 17 2 9Z" fill="none" stroke="#d8c17b" stroke-width="1.5"/><circle cx="9" cy="9" r="2" fill="#e7d69b"/></pattern>
+</defs>
+<ellipse cx="210" cy="300" rx="175" ry="23" fill="#09120d" opacity=".48" filter="url(#blur)"/>
+<path d="M24 270 210 327 396 270 210 213Z" fill="#756348" stroke="#463c2c" stroke-width="5"/>
+<path d="M42 264 210 314 378 264 210 220Z" fill="#c4ad83" stroke="#f0dcae" stroke-width="3"/>
+<path d="M70 252 210 294 350 252 210 211Z" fill="#8b7859" stroke="#ead6a6" stroke-width="3"/>
+<!-- rear wings -->
+<path d="M75 171 153 148 153 259 75 282Z" fill="url(#stone)" stroke="#66553e" stroke-width="4"/>
+<path d="M267 148 345 171 345 282 267 259Z" fill="#a89470" stroke="#66553e" stroke-width="4"/>
+<path d="M75 171 114 143 153 148 114 176Z" fill="#d8c49b" stroke="#66553e" stroke-width="4"/>
+<path d="M267 148 306 143 345 171 306 176Z" fill="#e8d6b0" stroke="#66553e" stroke-width="4"/>
+<!-- main facade -->
+<path d="M110 169 210 132 310 169 310 272 210 308 110 272Z" fill="url(#stone)" stroke="#5f513d" stroke-width="5"/>
+<path d="M110 169 210 204 310 169" fill="none" stroke="#f7e8c4" stroke-width="5"/>
+<path d="M126 185 210 215 294 185 294 260 210 290 126 260Z" fill="#d8c6a0" stroke="#77664b" stroke-width="3"/>
+<path d="M126 185 210 215 294 185 294 202 210 233 126 202Z" fill="url(#blue)" stroke="#e4cf96" stroke-width="3"/>
+<path d="M126 185 210 215 294 185 294 202 210 233 126 202Z" fill="url(#tile)" opacity=".85"/>
+<!-- entrance -->
+<path d="M179 258V224Q210 186 241 224V258Z" fill="#183b43" stroke="#f3dca8" stroke-width="5"/>
+<path d="M190 258V228Q210 203 230 228V258" fill="none" stroke="#c89b47" stroke-width="3"/>
+<path d="M202 258V238Q210 226 218 238V258Z" fill="#081a20"/>
+<!-- side arched windows -->
+<path d="M143 239V216Q155 198 167 216V247Z" fill="#17454d" stroke="#f2dfb5" stroke-width="3"/>
+<path d="M253 247V216Q265 198 277 216V239Z" fill="#17454d" stroke="#f2dfb5" stroke-width="3"/>
+<!-- dome drum -->
+<path d="M158 159V130Q210 104 262 130V159L210 180Z" fill="url(#blue)" stroke="#e5cf98" stroke-width="4"/>
+<path d="M158 143 210 163 262 143" fill="none" stroke="#e8d49e" stroke-width="3"/>
+<path d="M165 130Q210 37 255 130Q210 156 165 130Z" fill="url(#gold)" stroke="#80551f" stroke-width="5"/>
+<path d="M177 126Q210 57 243 126" fill="none" stroke="#fff0a6" stroke-width="3" opacity=".8"/>
+<path d="M210 43V25M210 25l-9 5 9 5 9-5-9-5Z" fill="#f4d66e" stroke="#80551f" stroke-width="2"/>
+<!-- minarets -->
+<g stroke="#69573e" stroke-width="3">
+ <path d="M70 116 83 94 96 116V258L83 268 70 258Z" fill="url(#stone)"/>
+ <path d="M62 116H104L98 105H68Z" fill="url(#blue)" stroke="#e4cf96"/>
+ <path d="M75 94 83 65 91 94Z" fill="url(#gold)"/>
+ <path d="M324 116 337 94 350 116V258L337 268 324 258Z" fill="url(#stone)"/>
+ <path d="M316 116H358L352 105H322Z" fill="url(#blue)" stroke="#e4cf96"/>
+ <path d="M329 94 337 65 345 94Z" fill="url(#gold)"/>
+</g>
+<g fill="#1d4d55" stroke="#f1dca7" stroke-width="2"><path d="M77 151h12v22H77zM77 190h12v22H77zM331 151h12v22h-12zM331 190h12v22h-12z"/></g>
+<!-- crescent -->
+<path d="M83 60a12 12 0 1 0 13-16 10 10 0 1 1-13 16Z" fill="#f5d36b" stroke="#80551f" stroke-width="1.5"/>
+<path d="M337 60a12 12 0 1 0 13-16 10 10 0 1 1-13 16Z" fill="#f5d36b" stroke="#80551f" stroke-width="1.5"/>
+<!-- decorative stone joints -->
+<g stroke="#8c7858" stroke-width="1.5" opacity=".7"><path d="M130 218h42m76 0h42M130 267h42m76 0h42M143 183v16m134-16v16M150 246v16m120-16v16"/><path d="M91 180h15m-15 38h15m208-38h15m-15 38h15"/></g>
+</svg>
