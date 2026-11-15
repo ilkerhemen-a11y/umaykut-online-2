@@ -333,7 +333,7 @@ function renderArmy(army){
   });
 }
 $("#authForm").addEventListener("submit",async e=>{e.preventDefault();const username=$("#username").value.trim(),password=$("#password").value;$("#authSubmit").disabled=true;$("#authMessage").textContent="Sunucuya bağlanılıyor…";try{const data=await api(authMode==="login"?"/api/auth/login":"/api/auth/register",{method:"POST",body:JSON.stringify({username,password})});token=data.token;localStorage.setItem("umaykut_token",token);await enterGame(data.player);}catch(error){$("#authMessage").textContent=error.message;}finally{$("#authSubmit").disabled=false;}});
-$("#enterVillage").onclick=()=>{show("village");loadVillageBuildings();};$("#goHome").onclick=()=>{show("village");loadVillageBuildings();};$("#myVillage").onclick=()=>{show("village");loadVillageBuildings();};$("#backWorld").onclick=()=>show("world");
+$("#enterVillage").onclick=()=>{show("village");loadVillageBuildings();loadVillageResources();};$("#goHome").onclick=()=>{show("village");loadVillageBuildings();loadVillageResources();};$("#myVillage").onclick=()=>{show("village");loadVillageBuildings();loadVillageResources();};$("#backWorld").onclick=()=>show("world");
 function modal(title,desc,action="Geliştirme bilgisi"){$("#modalTitle").textContent=title;$("#modalText").textContent=desc;$("#modalWorkerField").hidden=true;$("#modalAction").textContent=action;$("#modalAction").onclick=()=>$("#modal").classList.remove("open");$("#modal").classList.add("open");}
 $("#closeModal").onclick=()=>$("#modal").classList.remove("open");
 
