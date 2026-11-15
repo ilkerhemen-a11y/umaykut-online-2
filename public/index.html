@@ -44,13 +44,30 @@
 <main>
   <section id="world" class="screen active">
     <div class="screen-top"><button class="menu">☰</button><span class="server">🟢 BOZKIR 1 · 2X</span><button class="round" id="enterVillage">↗</button></div>
-    <div class="map-world">
-      <div class="map-label">ORTAK DÜNYA · KUZEYDOĞU</div>
-      <div class="world-village home" id="myVillage"><span>🏰</span><b>İlk Yurdum</b><small>Merkez · Sv. 1</small></div>
-      <div class="world-village other one"><span>🏯</span><b>Demirhisar</b><small>Oyuncu · Sv. 3</small></div>
-      <div class="world-village other two"><span>🏰</span><b>Akçakale</b><small>Oyuncu · Sv. 2</small></div>
-      <div id="resourceMapNodes" class="resource-map-nodes" aria-label="Haritadaki kaynak noktaları"></div>
-      <div class="map-hint">Köyüne dokun ve yönetmeye başla</div>
+    <div class="map-world" id="worldMapViewport" aria-label="Sürüklenebilir dünya haritası">
+      <div class="map-label">BOZKIR DÜNYASI · KUZEYDOĞU</div>
+      <div class="world-map-content" id="worldMapContent">
+        <div class="map-terrain" aria-hidden="true">
+          <svg class="terrain-routes" viewBox="0 0 1600 1200" preserveAspectRatio="none" aria-hidden="true">
+            <path class="river-shadow" d="M-80 210 C180 130 210 360 440 330 S700 170 850 300 S1110 500 1300 390 S1500 260 1700 360"/>
+            <path class="river" d="M-80 210 C180 130 210 360 440 330 S700 170 850 300 S1110 500 1300 390 S1500 260 1700 360"/>
+            <path class="road" d="M800 540 C650 450 540 390 420 330 M800 540 C960 470 1110 420 1300 390 M800 540 C700 680 610 790 500 930 M800 540 C950 690 1080 820 1210 1010 M420 330 C320 250 230 210 130 190"/>
+            <path class="trail" d="M800 540 C830 360 920 230 1060 150 M800 540 C590 550 390 650 220 820"/>
+          </svg>
+          <div class="terrain-label label-west">YEŞİL ORMANLAR</div><div class="terrain-label label-east">KIZIL TEPELER</div><div class="terrain-label label-south">GÜNEY OVASI</div>
+          <div class="terrain-forest forest-a">🌲 🌳 🌲<br>🌳 🌲 🌳</div><div class="terrain-forest forest-b">🌲 🌳 🌲<br>🌲 🌳 🌲</div><div class="terrain-forest forest-c">🌳 🌲 🌳<br>🌲 🌳 🌲</div>
+          <div class="terrain-hills hill-a">⛰️</div><div class="terrain-hills hill-b">🏔️</div><div class="terrain-hills hill-c">⛰️</div>
+          <div class="terrain-ruin ruin-a">🗿<small>Eski Kervansaray</small></div><div class="terrain-ruin ruin-b">🛖<small>Göçebe Otağı</small></div>
+          <div class="terrain-lake">💧</div>
+        </div>
+        <div class="world-village home" id="myVillage"><span>🏰</span><b>İlk Yurdum</b><small>Merkez · Sv. 1</small></div>
+        <div class="world-village other one"><span>🏯</span><b>Demirhisar</b><small>Oyuncu · Sv. 3</small></div>
+        <div class="world-village other two"><span>🏰</span><b>Akçakale</b><small>Oyuncu · Sv. 2</small></div>
+        <div id="resourceMapNodes" class="resource-map-nodes" aria-label="Haritadaki kaynak noktaları"></div>
+      </div>
+      <div class="map-controls"><button id="mapZoomIn" type="button" aria-label="Yakınlaştır">＋</button><button id="mapZoomOut" type="button" aria-label="Uzaklaştır">－</button><button id="mapRecenter" type="button" aria-label="Haritayı merkeze al">◎</button></div>
+      <div class="map-coordinate" id="mapCoordinate">BOZKIR · 50 / 50</div>
+      <div class="map-hint">Haritayı sürükle · Yakınlaştır · Kaynaklara dokun</div>
     </div>
     <div class="world-actions"><button id="goHome">🏠 Köyüm</button><button>⇄ Köy Değiştir</button></div>
   </section>
