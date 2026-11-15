@@ -567,3 +567,46 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
  .village-player-card{left:18px;top:16px}
  .village-next-level{right:18px;top:16px}
 }
+
+
+/* Central fortress: enlarge the illustrated isometric asset and remove the UI-card look */
+#village .placed-building.placed-center{
+  width:clamp(142px,38vw,178px);
+  min-width:clamp(142px,38vw,178px);
+  min-height:0;
+  padding:0;
+  gap:0;
+  overflow:visible;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  filter:drop-shadow(0 9px 9px #0b120dcc);
+}
+#village .placed-building.placed-center .keep-art{
+  width:100%;
+  height:clamp(112px,30vw,144px);
+  object-fit:contain;
+  filter:drop-shadow(0 5px 5px #080d0acc);
+}
+#village .placed-building.placed-center b{
+  margin-top:-3px;
+  padding:3px 9px;
+  border:1px solid #d8b65b;
+  border-radius:12px;
+  background:linear-gradient(180deg,#26392feF,#101b17ef);
+  color:#ffe8a5;
+  font-size:10px;
+  letter-spacing:1px;
+  text-shadow:0 1px 3px #000;
+}
+#village .placed-building.placed-center small{display:none}
+@media(max-width:699px){
+  #village .placed-building.placed-center{
+    width:clamp(136px,39vw,158px);
+    min-width:clamp(136px,39vw,158px);
+  }
+  #village .placed-building.placed-center .keep-art{
+    height:clamp(106px,30vw,124px);
+  }
+}
