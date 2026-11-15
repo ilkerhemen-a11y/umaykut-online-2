@@ -689,3 +689,10 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
  .village-resource-node b{font-size:6.5px}
  .village-resource-node small{font-size:6px}
 }
+
+
+/* 2026-11-15 immersive village controls and six-resource HUD correction */
+.resources{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:3px}
+#village3dCanvas{cursor:grab;touch-action:none}
+#village3dCanvas:active{cursor:grabbing}
+@media(max-width:360px){.resources{gap:2px}.resources div{padding:3px 0}.resources div>span{font-size:13px}.resources b{font-size:9px}.resources small{font-size:5.5px}}
