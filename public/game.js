@@ -168,89 +168,33 @@ $("#backVillageFromUnits").addEventListener("click",()=>show("village"));
 
 
 let villageEconomy=null;
-const villageResourcePositions={wood:[12,37],stone:[88,37],iron:[50,88],food:[12,65],gold:[88,65],horses:[50,13]};
-async function loadVillageResources(){
-  try{
-    const data=await api("/api/economy/me");
-    villageEconomy=data;
-    const layer=$("#villageResourceNodes");
-    if(!layer)return;
-    layer.replaceChildren();
-    const icons={food:"🌾",wood:"🌳",stone:"🪨",iron:"⛏️",gold:"🪙",horses:"🐎"};
-    data.nodes.forEach(node=>{
-      const point=villageResourcePositions[node.resourceType]||[node.x,node.y];
-      const marker=document.createElement("button");
-      marker.type="button";marker.className="village-resource-node";
-      marker.style.left=point[0]+"%";marker.style.top=point[1]+"%";
-      marker.setAttribute("aria-label",node.name+" kaynağı, seviye "+node.level+". İşçi gönder.");
-      const icon=document.createElement("img");icon.src="/assets/resources/"+node.resourceType+".svg";icon.alt=node.name;icon.className="village-resource-art";
-      const name=document.createElement("b");name.textContent=node.name+" · Sv."+node.level;
-      const workers=document.createElement("small");workers.textContent=Number(node.workersAssigned).toLocaleString("tr-TR")+" işçi";
-      marker.append(icon,name,workers);
-      marker.addEventListener("click",()=>openWorkerAssignment(node));
-      layer.append(marker);
-    });
-  }catch(error){console.error("Kale kaynakları yüklenemedi:",error);}
-}
-let selectedBuildingSlot=null;
-const fallbackBuildingSlots=[{x:50,y:23},{x:67.4,y:29.6},{x:76.6,y:44},{x:73.1,y:63.4},{x:59.2,y:70.6},{x:40.8,y:70.6},{x:26.9,y:63.4},{x:23.4,y:44},{x:32.6,y:29.6}];
-const getBuildingSlots=()=>fallbackBuildingSlots;
-const buildingCatalog={center:{name:"Merkez Binası",icon:"🏛️"},shelter:{name:"Sığınak",icon:"🏕️",purpose:"Yağma koruması sağlar."},temple:{name:"Tapınak",icon:"🛕",purpose:"İşçi kapasitesini artırır."},school:{name:"Okul",icon:"📚",purpose:"Üretime, klan kapasitesine ve hâkimiyet alanına katkı sağlar."},barracks:{name:"Kışla",icon:"🛡️",purpose:"Piyade birliklerini açar ve eğitir."},archery:{name:"Okçu Ocağı",icon:"🏹",purpose:"Okçu birliklerini açar ve eğitir."},stable:{name:"Ahır",icon:"🐎",purpose:"Süvari birliklerini açar ve eğitir."},workshop:{name:"Atölye",icon:"⚒️",purpose:"Kuşatma makinelerini açar ve üretir."},stonemason:{name:"Taşçı",icon:"🪨",purpose:"Taş madeni verimini artırır."},lumberjack:{name:"Keresteci",icon:"🪵",purpose:"Odun verimini artırır."},blacksmith:{name:"Demirci",icon:"⚒️",purpose:"Demir verimini artırır."},mill:{name:"Değirmen",icon:"🌾",purpose:"Tahıl üretimini destekler."},farm:{name:"Tarla",icon:"🌱",purpose:"Tahıl üretir."},market:{name:"Pazar",icon:"🏪",purpose:"Altın ve takas sağlar."},wall:{name:"Sur",icon:"🧱",purpose:"Şehir savunmasını güçlendirir."}};
+const buildingCatalog={center:{name:"Merkez Binası"},shelter:{name:"Sığınak",purpose:"Düşman yağmalarına karşı kaynaklarının bir bölümünü korur."},temple:{name:"Tapınak",purpose:"Şehrinin işçi kapasitesini artırır."},school:{name:"Okul",purpose:"Üretime katkı sağlar, klan kapasitesini ve hâkimiyet alanını artırır."},barracks:{name:"Kışla",purpose:"Piyade birliklerinin kilidini açar ve eğitimini sağlar."},archery:{name:"Okçu Ocağı",purpose:"Okçu birliklerinin kilidini açar ve eğitimini sağlar."},stable:{name:"Ahır",purpose:"Süvari birliklerinin kilidini açar ve eğitimini sağlar."},workshop:{name:"Atölye",purpose:"Kuşatma makinelerinin kilidini açar ve üretimini sağlar."},stonemason:{name:"Taşçı",purpose:"Haritadaki taş madenlerinden elde edilen verimi artırır."},lumberjack:{name:"Keresteci",purpose:"Haritadaki odun kaynaklarından elde edilen verimi artırır."},blacksmith:{name:"Demirci",purpose:"Haritadaki demir madenlerinden elde edilen verimi artırır."},mill:{name:"Değirmen",purpose:"Tahıl üretimini destekler."},farm:{name:"Tarla",purpose:"Tahıl üretimini sağlar."},market:{name:"Pazar",purpose:"Altın üretimi ve kaynak takası sağlar."},wall:{name:"Sur",purpose:"Şehrinin savunmasını güçlendirir."}};
 const buildingArt={shelter:"shelter",temple:"temple",school:"school",barracks:"barracks",archery:"archery",stable:"stable",workshop:"workshop",stonemason:"stonemason",lumberjack:"lumberjack",blacksmith:"blacksmith",mill:"mill",farm:"farm",market:"market",wall:"wall"};
-const placedBuildingTypes=new Set();
-function syncBuildingCatalog(){
- document.querySelectorAll("[data-place-building]").forEach(button=>{
-  const built=placedBuildingTypes.has(button.dataset.placeBuilding);
-  button.disabled=built;button.classList.toggle("built",built);
-  button.title=built?"Bu bina zaten şehrinde kurulu.":"Bu binayı seçili alana inşa et.";
-  const label=button.querySelector("small");
-  if(label&&!label.dataset.baseLabel)label.dataset.baseLabel=label.textContent;
-  if(label)label.textContent=(label.dataset.baseLabel||"Bina")+(built?" · KURULU":"");
- });
-}
-
-document.querySelectorAll("[data-place-building]").forEach(button=>{
- const type=button.dataset.placeBuilding,meta=buildingCatalog[type];
- if(!meta)return;
- const art=document.createElement("img");art.src="/assets/buildings/"+(buildingArt[type]||"shelter")+".svg";art.alt="";art.className="catalog-building-art";
- const label=document.createElement("small");label.textContent=meta.name;
- button.replaceChildren(art,label);
-});
-function showBuildingCatalog(index){selectedBuildingSlot=index;$("#buildingPlacementPanel").hidden=false;$("#placementHint").textContent=(index+1)+". inşa alanı seçildi. Bu alana yerleştirmek istediğin binayı seç.";$("#buildingPlacementPanel").scrollIntoView({behavior:"smooth",block:"nearest"});}
 async function loadVillageBuildings(){
  try{
-  const data=await api("/api/buildings/me"),layer=$("#villageBuildingsLayer"),slots=$("#villageBuildingSlots");if(!layer||!slots)return;
-  (data.buildings||[]).filter(v=>v.type!=="center").forEach(v=>placedBuildingTypes.add(v.type));syncBuildingCatalog();
-  const buildingSlots=getBuildingSlots();
-  
-  layer.replaceChildren();slots.replaceChildren();
-  const occupied=new Set();
-  const buildingSlotById=new Map();
-  data.buildings.filter(v=>v.type!=="center").forEach(v=>{const n=buildingSlots.map((p,i)=>({i,d:Math.hypot(p.x-v.x,p.y-v.y)})).sort((x,y)=>x.d-y.d)[0];if(n){occupied.add(n.i);buildingSlotById.set(v.id??v.type+":"+v.x+":"+v.y,n.i);}});
-  buildingSlots.forEach((p,i)=>{if(occupied.has(i))return;const s=document.createElement("button");s.type="button";s.className="building-slot";s.dataset.slotIndex=String(i);s.style.left=p.x+"%";s.style.top=p.y+"%";s.innerHTML="<span>＋</span><small>İNŞA ET</small>";s.addEventListener("click",()=>showBuildingCatalog(i));slots.append(s);});
-  data.buildings.forEach(v=>{const m=document.createElement("button");m.type="button";m.className="placed-building"+(v.type==="center"?" placed-center":"");const slotIndex=v.type==="center"?null:buildingSlotById.get(v.id??v.type+":"+v.x+":"+v.y);
-  const displayPoint=v.type==="center"?{x:50,y:48}:(slotIndex===undefined?{x:v.x,y:v.y}:buildingSlots[slotIndex]);
-  m.style.left=displayPoint.x+"%";m.style.top=displayPoint.y+"%";const i=document.createElement("img");i.src=v.type==="center"?"/assets/seljuk-center.svg":"/assets/buildings/"+(buildingArt[v.type]||"shelter")+".svg";i.alt=v.name;i.className=v.type==="center"?"keep-art":"building-art";const n=document.createElement("b");n.textContent=v.name;const l=document.createElement("small");l.textContent="Sv. "+v.level;m.append(i,n,l);m.addEventListener("click",e=>{e.stopPropagation();if(v.type==="center")return;if(["stable","barracks","archery","workshop"].includes(v.type)){openUnits();return;}modal(v.name,buildingCatalog[v.type]?.purpose||"Şehir binası.","Anladım");});layer.append(m);});
+  const data=await api("/api/buildings/me"),layer=$("#villageBuildingsLayer");
+  if(!layer)return;
+  layer.replaceChildren();
+  (data.buildings||[]).forEach(v=>{
+   const m=document.createElement("button");m.type="button";
+   m.className="placed-building"+(v.type==="center"?" placed-center":"");
+   m.style.left=Number(v.x)+"%";m.style.top=Number(v.y)+"%";
+   const i=document.createElement("img");
+   i.src=v.type==="center"?"/assets/seljuk-center.svg":"/assets/buildings/"+(buildingArt[v.type]||"shelter")+".svg";
+   i.alt=v.name;i.className=v.type==="center"?"keep-art":"building-art";
+   const n=document.createElement("b");n.textContent=v.name;
+   const l=document.createElement("small");l.textContent="Sv. "+v.level;
+   m.append(i,n,l);
+   m.addEventListener("click",e=>{
+    e.stopPropagation();if(v.type==="center")return;
+    if(["stable","barracks","archery","workshop"].includes(v.type)){openUnits();return;}
+    modal(v.name,"Seviye "+v.level+" · "+(buildingCatalog[v.type]?.purpose||"Şehir binası."),"Anladım");
+   });
+   layer.append(m);
+  });
  }catch(e){console.error("Köy binaları yüklenemedi:",e);}
 }
 window.addEventListener("umaykut2dready",()=>loadVillageBuildings());
-document.querySelectorAll("[data-place-building]").forEach(btn=>btn.addEventListener("click",async()=>{
- if(selectedBuildingSlot===null){$("#placementHint").textContent="Önce köydeki boş inşa alanlarından birini seç.";return;}
- const type=btn.dataset.placeBuilding;
- if(placedBuildingTypes.has(type)){syncBuildingCatalog();$("#placementHint").textContent="Bu bina zaten şehrinde kurulu. Farklı bir bina seç.";return;}
- const p=getBuildingSlots()[selectedBuildingSlot];
- if(!p){$("#placementHint").textContent="İnşa alanı bulunamadı. Lütfen boş bir alanı yeniden seç.";return;}
- btn.disabled=true;
- try{
-  const r=await api("/api/buildings/place",{method:"POST",body:JSON.stringify({type,x:p.x,y:p.y})});
-  placedBuildingTypes.add(type);selectedBuildingSlot=null;$("#buildingPlacementPanel").hidden=true;
-  await loadVillageBuildings();modal(r.building.name,"Seçtiğin inşa alanına başarıyla yerleştirildi.","Tamam");
- }catch(e){
-  $("#placementHint").textContent=e.message||"Bina yerleştirilemedi. Tekrar dene.";
-  modal("Bina yerleştirilemedi",e.message||"Sunucu işlemi tamamlayamadı. Lütfen tekrar dene.","Tamam");
- }finally{syncBuildingCatalog();}
-}));
-$("#cancelBuildingPlacement").addEventListener("click",()=>{selectedBuildingSlot=null;$("#buildingPlacementPanel").hidden=true;});
 function openWorkerAssignment(node){
   const field=$("#modalWorkerField"),input=$("#workerAmount");
   $("#modalTitle").textContent=node.icon+" "+node.name+" kaynağı";
@@ -268,7 +212,7 @@ function openWorkerAssignment(node){
     try{
       const result=await api("/api/economy/assign",{method:"POST",body:JSON.stringify({nodeId:node.id,workers:amount})});
       $("#modal").classList.remove("open");
-      await loadVillageResources();
+      
       await loadEconomy(true);
       await loadPlayerData();
       $("#economyMessage").textContent=result.message;
@@ -360,7 +304,7 @@ function renderArmy(army){
   });
 }
 $("#authForm").addEventListener("submit",async e=>{e.preventDefault();const username=$("#username").value.trim(),password=$("#password").value;$("#authSubmit").disabled=true;$("#authMessage").textContent="Sunucuya bağlanılıyor…";try{const data=await api(authMode==="login"?"/api/auth/login":"/api/auth/register",{method:"POST",body:JSON.stringify({username,password})});token=data.token;localStorage.setItem("umaykut_token",token);await enterGame(data.player);}catch(error){$("#authMessage").textContent=error.message;}finally{$("#authSubmit").disabled=false;}});
-$("#enterVillage").onclick=()=>{show("village");loadVillageBuildings();loadVillageResources();};$("#goHome").onclick=()=>{show("village");loadVillageBuildings();loadVillageResources();};$("#myVillage").onclick=()=>{show("village");loadVillageBuildings();loadVillageResources();};$("#backWorld").onclick=()=>show("world");
+$("#enterVillage").onclick=()=>{show("village");loadVillageBuildings();};$("#goHome").onclick=()=>{show("village");loadVillageBuildings();};$("#myVillage").onclick=()=>{show("village");loadVillageBuildings();};$("#backWorld").onclick=()=>show("world");
 function modal(title,desc,action="Geliştirme bilgisi"){$("#modalTitle").textContent=title;$("#modalText").textContent=desc;$("#modalWorkerField").hidden=true;$("#modalAction").textContent=action;$("#modalAction").onclick=()=>$("#modal").classList.remove("open");$("#modal").classList.add("open");}
 $("#closeModal").onclick=()=>$("#modal").classList.remove("open");
 
@@ -369,7 +313,7 @@ $("#modalAction").onclick=()=>$("#modal").classList.remove("open");
 if(token){api("/api/city/me").then(()=>enterGame({username:"Oyuncu"})).catch(()=>{localStorage.removeItem("umaykut_token");token=null;});}
 
 function setActiveNav(id){document.querySelectorAll(".bottom-nav button").forEach(button=>button.classList.toggle("active",button.id===id));}
-$("#navVillage").addEventListener("click",()=>{setActiveNav("navVillage");show("village");loadVillageBuildings();loadVillageResources();});
+$("#navVillage").addEventListener("click",()=>{setActiveNav("navVillage");show("village");loadVillageBuildings();});
 $("#navTroops").addEventListener("click",()=>{setActiveNav("navTroops");openUnits();});
 $("#navBuild").addEventListener("click",()=>{setActiveNav("navBuild");show("village");loadVillageBuildings().then(()=>{const first=document.querySelector(".building-slot");if(first)first.click();else modal("İnşa alanları dolu","Yeni bina yerleştirmek için önce bir alan açılmalı.","Anladım");});});
 $("#navQuests").addEventListener("click",()=>{setActiveNav("navQuests");show("world");});
