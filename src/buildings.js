@@ -118,3 +118,7 @@ export async function speedUpBuilding(req, res) {
     res.status(500).json({ error: "Hızlandırma uygulanamadı." });
   } finally { client.release(); }
 }
+
+export async function placeBuilding(_req, res) {
+  return res.status(410).json({ error: "Yeni köy düzeninde binalar otomatik yerleştirilir; inşa etme sistemi kapalıdır." });
+}
