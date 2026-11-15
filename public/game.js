@@ -184,6 +184,7 @@ function openBuildingUpgrade(v){
  $("#modalTitle").textContent=v.name+" · Seviye "+v.level+"/10";
  $("#modalText").textContent=(buildingCatalog[v.type]?.purpose||"Şehir binası.")+" İnşaat ekipleri: "+constructionWorkers.active+"/"+constructionWorkers.max+" çalışıyor.";
  $("#modalWorkerField").hidden=true;
+ const crew=$("#constructionWorkersDisplay");crew.replaceChildren();for(let i=0;i<3;i++){const worker=document.createElement("span");worker.className="construction-worker"+(i<constructionWorkers.active?" working":"");worker.textContent=i<constructionWorkers.active?"👷":"🧑‍🔧";worker.title=i<constructionWorkers.active?"Yükseltmede çalışıyor":"Boşta";crew.append(worker);}const crewLabel=document.createElement("b");crewLabel.textContent="İnşaat ekipleri "+constructionWorkers.active+"/3";crew.append(crewLabel);
  $("#buildingUpgradeActions").hidden=false;
  $("#modalAction").textContent="Kapat";
  const cost=$("#buildingUpgradeCost"),start=$("#startBuildingUpgrade"),speed=$("#speedUpBuilding");
