@@ -88,7 +88,7 @@ function walls(){
  ctx.beginPath();ctx.ellipse(x,y-5,rx,ry,0,Math.PI,Math.PI*2);
  ctx.strokeStyle="#8d7954";ctx.lineWidth=Math.max(5,W*.012);ctx.stroke();
  // near wall, with a broad southern gate
- for(const [a,b] of [[0,Math.PI-.23],[Math.PI+.23,Math.PI*2]]){
+ for(const [a,b] of [[0,Math.PI/2-.2],[Math.PI/2+.2,Math.PI]]){
   ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,a,b);
   ctx.strokeStyle="#514431";ctx.lineWidth=Math.max(21,W*.054);ctx.stroke();
   ctx.beginPath();ctx.ellipse(x,y-5,rx,ry,0,a,b);
