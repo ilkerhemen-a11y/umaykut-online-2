@@ -183,7 +183,7 @@ async function loadVillageResources(){
       marker.type="button";marker.className="village-resource-node";
       marker.style.left=point[0]+"%";marker.style.top=point[1]+"%";
       marker.setAttribute("aria-label",node.name+" kaynağı, seviye "+node.level+". İşçi gönder.");
-      const icon=document.createElement("span");icon.textContent=icons[node.resourceType]||node.icon||"📍";
+      const icon=document.createElement("img");icon.src="/assets/resources/"+node.resourceType+".svg";icon.alt=node.name;icon.className="village-resource-art";
       const name=document.createElement("b");name.textContent=node.name+" · Sv."+node.level;
       const workers=document.createElement("small");workers.textContent=Number(node.workersAssigned).toLocaleString("tr-TR")+" işçi";
       marker.append(icon,name,workers);
