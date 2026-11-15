@@ -18,22 +18,24 @@ const BUILDINGS = Object.freeze({
   wall: { name: "Sur", icon: "🧱", purpose: "Şehrinin savunmasını güçlendirir." }
 });
 
-async function ensureStartingCenter(client, playerId) {
-  await client.query("INSERT INTO city_buildings (city_player_id, building_type, x, y, level) VALUES ($1, 'center', 50, 47, 1) ON CONFLICT (city_player_id, building_type) DO NOTHING", [playerId]);
+const STARTING_BUILDINGS = Object.freeze([["center",50,47],["shelter",50,22],["temple",63,24],["school",75,32],["barracks",81,45],["archery",79,59],["stable",70,71],["workshop",58,78],["stonemason",42,78],["lumberjack",30,71],["blacksmith",21,59],["mill",19,45],["farm",25,32],["market",37,24],["wall",50,87]]);
+async function ensureStartingBuildings(client, playerId) {
+  for (const [type, x, y] of STARTING_BUILDINGS) {
+    await client.query("INSERT INTO city_buildings (city_player_id, building_type, x, y, level) VALUES ($1, $2, $3, $4, 1) ON CONFLICT (city_player_id, building_type) DO NOTHING", [playerId, type, x, y]);
+  }
 }
 
 export async function getMyBuildings(req, res) {
   try {
     await pool.query("CREATE TABLE IF NOT EXISTS city_buildings (id BIGSERIAL PRIMARY KEY, city_player_id BIGINT NOT NULL REFERENCES player_cities(player_id) ON DELETE CASCADE, building_type VARCHAR(24) NOT NULL, x NUMERIC(5,2) NOT NULL CHECK (x BETWEEN 3 AND 97), y NUMERIC(5,2) NOT NULL CHECK (y BETWEEN 3 AND 97), level INTEGER NOT NULL DEFAULT 1 CHECK (level >= 1), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE (city_player_id, building_type))");
-    await ensureStartingCenter(pool, req.player.sub);
+    await ensureStartingBuildings(pool, req.player.sub);
     const result = await pool.query("SELECT id, building_type, x, y, level FROM city_buildings WHERE city_player_id = $1 ORDER BY CASE WHEN building_type = 'center' THEN 0 ELSE 1 END, id", [req.player.sub]);
     res.json({ buildings: result.rows.map(row => ({ id: Number(row.id), type: row.building_type, name: BUILDINGS[row.building_type]?.name || row.building_type, icon: BUILDINGS[row.building_type]?.icon || "🏘️", x: Number(row.x), y: Number(row.y), level: Number(row.level) })) });
   } catch (error) {
     console.error("Bina yerleşimi alınamadı:", error);
-    res.status(500).json({ error: "Bina yerleşimi yüklenemedi." });
+    res.status(500).json({ error: "Başlangıç köyü yüklenemedi." });
   }
 }
-
 export async function placeBuilding(req, res) {
   const type = String(req.body?.type || "");
   const x = Number(req.body?.x);
