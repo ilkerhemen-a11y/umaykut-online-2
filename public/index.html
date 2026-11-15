@@ -60,7 +60,7 @@
       <div class="village-title">İLK YURDUM <small>BOZKIRIN KALBİ</small></div>
       <div class="village-player-card"><span class="player-crest">♛</span><div><b id="villagePlayerName">İlker Bey</b><small>Seviye 12 · İlk Yurdum</small></div><span class="player-star">★</span></div>
       <div class="village-next-level"><span>⌛</span><div><small>BİR SONRAKİ SEVİYE</small><b>15.000 ALTIN</b></div><span>›</span></div>
-      <canvas id="village3dCanvas" aria-label="Gerçek zamanlı üç boyutlu Selçuklu köy sahnesi"></canvas><div id="villageResourceNodes" class="village-resource-nodes" aria-label="Kale çevresindeki kaynak noktaları"></div><div class="wall"></div>
+      <canvas id="village2dCanvas" aria-label="İzometrik iki boyutlu Selçuklu şehir haritası"></canvas><div id="villageResourceNodes" class="village-resource-nodes" aria-label="Kale çevresindeki kaynak noktaları"></div><div class="wall"></div>
       <div id="villageBuildingSlots" class="village-building-slots" aria-label="Merkez binası çevresindeki dokuz inşa alanı"></div>
       <div id="villageBuildingsLayer" class="village-buildings-layer" aria-label="Yerleştirilmiş köy binaları"></div>
       <div class="gate">⛩️</div>
@@ -115,5 +115,5 @@
 <footer class="bottom-nav" aria-label="Ana oyun menüsü"><button id="navVillage" class="active" type="button">🏰<small>KÖY</small></button><button id="navTroops" type="button">⚔️<small>ORDU</small></button><button id="navBuild" type="button">🏛️<small>BİNALAR</small></button><button id="navQuests" type="button">🗺️<small>HARİTA</small></button><button id="navShop" type="button">🎒<small>ENVANTER</small></button></footer>
 <div class="modal" id="modal"><div class="modal-card"><button class="close" id="closeModal">✕</button><h2 id="modalTitle">Merkez Binası</h2><p id="modalText">Köyünün kalbi.</p><label id="modalWorkerField" class="modal-worker-field" hidden>Gönderilecek işçi sayısı<input id="workerAmount" type="number" min="0" step="1" inputmode="numeric"></label><button class="gold-button" id="modalAction">Geliştirme bilgisi</button></div></div>
 <script src="/game.js"></script>
-<script type="module" src="/village3d.js"></script>
+<script src="/village2d.js" defer></script>
 </body></html>
