@@ -37,7 +37,7 @@ function setupWorldMapControls(){
  viewport.dataset.controlsReady="1";
  const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
  viewport.addEventListener("pointerdown",event=>{
-  if(event.target.closest(".map-controls"))return;
+  if(event.target.closest(".map-controls,.resource-node,.world-village"))return;
   worldMapDragging=true;worldMapMoved=false;worldMapPointer={id:event.pointerId,x:event.clientX,y:event.clientY,startX:worldMapX,startY:worldMapY};
   viewport.setPointerCapture(event.pointerId);viewport.classList.add("dragging");
  });
