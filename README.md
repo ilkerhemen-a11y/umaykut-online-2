@@ -28,7 +28,11 @@ Socket.IO bağlantısı `auth: { token }` ile doğrulanır; başarılı bağlant
 
 ## Devlet sistemi
 
-İlk girişte Selçuk, Hun veya Göktürk devletlerinden biri seçilir. Seçim PostgreSQL üzerindeki `players.faction_id` alanına kaydedilir ve API üzerinden tekrar değiştirilmesi engellenir. Bonuslar sunucu tarafından tek bir tanım kaynağından sunulur: Selçuk (+%3 saldırı, +%3 savunma, +%2 maksimum HP), Hun (+%5 saldırı, +%3 hareket hızı), Göktürk (+%5 savunma, +%3 maksimum HP). Bu sürümde savaş/karakter stat hesaplama sistemi henüz bulunmadığından bonuslar seçim ekranında ve API yanıtında tanımlıdır; henüz savaş hesaplamalarına uygulanmaz.
+- İlk girişte Selçuk, Hun veya Göktürk devletlerinden biri seçilir. Seçim ekranında devletin hikâyesi, başlangıç şehri/yurdu ve bonusları karşılaştırılır; oyuncu ayrıca onay verir.
+- Seçim PostgreSQL üzerindeki `players.faction_id` alanına kalıcı kaydedilir. Aynı işlemde `player_cities.city_name` seçilen devletin başlangıç şehri/yurdu olarak ayarlanır. API, seçilmiş devletin normal koşullarda değiştirilmesini reddeder. İleride özel görevle değişim bu sürümde tasarlanmış veya açılmış değildir.
+- Bonus bütçeleri tek kaynakta tanımlanır ve uygulama açılırken doğrulanır: Selçuk saldırı +%3, savunma +%3, maksimum HP +%2; Hun saldırı +%5, hareket hızı +%3; Göktürk savunma +%5, maksimum HP +%3. Her devletin toplamı %8'dir.
+- `src/factionBonuses.js`, devlet yüzdesini yalnızca ham karakter temel değerlerine uygulayan; seviye ve ekipman katkılarını bundan sonra sabit değer olarak ekleyen bir hesaplayıcı ve tekrar uygulamayı aynı çalışma akışında engelleyen koruma içerir. `npm test` ile bu kurallar doğrulanır.
+- **Entegrasyon sınırı:** Mevcut depoda henüz kalıcı oyuncu-karakter istatistik modeli, seviye stat ilerlemesi, ekipman bonusu modeli veya savaş çözümleyicisi yoktur. Bu nedenle hesaplayıcı test edilmiştir ancak henüz canlı karakter/savaş akışına bağlanmamıştır; devlet bonusları asker kataloğunun devletlere özgü ham değerlerine ikinci kez uygulanmaz. Karakter modeli eklendiğinde tek merkezî stat hesaplama noktasından çağrılmalıdır.
 
 ## Şehir işçileri ve harita kaynakları (ilk ekonomi sürümü)
 

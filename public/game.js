@@ -85,9 +85,10 @@ function renderFactionCards(){
     const style=document.createElement("span");style.className="faction-style";style.textContent=faction.style;
     const desc=document.createElement("span");desc.className="faction-description";desc.textContent=faction.description;
     const motto=document.createElement("em");motto.className="faction-motto";motto.textContent="“"+faction.motto+"”";
-    const region=document.createElement("span");region.className="faction-region";region.textContent="Başlangıç yurdu: "+faction.startingRegion;
+    const region=document.createElement("span");region.className="faction-region";region.textContent="Başlangıç şehri / yurdu: "+(faction.startingCity||faction.startingRegion);
     const bonuses=document.createElement("span");bonuses.className="faction-bonuses";bonuses.textContent=faction.bonusLabels.join(" · ");
-    [emblem,name,style,desc,motto,region,bonuses].forEach(node=>card.append(node));
+    const budget=document.createElement("span");budget.className="faction-budget";budget.textContent="Bonus bütçesi: %"+faction.bonusBudgetPercent+" / %"+faction.bonusBudgetLimitPercent;
+    [emblem,name,style,desc,motto,region,bonuses,budget].forEach(node=>card.append(node));
     card.addEventListener("click",()=>{
       selectedFactionId=faction.id;
       container.querySelectorAll(".faction-card").forEach(item=>item.classList.toggle("selected",item.dataset.factionId===faction.id));

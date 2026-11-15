@@ -1,4 +1,9 @@
 import { pool } from "./db.js";
+import {
+  FACTION_BONUSES,
+  FACTION_BONUS_BUDGET_PERCENT,
+  getFactionBonusBudget
+} from "./factionBonuses.js";
 
 export const FACTIONS = Object.freeze([
   {
@@ -7,8 +12,11 @@ export const FACTIONS = Object.freeze([
     style: "Dengeli",
     description: "Akıl, düzen ve uyumla hareket eden; saldırı ve savunmayı birlikte geliştiren devlet.",
     motto: "Güç, akıl ve adaletle birleşir.",
+    startingCity: "Selçuk Hanlığı",
     startingRegion: "Selçuk Hanlığı",
-    bonuses: { attackPercent: 3, defensePercent: 3, maxHpPercent: 2, movementSpeedPercent: 0 },
+    bonuses: FACTION_BONUSES.selcuk,
+    bonusBudgetPercent: getFactionBonusBudget(FACTION_BONUSES.selcuk),
+    bonusBudgetLimitPercent: FACTION_BONUS_BUDGET_PERCENT,
     bonusLabels: ["Saldırı +%3", "Savunma +%3", "Maksimum HP +%2"],
     colors: ["#39a6a0", "#d8b45a"],
     emblem: "🦅"
@@ -19,8 +27,11 @@ export const FACTIONS = Object.freeze([
     style: "Agresif savaşçı",
     description: "Hızlı hücumları, cesur savaşçıları ve bozkır süvarileriyle tanınan devlet.",
     motto: "Cesaret bozkırda yol açar.",
+    startingCity: "Hun Otağı",
     startingRegion: "Hun Otağı",
-    bonuses: { attackPercent: 5, defensePercent: 0, maxHpPercent: 0, movementSpeedPercent: 3 },
+    bonuses: FACTION_BONUSES.hun,
+    bonusBudgetPercent: getFactionBonusBudget(FACTION_BONUSES.hun),
+    bonusBudgetLimitPercent: FACTION_BONUS_BUDGET_PERCENT,
     bonusLabels: ["Saldırı +%5", "Hareket hızı +%3"],
     colors: ["#a83227", "#d39a42"],
     emblem: "🐺"
@@ -31,8 +42,11 @@ export const FACTIONS = Object.freeze([
     style: "Savunma uzmanı",
     description: "Sağlam savunmaları, dayanıklı savaşçıları ve güçlü yurtlarıyla öne çıkan devlet.",
     motto: "Devlet yaşarsa millet yaşar.",
+    startingCity: "Ötüken",
     startingRegion: "Ötüken",
-    bonuses: { attackPercent: 0, defensePercent: 5, maxHpPercent: 3, movementSpeedPercent: 0 },
+    bonuses: FACTION_BONUSES.gokturk,
+    bonusBudgetPercent: getFactionBonusBudget(FACTION_BONUSES.gokturk),
+    bonusBudgetLimitPercent: FACTION_BONUS_BUDGET_PERCENT,
     bonusLabels: ["Savunma +%5", "Maksimum HP +%3"],
     colors: ["#3979ad", "#b7c6d6"],
     emblem: "🛡️"
@@ -80,8 +94,17 @@ export async function selectFaction(req, res) {
       "UPDATE players SET faction_id = $1 WHERE id = $2 AND faction_id IS NULL",
       [faction.id, req.player.sub]
     );
+    const cityUpdate = await client.query(
+      "UPDATE player_cities SET city_name = $1, updated_at = NOW() WHERE player_id = $2",
+      [faction.startingCity, req.player.sub]
+    );
+    if (cityUpdate.rowCount !== 1) {
+      await client.query("ROLLBACK");
+      return res.status(409).json({ error: "Devlet seçimi için başlangıç şehri bulunamadı." });
+    }
+
     await client.query("COMMIT");
-    return res.status(201).json({ faction, message: "Devletin kalıcı olarak kaydedildi." });
+    return res.status(201).json({ faction, message: "Devletin ve başlangıç şehrin kalıcı olarak kaydedildi." });
   } catch (error) {
     await client.query("ROLLBACK");
     console.error("Devlet seçimi hatası:", error);
