@@ -952,3 +952,23 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
 #village .building-slot small{font-size:7px;letter-spacing:.9px}
 #village .build-option-icon{background-position:center;background-repeat:no-repeat;background-size:500% 200%;flex:0 0 58px;width:58px;height:58px}
 @media(max-width:699px){#village .building-slot{width:clamp(48px,12.5vw,60px);height:clamp(48px,12.5vw,60px)}}
+
+
+/* Merkez bina görünürlük düzeltmesi: sadece kullanıcının gönderdiği atlasın ilk hücresi. */
+#village .village-buildings-layer>.placed-building.placed-center{
+  display:flex!important;position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);
+  flex-direction:column;align-items:center;justify-content:center;gap:0;
+  width:clamp(136px,38vw,172px);min-width:0;min-height:0;height:auto;
+  padding:0;background:transparent;border:0;box-shadow:none;filter:drop-shadow(0 9px 8px #10180fcc);
+  pointer-events:auto;z-index:12!important;
+}
+#village .village-buildings-layer>.placed-building.placed-center .keep-art{
+  display:block!important;flex:none;width:100%;height:clamp(170px,47.5vw,215px);
+  background-repeat:no-repeat;background-size:500% 200%;background-position:0% 0%;
+  border:0;object-fit:initial;
+}
+#village .village-buildings-layer>.placed-building.placed-center b{
+  display:block;margin-top:-2px;padding:3px 9px;border:1px solid #d8b65b;border-radius:10px;
+  background:#17251fee;color:#fff0c2;font-size:9px;letter-spacing:.7px;white-space:nowrap;
+}
+#village.has-3d-village .village-buildings-layer>.placed-building.placed-center{display:flex!important}
