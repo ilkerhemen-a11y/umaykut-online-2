@@ -38,7 +38,7 @@ function setupVillageCamera(){
  viewport.dataset.cameraReady="1";
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  viewport.addEventListener("pointerdown",e=>{
-  if(e.target.closest(".village-map-controls,.placed-building,.building-slot,.village-resource-nodes"))return;
+  if(e.target.closest(".village-map-controls,.placed-building,.building-slot,.village-resource-nodes,#village3dCanvas"))return;
   villageCameraPointer={id:e.pointerId,x:e.clientX,y:e.clientY,sx:villageCameraX,sy:villageCameraY};
   villageCameraMoved=false;viewport.setPointerCapture(e.pointerId);viewport.classList.add("dragging");
  });
@@ -239,11 +239,23 @@ const buildingCatalog={center:{name:"Merkez Binası",purpose:"Köyünün kalbi. 
 const buildingArt={shelter:"shelter",temple:"temple",school:"school",barracks:"barracks",archery:"archery",stable:"stable",workshop:"workshop",stonemason:"stonemason",lumberjack:"lumberjack",blacksmith:"blacksmith",mill:"mill",farm:"farm",market:"market"};
 const buildSlotPositions=[[28,32],[50,25],[72,32],[81,48],[72,68],[50,77],[28,68],[19,48],[50,88]];
 const buildIcons={shelter:"🏕️",temple:"🛕",school:"📚",barracks:"🛡️",archery:"🏹",stable:"🐎",workshop:"⚒️",stonemason:"🪨",lumberjack:"🪵",blacksmith:"🔨",mill:"🌾",farm:"🌱",market:"🏪"};
+function currentProjectedSlots(){
+ const positions=window.umaykut3d?.getSlotPositions?.();
+ return Array.isArray(positions)&&positions.length===9?positions:buildSlotPositions.map(([x,y])=>({x,y}));
+}
+function repositionVillageOverlays(){
+ const positions=currentProjectedSlots();
+ document.querySelectorAll("#villageBuildingSlots .building-slot,#villageBuildingsLayer .placed-building[data-slot]").forEach(element=>{
+  const slot=Number(element.dataset.slot),point=positions[slot-1];
+  if(point){element.style.left=point.x+"%";element.style.top=point.y+"%";}
+ });
+}
 function renderBuildSlots(buildings){
  const layer=$("#villageBuildingSlots");if(!layer)return;
  layer.replaceChildren();
+ const positions=currentProjectedSlots();
  const occupied=new Set((buildings||[]).map(v=>Number(v.slotIndex)).filter(v=>Number.isInteger(v)&&v>=1&&v<=9));
- buildSlotPositions.forEach(([x,y],index)=>{
+ positions.forEach(({x,y},index)=>{
   const slot=index+1;if(occupied.has(slot))return;
   const button=document.createElement("button");button.type="button";button.className="building-slot";
   button.style.left=x+"%";button.style.top=y+"%";button.dataset.slot=String(slot);
@@ -330,7 +342,10 @@ async function refreshBuildingsAndCity(){
  (data.buildings||[]).forEach(v=>{
   const m=document.createElement("button");m.type="button";
   m.className="placed-building"+(v.type==="center"?" placed-center":"");
-  m.style.left=Number(v.x)+"%";m.style.top=Number(v.y)+"%";
+  const slotNumber=Number(v.slotIndex);
+  const projected=slotNumber>=1&&slotNumber<=9?currentProjectedSlots()[slotNumber-1]:null;
+  m.dataset.slot=slotNumber>=1&&slotNumber<=9?String(slotNumber):"";
+  m.style.left=(projected?.x??Number(v.x))+"%";m.style.top=(projected?.y??Number(v.y))+"%";
   const i=document.createElement("img");
   i.src=v.type==="center"?"/assets/seljuk-center.svg":"/assets/buildings/"+(buildingArt[v.type]||"shelter")+".svg";
   i.alt=v.name;i.className=v.type==="center"?"keep-art":"building-art";
@@ -340,6 +355,8 @@ async function refreshBuildingsAndCity(){
   m.addEventListener("click",e=>{e.stopPropagation();openBuildingUpgrade(v);});
   layer.append(m);
  });
+ if(window.umaykut3d?.setBuildings)window.umaykut3d.setBuildings(data.buildings||[]);
+ repositionVillageOverlays();
  if(selectedUpgradeBuilding){
   const latest=data.buildings.find(v=>v.type===selectedUpgradeBuilding.type);
   if(latest){selectedUpgradeBuilding=latest;openBuildingUpgrade(latest);}
@@ -364,6 +381,11 @@ $("#speedUpBuilding").addEventListener("click",async()=>{
  }catch(e){$("#modalText").textContent=e.message;button.disabled=false;}
 });
 window.addEventListener("umaykut2dready",()=>loadVillageBuildings());
+window.addEventListener("umaykut3dready",()=>{
+ $("#village")?.classList.add("has-3d-village");
+ loadVillageBuildings();
+});
+window.addEventListener("umaykut3dcamera",repositionVillageOverlays);
 function openWorkerAssignment(node){
   const field=$("#modalWorkerField"),input=$("#workerAmount");
   $("#modalTitle").textContent=node.icon+" "+node.name+" kaynağı";
