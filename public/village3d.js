@@ -151,9 +151,8 @@ if(canvas){
   };
 
   async function loadUserImages(){
-    const response=await fetch("/assets/user-buildings-atlas.b64",{cache:"force-cache"});
-    if(!response.ok)throw new Error("Kullanıcının bina görsel paketi yüklenemedi.");
-    const encoded=(await response.text()).trim();
+    const parts=await Promise.all(Array.from({length:6},async(_,index)=>{const response=await fetch("/assets/user-buildings-atlas.part"+(index+1)+".txt",{cache:"force-cache"});if(!response.ok)throw new Error("Bina görsel paketi parçası yüklenemedi: "+(index+1));return response.text();}));
+    const encoded=parts.join("").trim();
     const binary=atob(encoded);
     const bytes=new Uint8Array(binary.length);
     for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
