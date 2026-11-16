@@ -346,9 +346,15 @@ async function refreshBuildingsAndCity(){
   const projected=slotNumber>=1&&slotNumber<=9?currentProjectedSlots()[slotNumber-1]:null;
   m.dataset.slot=slotNumber>=1&&slotNumber<=9?String(slotNumber):"";
   m.style.left=(projected?.x??Number(v.x))+"%";m.style.top=(projected?.y??Number(v.y))+"%";
-  const i=document.createElement("img");
-  i.src=v.type==="center"?"/assets/seljuk-center.svg":"/assets/buildings/"+(buildingArt[v.type]||"shelter")+".svg";
-  i.alt=v.name;i.className=v.type==="center"?"keep-art":"building-art";
+  const i=document.createElement(v.type==="center"?"div":"img");
+  if(v.type==="center"){
+   i.setAttribute("role","img");i.setAttribute("aria-label",v.name);
+   i.style.backgroundImage='url("/assets/user-buildings-atlas.png")';
+   i.style.backgroundSize="500% 200%";i.style.backgroundPosition="0% 0%";i.style.backgroundRepeat="no-repeat";
+  }else{
+   i.src="/assets/buildings/"+(buildingArt[v.type]||"shelter")+".svg";i.alt=v.name;
+  }
+  i.className=v.type==="center"?"keep-art":"building-art";
   const n=document.createElement("b");n.textContent=v.name;
   const l=document.createElement("small");l.textContent="Sv. "+v.level+(v.upgradeFinishesAt?" · ⏳":"");
   m.append(i,n,l);
