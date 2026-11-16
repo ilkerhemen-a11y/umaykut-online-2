@@ -237,6 +237,58 @@ let villageEconomy=null, marketItems=[], constructionWorkers={active:0,max:3,ava
 let selectedUpgradeBuilding=null, buildingSpeedupsAvailable=0, buildingTimerInterval=null;
 const buildingCatalog={center:{name:"Merkez Binası",purpose:"Köyünün kalbi. Tüm şehir gelişimini yönetir."},shelter:{name:"Sığınak",purpose:"Düşman yağmalarına karşı kaynaklarının bir bölümünü korur."},temple:{name:"Tapınak",purpose:"Şehrinin işçi kapasitesini artırır."},school:{name:"Okul",purpose:"Üretime katkı sağlar, klan kapasitesini ve hâkimiyet alanını artırır."},barracks:{name:"Kışla",purpose:"Piyade birliklerinin kilidini açar ve eğitimini sağlar."},archery:{name:"Okçu Ocağı",purpose:"Okçu birliklerinin kilidini açar ve eğitimini sağlar."},stable:{name:"Ahır",purpose:"Süvari birliklerinin kilidini açar ve eğitimini sağlar."},workshop:{name:"Atölye",purpose:"Kuşatma makinelerinin kilidini açar ve üretimini sağlar."},stonemason:{name:"Taşçı",purpose:"Haritadaki taş madenlerinden elde edilen verimi artırır."},lumberjack:{name:"Keresteci",purpose:"Haritadaki odun kaynaklarından elde edilen verimi artırır."},blacksmith:{name:"Demirci",purpose:"Haritadaki demir madenlerinden elde edilen verimi artırır."},mill:{name:"Değirmen",purpose:"Tahıl üretimini destekler."},farm:{name:"Tarla",purpose:"Tahıl üretimini sağlar."},market:{name:"Pazar",purpose:"Altın üretimi ve kaynak takası sağlar."}};
 const buildingArt={shelter:"shelter",temple:"temple",school:"school",barracks:"barracks",archery:"archery",stable:"stable",workshop:"workshop",stonemason:"stonemason",lumberjack:"lumberjack",blacksmith:"blacksmith",mill:"mill",farm:"farm",market:"market"};
+const buildSlotPositions=[[28,32],[50,25],[72,32],[81,48],[72,68],[50,77],[28,68],[19,48],[50,88]];
+const buildIcons={shelter:"🏕️",temple:"🛕",school:"📚",barracks:"🛡️",archery:"🏹",stable:"🐎",workshop:"⚒️",stonemason:"🪨",lumberjack:"🪵",blacksmith:"🔨",mill:"🌾",farm:"🌱",market:"🏪"};
+const initialBuildingCost={wood:30,stone:20,iron:5};
+function renderBuildSlots(buildings){
+ const layer=$("#villageBuildingSlots");if(!layer)return;
+ layer.replaceChildren();
+ const occupied=new Set((buildings||[]).map(v=>Number(v.slotIndex)).filter(v=>Number.isInteger(v)&&v>=1&&v<=9));
+ buildSlotPositions.forEach(([x,y],index)=>{
+  const slot=index+1;if(occupied.has(slot))return;
+  const button=document.createElement("button");button.type="button";button.className="building-slot";
+  button.style.left=x+"%";button.style.top=y+"%";button.dataset.slot=String(slot);
+  button.setAttribute("aria-label",slot+". boş inşa alanı. Bina seçmek için dokun.");
+  const icon=document.createElement("span");icon.textContent="+";
+  const label=document.createElement("small");label.textContent="İNŞA";
+  button.append(icon,label);
+  button.addEventListener("click",event=>{event.stopPropagation();openBuildSelection(slot);});
+  layer.append(button);
+ });
+}
+function closeBuildSelection(){const panel=$("#buildingPlacement");if(panel)panel.hidden=true;}
+function openBuildSelection(slot){
+ const panel=$("#buildingPlacement"),catalog=$("#buildingCatalog"),message=$("#buildingPlacementMessage");
+ if(!panel||!catalog)return;
+ catalog.replaceChildren();message.textContent=""+slot+". alan için bir bina seç. İnşa maliyeti: 30 odun · 20 taş · 5 demir.";
+ const heading=$("#buildingPlacementTitle");if(heading)heading.textContent=slot+". İNŞA ALANI";
+ Object.entries(buildingCatalog).filter(([type])=>type!=="center").forEach(([type,building])=>{
+  const option=document.createElement("button");option.type="button";option.className="build-option";
+  const icon=document.createElement("span");icon.className="build-option-icon";icon.textContent=buildIcons[type]||"🏘️";
+  const info=document.createElement("span");info.className="build-option-info";
+  const name=document.createElement("b");name.textContent=building.name;
+  const purpose=document.createElement("small");purpose.textContent=building.purpose;
+  const cost=document.createElement("small");cost.className="build-option-cost";cost.textContent="🪵 30 · 🪨 20 · ⚒️ 5";
+  info.append(name,purpose,cost);option.append(icon,info);
+  option.addEventListener("click",()=>placeBuildingAtSlot(type,slot,option));
+  catalog.append(option);
+ });
+ panel.hidden=false;
+}
+async function placeBuildingAtSlot(type,slot,button){
+ const panel=$("#buildingPlacement"),message=$("#buildingPlacementMessage");
+ button.disabled=true;message.textContent="Bina inşa ediliyor…";
+ try{
+  const result=await api("/api/buildings/place",{method:"POST",body:JSON.stringify({type,slot})});
+  message.textContent=result.message||"Bina inşa edildi.";
+  await Promise.all([loadPlayerData(),refreshBuildingsAndCity()]);
+  panel.hidden=true;
+ }catch(error){
+  message.textContent=error.message;
+  button.disabled=false;
+ }
+}
+$("#closeBuildingPlacement")?.addEventListener("click",closeBuildSelection);
 function formatBuildTime(seconds){const s=Math.max(0,Math.ceil(seconds));return Math.floor(s/60)+" dk "+String(s%60).padStart(2,"0")+" sn";}
 function updateBuildingTimer(){
  const el=$("#buildingUpgradeTimer");if(!el||!selectedUpgradeBuilding)return;
@@ -274,6 +326,7 @@ async function refreshBuildingsAndCity(){
  buildingSpeedupsAvailable=data.speedupsAvailable||0;
  constructionWorkers={active:data.activeUpgradeCount||0,max:data.maxConcurrentUpgrades||3,available:data.availableConstructionWorkers||0};
  const layer=$("#villageBuildingsLayer");if(!layer)return;
+ renderBuildSlots(data.buildings||[]);
  layer.replaceChildren();
  (data.buildings||[]).forEach(v=>{
   const m=document.createElement("button");m.type="button";
