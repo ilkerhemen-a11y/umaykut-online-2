@@ -273,7 +273,7 @@ function openBuildSelection(slot){
  if(!panel||!catalog)return;
  catalog.replaceChildren();message.textContent=""+slot+". alan için bir bina seç. İnşa maliyeti: 30 odun · 20 taş · 5 demir.";
  const heading=$("#buildingPlacementTitle");if(heading)heading.textContent=slot+". İNŞA ALANI";
- Object.entries(buildingCatalog).filter(([type])=>type!=="center").forEach(([type,building])=>{
+ Object.entries(buildingCatalog).filter(([type])=>type!=="center"&&window.umaykut3d?.getBuildingPreview?.(type)).forEach(([type,building])=>{
   const option=document.createElement("button");option.type="button";option.className="build-option";
   const icon=document.createElement("span");icon.className="build-option-icon";const preview=window.umaykut3d?.getBuildingPreview?.(type);if(preview){icon.style.backgroundImage="url("+preview.src+")";icon.style.backgroundSize="500% 200%";icon.style.backgroundPosition=(preview.col*25)+"% "+(preview.row*100)+"%";}else{icon.textContent=buildIcons[type]||"";}
   const info=document.createElement("span");info.className="build-option-info";

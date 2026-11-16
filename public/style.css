@@ -945,3 +945,10 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
 #village .village-buildings-layer .placed-building b{font-size:8px;color:#fff0c2;white-space:nowrap}
 #village .village-buildings-layer .placed-building small{display:none}
 @media(max-width:420px){#village .building-catalog{grid-template-columns:repeat(2,minmax(0,1fr))}#village .build-option-icon{flex-basis:48px;width:48px;height:48px}}
+
+/* Kullanıcının onayladığı dokuz inşa alanı ve gönderdiği bina görselleri */
+#village .building-slot{width:clamp(48px,12.5vw,60px);height:clamp(48px,12.5vw,60px);border-width:2px;box-shadow:0 0 0 4px #14251a99,0 0 16px 4px #f4c85a66,0 6px 16px #10180ebb,inset 0 2px 7px #fff7d566}
+#village .building-slot span{font-size:30px;line-height:30px}
+#village .building-slot small{font-size:7px;letter-spacing:.9px}
+#village .build-option-icon{background-position:center;background-repeat:no-repeat;background-size:500% 200%;flex:0 0 58px;width:58px;height:58px}
+@media(max-width:699px){#village .building-slot{width:clamp(48px,12.5vw,60px);height:clamp(48px,12.5vw,60px)}}

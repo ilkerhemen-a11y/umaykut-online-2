@@ -44,16 +44,16 @@ if(canvas){
   const padGroup=new THREE.Group();
   scene.add(padGroup);
   buildPadPositions.forEach(([x,z])=>{
-    const base=new THREE.Mesh(new THREE.CylinderGeometry(1.12,1.2,.2,36),padStone);
+    const base=new THREE.Mesh(new THREE.CylinderGeometry(1.48,1.54,.24,48),padStone);
     base.position.set(x,.17,z);base.castShadow=true;base.receiveShadow=true;padGroup.add(base);
-    const inset=new THREE.Mesh(new THREE.CylinderGeometry(.98,.98,.035,36),courtyard);
+    const inset=new THREE.Mesh(new THREE.CylinderGeometry(1.22,1.22,.04,48),courtyard);
     inset.position.set(x,.29,z);padGroup.add(inset);
-    const rim=new THREE.Mesh(new THREE.TorusGeometry(1.05,.075,8,40),padGold);
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(1.32,.12,12,56),padGold);
     rim.rotation.x=Math.PI/2;rim.position.set(x,.32,z);padGroup.add(rim);
     for(let i=0;i<8;i++){
       const a=i*Math.PI/4;
       const block=new THREE.Mesh(new THREE.BoxGeometry(.14,.07,.12),paving);
-      block.position.set(x+Math.cos(a)*1.07,.34,z+Math.sin(a)*1.07);
+      block.position.set(x+Math.cos(a)*1.34,.38,z+Math.sin(a)*1.34);
       block.rotation.y=-a;padGroup.add(block);
     }
   });
@@ -67,7 +67,7 @@ if(canvas){
   const buildingsGroup=new THREE.Group();
   scene.add(buildingsGroup);
   let atlasTexture=null;
-  let atlasDataUrl=null;
+  let atlasDataUrl="/assets/user-buildings-atlas.png";
   let latestBuildings=[];
   const assetCells={
     center:0,
@@ -145,19 +145,13 @@ if(canvas){
     setBuildings(buildings){latestBuildings=Array.isArray(buildings)?buildings:[];renderBuildings();},
     getBuildingPreview(type){
       const index=assetCells[type];
-      if(index===undefined||!atlasDataUrl)return null;
+      if(index===undefined)return null;
       return {src:atlasDataUrl,col:index%5,row:Math.floor(index/5)};
     }
   };
 
   async function loadUserImages(){
-    const parts=await Promise.all(Array.from({length:6},async(_,index)=>{const response=await fetch("/assets/user-buildings-atlas.part"+(index+1)+".txt",{cache:"force-cache"});if(!response.ok)throw new Error("Bina görsel paketi parçası yüklenemedi: "+(index+1));return response.text();}));
-    const encoded=parts.join("").trim();
-    const binary=atob(encoded);
-    const bytes=new Uint8Array(binary.length);
-    for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
-    const blob=new Blob([bytes],{type:"image/png"});
-    atlasDataUrl=URL.createObjectURL(blob);
+    atlasDataUrl="/assets/user-buildings-atlas.png";
     atlasTexture=await new THREE.TextureLoader().loadAsync(atlasDataUrl);
     atlasTexture.colorSpace=THREE.SRGBColorSpace;
     atlasTexture.magFilter=THREE.LinearFilter;
@@ -185,8 +179,8 @@ if(canvas){
     const w=canvas.clientWidth||innerWidth,h=canvas.clientHeight||520,aspect=w/h;
     renderer.setSize(w,h,false);
     camera.aspect=aspect;
-    if(aspect<.78){camera.fov=48;cameraRadius=35;orbitTheta=.42;orbitPhi=.92;}
-    else{camera.fov=37;cameraRadius=32;orbitTheta=.48;orbitPhi=.9;}
+    if(aspect<.78){camera.fov=48;cameraRadius=32;orbitTheta=.42;orbitPhi=.92;}
+    else{camera.fov=35;cameraRadius=29;orbitTheta=.48;orbitPhi=.9;}
     applyCamera();
   }
   new ResizeObserver(resize).observe(canvas);
