@@ -27,6 +27,36 @@ function finishEnteringWorld(faction){
   loadWorldMap();
 }
 let worldMapScale=0.78,worldMapX=0,worldMapY=0,worldMapDragging=false,worldMapMoved=false,worldMapPointer=null;
+
+let villageCameraScale=1.12,villageCameraX=0,villageCameraY=0,villageCameraPointer=null,villageCameraMoved=false;
+function applyVillageCamera(){
+ const camera=$("#villageMapCamera");if(!camera)return;
+ camera.style.transform="translate(calc(-50% + "+villageCameraX+"px),calc(-50% + "+villageCameraY+"px)) scale("+villageCameraScale+")";
+}
+function setupVillageCamera(){
+ const viewport=$("#villageMapViewport");if(!viewport||viewport.dataset.cameraReady)return;
+ viewport.dataset.cameraReady="1";
+ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ viewport.addEventListener("pointerdown",e=>{
+  if(e.target.closest(".village-map-controls,.placed-building,.building-slot,.village-resource-nodes"))return;
+  villageCameraPointer={id:e.pointerId,x:e.clientX,y:e.clientY,sx:villageCameraX,sy:villageCameraY};
+  villageCameraMoved=false;viewport.setPointerCapture(e.pointerId);viewport.classList.add("dragging");
+ });
+ viewport.addEventListener("pointermove",e=>{
+  if(!villageCameraPointer||e.pointerId!==villageCameraPointer.id)return;
+  const dx=e.clientX-villageCameraPointer.x,dy=e.clientY-villageCameraPointer.y;
+  if(Math.abs(dx)+Math.abs(dy)>4)villageCameraMoved=true;
+  if(villageCameraMoved){villageCameraX=clamp(villageCameraPointer.sx+dx,-220,220);villageCameraY=clamp(villageCameraPointer.sy+dy,-180,180);applyVillageCamera();}
+ });
+ const end=e=>{if(!villageCameraPointer||e.pointerId!==villageCameraPointer.id)return;villageCameraPointer=null;viewport.classList.remove("dragging");if(villageCameraMoved){viewport.classList.add("suppress-village-click");setTimeout(()=>viewport.classList.remove("suppress-village-click"),180);}};
+ viewport.addEventListener("pointerup",end);viewport.addEventListener("pointercancel",end);
+ viewport.addEventListener("wheel",e=>{e.preventDefault();villageCameraScale=clamp(villageCameraScale+(e.deltaY<0?.06:-.06),1,1.55);applyVillageCamera();},{passive:false});
+ $("#villageZoomIn")?.addEventListener("click",()=>{villageCameraScale=clamp(villageCameraScale+.1,1,1.55);applyVillageCamera();});
+ $("#villageZoomOut")?.addEventListener("click",()=>{villageCameraScale=clamp(villageCameraScale-.1,1,1.55);applyVillageCamera();});
+ $("#villageRecenter")?.addEventListener("click",()=>{villageCameraScale=1.12;villageCameraX=0;villageCameraY=0;applyVillageCamera();});
+ applyVillageCamera();
+}
+
 function applyWorldMapTransform(){
  const content=$("#worldMapContent");if(!content)return;
  content.style.transform="translate(calc(-50% + "+worldMapX+"px),calc(-50% + "+worldMapY+"px)) scale("+worldMapScale+")";
@@ -67,6 +97,7 @@ async function loadWorldMap(){
     if(!layer)return;
     layer.replaceChildren();
     setupWorldMapControls();
+ setupVillageCamera();
     const territory=document.createElement("div");
     territory.className="territory-ring";
     territory.setAttribute("aria-label","Sana ait küçük hâkimiyet alanı");
