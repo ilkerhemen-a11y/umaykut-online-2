@@ -14,112 +14,131 @@ function oval(x,y,rx,ry,fill,stroke="#0000",lw=1){
  ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();
  if(stroke!=="#0000"){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke();}
 }
-function box(x,y,w,h,r,fill,stroke="#0000"){
- ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill();
- if(stroke!=="#0000"){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}
+function line(points,color,width){
+ ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+ ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke();
 }
 function tree(x,y,s=1){
  ctx.save();ctx.translate(x,y);ctx.scale(s,s);
- oval(0,5,14,5,"#1d3329aa");
- poly([[-3,2],[-2,-20],[3,-20],[4,2]],"#69472b");
- oval(-6,-21,11,13,"#315c35","#24472b",1.5);
- oval(6,-26,12,14,"#477b3e","#294d2e",1.5);
- oval(0,-35,10,12,"#5c8b45","#315b35",1.2);
- oval(-4,-39,3,3,"#b3c777");
+ oval(0,7,18,6,"#263b21aa");
+ poly([[-4,8],[-3,-23],[4,-23],[5,8]],"#76502e","#50371f",1);
+ oval(-8,-25,15,16,"#2d5835","#1c4028",2);
+ oval(8,-32,16,18,"#477b3d","#28502e",2);
+ oval(0,-43,13,16,"#63934b","#315c36",1.5);
+ oval(-5,-48,4,4,"#c1d17b");
  ctx.restore();
 }
-function bush(x,y,s=1){
+function shrub(x,y,s=1){
  ctx.save();ctx.translate(x,y);ctx.scale(s,s);
- oval(0,2,10,4,"#233d24aa");oval(-5,-3,7,6,"#47733a","#2c522d");
- oval(3,-5,8,7,"#5d8943","#315b32");ctx.restore();
+ oval(0,4,14,5,"#263d22aa");oval(-7,-3,9,8,"#527c39","#31562c",1);
+ oval(5,-6,10,9,"#6d9649","#365d31",1);ctx.restore();
+}
+function stone(x,y,s=1){
+ ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+ oval(0,4,14,5,"#293b20aa");
+ poly([[-13,2],[-10,-10],[-2,-18],[10,-14],[15,0]],"#92927b","#5b624f",1.5);
+ poly([[-10,-10],[-2,-18],[10,-14],[2,-7]],"#c2c1a2");ctx.restore();
 }
 function tower(x,y,s=1){
  ctx.save();ctx.translate(x,y);ctx.scale(s,s);
- poly([[-16,0],[0,-9],[16,0],[0,10]],"#b9a47c","#65543c",1);
- poly([[-12,-3],[-12,-30],[0,-38],[12,-30],[12,-3],[0,5]],"#b5a078","#65543c",1.2);
- poly([[-12,-30],[0,-40],[12,-30],[0,-22]],"#d6c59c","#6a573b",1);
- box(-3,-23,6,11,2,"#51432e");ctx.restore();
+ oval(0,5,19,7,"#24362288");
+ poly([[-17,-3],[-14,-25],[0,-35],[14,-25],[17,-3],[0,7]],"#b7a17a","#594a32",2);
+ poly([[-17,-25],[0,-37],[17,-25],[0,-14]],"#dfcca0","#746044",1.5);
+ poly([[-8,-20],[0,-27],[8,-20],[8,-5],[-8,-5]],"#42615a","#d2bb83",1);
+ poly([[-11,-29],[0,-44],[11,-29],[0,-23]],"#8a7048","#58452d",1.5);
+ ctx.restore();
 }
 function ground(){
- const bg=ctx.createLinearGradient(0,0,0,H);
- bg.addColorStop(0,"#a4bf72");bg.addColorStop(.48,"#779d4d");bg.addColorStop(1,"#466e39");
- ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
- for(let i=0;i<130;i++){
-  const x=((i*83)%997)/997*W,y=((i*137+31)%991)/991*H;
-  oval(x,y,8+(i%5)*3,3+(i%4)*2,i%3===0?"#d1d98a42":"#294d2c26");
+ const g=ctx.createLinearGradient(0,0,0,H);
+ g.addColorStop(0,"#8fae59");g.addColorStop(.42,"#a9b968");g.addColorStop(1,"#668d45");
+ ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ // soft fields and natural ground patches
+ for(let i=0;i<110;i++){
+  const x=((i*83+17)%997)/997*W,y=((i*137+29)%991)/991*H;
+  oval(x,y,8+(i%6)*4,3+(i%4)*2,i%3===0?"#e1d68b40":"#355b2b24");
  }
- // hand-laid stone courtyard, in isometric diamond courses
- ctx.save();ctx.translate(W*.5,H*.51);
- for(let r=-8;r<=8;r++)for(let c=-9;c<=9;c++){
-  const x=(c-r)*W*.026,y=(c+r)*H*.017;
-  if(Math.abs(x)>W*.39||Math.abs(y)>H*.33)continue;
-  const shades=["#c4b17b36","#e2d09a28","#5a74422a","#d6c18a2d","#8c9a5c2b"];
-  const n=((r*7+c*11)%5+5)%5;
-  poly([[x,y-7],[x+W*.026,y],[x,y+7],[x-W*.026,y]],shades[n],"#71634222",.5);
- }
- ctx.restore();
- // roads to the keep and the entrance
- ctx.lineCap="round";ctx.lineJoin="round";
- ctx.beginPath();ctx.moveTo(W*.5,H*1.03);ctx.bezierCurveTo(W*.47,H*.83,W*.52,H*.68,W*.5,H*.51);
- ctx.strokeStyle="#9d855d";ctx.lineWidth=Math.max(24,W*.078);ctx.stroke();
- ctx.strokeStyle="#d5c398";ctx.lineWidth=Math.max(16,W*.052);ctx.stroke();
- ctx.beginPath();ctx.moveTo(W*.5,H*.53);ctx.bezierCurveTo(W*.32,H*.5,W*.24,H*.4,W*.1,H*.35);
- ctx.strokeStyle="#ad956a";ctx.lineWidth=Math.max(14,W*.045);ctx.stroke();
- ctx.beginPath();ctx.moveTo(W*.5,H*.53);ctx.bezierCurveTo(W*.68,H*.5,W*.76,H*.4,W*.9,H*.35);ctx.stroke();
- // cultivated strips outside the central ring
- for(const side of [-1,1]){
-  const x=W*(side<0?.12:.88),y=H*.52;
-  ctx.save();ctx.translate(x,y);
-  for(let i=0;i<5;i++){
-   box(-W*.045+i*2,-H*.055+i*H*.004,W*.09,6,3,i%2?"#9b8a4d":"#b9a15e","#76653d");
-  }
-  for(let i=0;i<5;i++)bush((i-2)*W*.018,H*.07+(i%2)*5,.7);
+ // cultivated land beyond the walls
+ for(let side of [-1,1]){
+  ctx.save();ctx.translate(W*.5+side*W*.42,H*.53);
+  for(let i=0;i<7;i++)line([[-W*.08,-H*.12+i*H*.035],[0,-H*.09+i*H*.035],[W*.07,-H*.12+i*H*.035]],"#d8c27a88",2);
   ctx.restore();
+ }
+ // outer tree line, deliberately outside the rampart
+ [[.08,.18,.9],[.18,.11,.8],[.34,.08,.75],[.67,.08,.75],[.84,.13,.9],[.94,.22,.8],[.08,.79,.85],[.15,.91,.9],[.86,.88,.9],[.95,.76,.8],[.32,.94,.7],[.69,.94,.75]]
+ .forEach(([x,y,s])=>tree(W*x,H*y,s));
+ [[.04,.39],[.95,.43],[.09,.68],[.91,.68],[.28,.1],[.72,.1],[.26,.91],[.76,.92]].forEach(([x,y],i)=>stone(W*x,H*y,.55+(i%3)*.15));
+}
+function roads(){
+ const cx=W*.5,cy=H*.515,rx=W*.405,ry=H*.345;
+ // wide radial cobblestone avenues between central square and residential plots
+ const ends=[[.5,.20],[.78,.31],[.88,.49],[.78,.69],[.5,.82],[.22,.69],[.12,.49],[.22,.31]];
+ ends.forEach(([ex,ey],i)=>{
+  const tx=W*ex,ty=H*ey;
+  line([[cx,cy],[cx+(tx-cx)*.38,cy+(ty-cy)*.38],[tx,ty]],"#9a8358",Math.max(16,W*.035));
+  line([[cx,cy],[cx+(tx-cx)*.38,cy+(ty-cy)*.38],[tx,ty]],"#e2d0a0",Math.max(10,W*.023));
+  line([[cx,cy],[cx+(tx-cx)*.38,cy+(ty-cy)*.38],[tx,ty]],"#f1e3bd55",2);
+ });
+ // paved central circular plaza
+ oval(cx,cy,W*.155,H*.104,"#756348");
+ oval(cx,cy-3,W*.15,H*.099,"#c6b17f","#6e5b3e",3);
+ oval(cx,cy-5,W*.132,H*.083,"#ddc995","#f0dfb2",2);
+ oval(cx,cy-7,W*.112,H*.067,"#b6a06e","#8c744b",2);
+ // stone paving on central plaza
+ for(let i=0;i<28;i++){
+  const a=i*Math.PI*2/28;
+  const x=cx+Math.cos(a)*W*.12,y=cy-7+Math.sin(a)*H*.058;
+  oval(x,y,3,2,"#6e6048aa");
  }
 }
 function walls(){
- const x=W*.5,y=H*.51,rx=W*.405,ry=H*.315;
- oval(x,y+8,rx+6,ry+6,"#1d3325aa");
- // far rampart
+ const x=W*.5,y=H*.515,rx=W*.455,ry=H*.405;
+ // shadow and outer berm
+ oval(x,y+12,rx+9,ry+10,"#24391faa");
+ oval(x,y+3,rx+3,ry+3,"#8e7952","#55442d",2);
+ // rear rampart, thick stone masonry
  ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,Math.PI,Math.PI*2);
- ctx.strokeStyle="#594a35";ctx.lineWidth=Math.max(20,W*.052);ctx.stroke();
- ctx.beginPath();ctx.ellipse(x,y-4,rx,ry,0,Math.PI,Math.PI*2);
- ctx.strokeStyle="#d2c29a";ctx.lineWidth=Math.max(13,W*.034);ctx.stroke();
- ctx.beginPath();ctx.ellipse(x,y-5,rx,ry,0,Math.PI,Math.PI*2);
- ctx.strokeStyle="#8d7954";ctx.lineWidth=Math.max(5,W*.012);ctx.stroke();
- // near wall, with a broad southern gate
- for(const [a,b] of [[0,Math.PI/2-.2],[Math.PI/2+.2,Math.PI]]){
+ ctx.strokeStyle="#55452f";ctx.lineWidth=Math.max(30,W*.075);ctx.stroke();
+ ctx.beginPath();ctx.ellipse(x,y-7,rx,ry,0,Math.PI,Math.PI*2);
+ ctx.strokeStyle="#d7c69b";ctx.lineWidth=Math.max(22,W*.055);ctx.stroke();
+ ctx.beginPath();ctx.ellipse(x,y-8,rx,ry,0,Math.PI,Math.PI*2);
+ ctx.strokeStyle="#8c7954";ctx.lineWidth=Math.max(7,W*.018);ctx.stroke();
+ // foreground wall segments with a grand southern gate opening
+ for(const [a,b] of [[0,Math.PI/2-.18],[Math.PI/2+.18,Math.PI]]){
   ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,a,b);
-  ctx.strokeStyle="#514431";ctx.lineWidth=Math.max(21,W*.054);ctx.stroke();
-  ctx.beginPath();ctx.ellipse(x,y-5,rx,ry,0,a,b);
-  ctx.strokeStyle="#c8b68c";ctx.lineWidth=Math.max(13,W*.033);ctx.stroke();
-  ctx.beginPath();ctx.ellipse(x,y-6,rx,ry,0,a,b);
-  ctx.strokeStyle="#8e7a55";ctx.lineWidth=Math.max(4,W*.011);ctx.stroke();
+  ctx.strokeStyle="#55432d";ctx.lineWidth=Math.max(31,W*.078);ctx.stroke();
+  ctx.beginPath();ctx.ellipse(x,y-7,rx,ry,0,a,b);
+  ctx.strokeStyle="#d3c095";ctx.lineWidth=Math.max(21,W*.053);ctx.stroke();
+  ctx.beginPath();ctx.ellipse(x,y-8,rx,ry,0,a,b);
+  ctx.strokeStyle="#8d7954";ctx.lineWidth=Math.max(7,W*.017);ctx.stroke();
  }
- for(let i=0;i<32;i++){
-  const a=2*Math.PI*i/32,tx=x+Math.cos(a)*rx,ty=y+Math.sin(a)*ry;
-  if(Math.sin(a)>0&&Math.abs(Math.cos(a))<.17)continue;
-  box(tx-4,ty-14,8,12,2,"#d2c19a","#756447");
+ // crenellations and evenly spaced defensive towers
+ for(let i=0;i<42;i++){
+  const a=2*Math.PI*i/42;
+  if(Math.sin(a)>.42&&Math.abs(Math.cos(a))<.22)continue;
+  const tx=x+Math.cos(a)*rx,ty=y+Math.sin(a)*ry;
+  poly([[tx-5,ty-16],[tx+5,ty-16],[tx+5,ty-5],[tx-5,ty-5]],"#e2d1a5","#766344",1);
  }
-  tower(x-rx*.96,y-ry*.1,.95);tower(x+rx*.96,y-ry*.1,.95);
- tower(x-rx*.58,y-ry*.82,.82);tower(x+rx*.58,y-ry*.82,.82);
+ [[-.92,-.22,.9],[.92,-.22,.9],[-.62,-.78,.78],[.62,-.78,.78],[-.98,.42,.8],[.98,.42,.8]].forEach(([dx,dy,s])=>tower(x+rx*dx,y+ry*dy,s));
+ // ornate gatehouse and arched opening
+ const gy=y+ry*.88;
+ oval(x,gy+20,W*.09,H*.025,"#26381f99");
+ poly([[x-W*.095,gy-17],[x-W*.075,gy-48],[x,gy-73],[x+W*.075,gy-48],[x+W*.095,gy-17]],"#bda77c","#5a4931",3);
+ poly([[x-W*.08,gy-27],[x-W*.06,gy-53],[x,gy-70],[x+W*.06,gy-53],[x+W*.08,gy-27]],"#dfcea3","#806a47",2);
+ boxGate(x,gy-44,W*.043,56);
+ // road leading out from the gate
+ line([[x,gy+8],[x,H*1.02]],"#a48d60",Math.max(25,W*.065));
+ line([[x,gy+8],[x,H*1.02]],"#dfc99a",Math.max(16,W*.041));
 }
-function details(){
- // Broad stone dais directly beneath the central Seljuk keep.
- oval(W*.5,H*.535,W*.155,H*.082,"#17291e88");
- oval(W*.5,H*.525,W*.15,H*.075,"#9b8a68","#554a35",2);
- oval(W*.5,H*.516,W*.128,H*.06,"#c7b58b","#e2d2a8",2);
- oval(W*.5,H*.51,W*.105,H*.047,"#8d9a6b","#6b7952",1);
- [[.07,.22,.9],[.15,.15,.72],[.92,.2,.85],[.84,.14,.7],[.07,.8,.8],[.92,.78,.9],[.18,.89,.68],[.82,.89,.7],[.29,.15,.55],[.72,.15,.58]]
- .forEach(([x,y,s])=>tree(W*x,H*y,s));
- [[.2,.4],[.8,.4],[.18,.58],[.82,.58],[.34,.83],[.66,.83],[.27,.22],[.73,.22]]
- .forEach(([x,y],i)=>bush(W*x,H*y,.7+(i%3)*.1));
+function boxGate(x,y,w,h){
+ ctx.beginPath();ctx.moveTo(x-w/2,y+h/2);ctx.lineTo(x-w/2,y);ctx.arc(x,y,w/2,Math.PI,0);ctx.lineTo(x+w/2,y+h/2);ctx.closePath();
+ ctx.fillStyle="#35291d";ctx.fill();ctx.strokeStyle="#f0d7a1";ctx.lineWidth=3;ctx.stroke();
+ ctx.beginPath();ctx.moveTo(x,y+7);ctx.lineTo(x,y+h/2);ctx.strokeStyle="#b8995f";ctx.lineWidth=2;ctx.stroke();
 }
 function render(){
  if(!W||!H)return;
- ground();walls();details();
- const shade=ctx.createRadialGradient(W*.5,H*.48,H*.12,W*.5,H*.5,W*.72);
- shade.addColorStop(.45,"#101b0c00");shade.addColorStop(1,"#101b0c55");
+ ground();roads();walls();
+ const shade=ctx.createRadialGradient(W*.5,H*.5,H*.12,W*.5,H*.5,W*.75);
+ shade.addColorStop(.52,"#18220e00");shade.addColorStop(1,"#17240e55");
  ctx.fillStyle=shade;ctx.fillRect(0,0,W,H);
 }
 function resize(){
