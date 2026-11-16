@@ -18,10 +18,14 @@ const BUILDINGS = Object.freeze({
   farm: { name: "Tarla", icon: "🌱", purpose: "Tahıl üretimini sağlar." },
   market: { name: "Pazar", icon: "🏪", purpose: "Altın üretimi ve kaynak takası sağlar." },
 });
-const STARTING_BUILDINGS = Object.freeze([["center",50,53],["market",18,47],["shelter",82,47],["temple",50,24],["school",78,62],["barracks",68,75],["archery",50,80],["stable",32,75],["workshop",22,62],["stonemason",20,35],["lumberjack",36,29],["blacksmith",64,29],["mill",80,35],["farm",50,38]]);
+const STARTING_BUILDINGS = Object.freeze([["center",50,47]]);
+const BUILD_SLOT_POSITIONS = Object.freeze([[28,32],[50,25],[72,32],[81,48],[72,68],[50,77],[28,68],[19,48],[50,88]]);
+const BUILDING_COST = Object.freeze({ wood: 30, stone: 20, iron: 5 });
 async function ensureBuildingSchema(client = pool) {
   await client.query("CREATE TABLE IF NOT EXISTS city_buildings (id BIGSERIAL PRIMARY KEY, city_player_id BIGINT NOT NULL REFERENCES player_cities(player_id) ON DELETE CASCADE, building_type VARCHAR(24) NOT NULL, x NUMERIC(5,2) NOT NULL CHECK (x BETWEEN 3 AND 97), y NUMERIC(5,2) NOT NULL CHECK (y BETWEEN 3 AND 97), level INTEGER NOT NULL DEFAULT 1 CHECK (level BETWEEN 1 AND 10), upgrade_finishes_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE (city_player_id, building_type))");
   await client.query("ALTER TABLE city_buildings ADD COLUMN IF NOT EXISTS upgrade_finishes_at TIMESTAMPTZ");
+  await client.query("ALTER TABLE city_buildings ADD COLUMN IF NOT EXISTS slot_index SMALLINT");
+  await client.query("CREATE UNIQUE INDEX IF NOT EXISTS idx_city_buildings_unique_slot ON city_buildings (city_player_id, slot_index) WHERE slot_index IS NOT NULL");
   await client.query("ALTER TABLE city_buildings DROP CONSTRAINT IF EXISTS city_buildings_level_check");
   await client.query("ALTER TABLE city_buildings ADD CONSTRAINT city_buildings_level_check CHECK (level BETWEEN 1 AND 10)");
   await client.query("CREATE TABLE IF NOT EXISTS player_items (player_id BIGINT NOT NULL REFERENCES players(id) ON DELETE CASCADE, item_code VARCHAR(40) NOT NULL, quantity INTEGER NOT NULL DEFAULT 0 CHECK (quantity >= 0), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), PRIMARY KEY (player_id, item_code))");
@@ -52,11 +56,12 @@ export async function getMyBuildings(req, res) {
     await completeExpiredUpgrades(pool, req.player.sub);
     const activeResult = await pool.query("SELECT COUNT(*)::integer AS active FROM city_buildings WHERE city_player_id = $1 AND upgrade_finishes_at > NOW()", [req.player.sub]);
     const activeUpgradeCount = Number(activeResult.rows[0]?.active || 0);
-    const result = await pool.query("SELECT id, building_type, x, y, level, upgrade_finishes_at FROM city_buildings WHERE city_player_id = $1 ORDER BY CASE WHEN building_type = 'center' THEN 0 ELSE 1 END, id", [req.player.sub]);
+    const result = await pool.query("SELECT id, building_type, x, y, level, slot_index, upgrade_finishes_at FROM city_buildings WHERE city_player_id = $1 ORDER BY CASE WHEN building_type = 'center' THEN 0 ELSE 1 END, id", [req.player.sub]);
     const itemResult = await pool.query("SELECT quantity FROM player_items WHERE player_id = $1 AND item_code = 'building_speedup_5m'", [req.player.sub]);
     const buildings = result.rows.map(row => ({
       id: Number(row.id), type: row.building_type, name: BUILDINGS[row.building_type]?.name || row.building_type,
       icon: BUILDINGS[row.building_type]?.icon || "🏘️", x: Number(row.x), y: Number(row.y), level: Number(row.level),
+      slotIndex: row.slot_index == null ? null : Number(row.slot_index),
       upgradeFinishesAt: row.upgrade_finishes_at,
       nextUpgrade: Number(row.level) < MAX_LEVEL ? quoteUpgrade(Number(row.level)) : null
     }));
@@ -128,6 +133,41 @@ export async function speedUpBuilding(req, res) {
   } finally { client.release(); }
 }
 
-export async function placeBuilding(_req, res) {
-  return res.status(410).json({ error: "Yeni köy düzeninde binalar otomatik yerleştirilir; inşa etme sistemi kapalıdır." });
+export async function placeBuilding(req, res) {
+  const type = String(req.body?.type || "");
+  const slot = Number(req.body?.slot);
+  if (!BUILDINGS[type] || type === "center") return res.status(400).json({ error: "Geçerli bir bina türü seç." });
+  if (!Number.isInteger(slot) || slot < 1 || slot > 9) return res.status(400).json({ error: "İnşa alanı 1 ile 9 arasında olmalı." });
+  const [x, y] = BUILD_SLOT_POSITIONS[slot - 1];
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await ensureBuildingSchema(client);
+    await ensureStartingBuildings(client, req.player.sub);
+    const cityResult = await client.query("SELECT wood, stone, iron FROM player_cities WHERE player_id = $1 FOR UPDATE", [req.player.sub]);
+    const city = cityResult.rows[0];
+    if (!city) { await client.query("ROLLBACK"); return res.status(404).json({ error: "Şehir bulunamadı." }); }
+    const existing = await client.query("SELECT id FROM city_buildings WHERE city_player_id = $1 AND building_type = $2 FOR UPDATE", [req.player.sub, type]);
+    if (existing.rowCount) { await client.query("ROLLBACK"); return res.status(409).json({ error: "Bu binadan zaten bir tane inşa edilmiş." }); }
+    const occupied = await client.query("SELECT building_type FROM city_buildings WHERE city_player_id = $1 AND slot_index = $2 FOR UPDATE", [req.player.sub, slot]);
+    if (occupied.rowCount) { await client.query("ROLLBACK"); return res.status(409).json({ error: "Bu inşa alanı dolu. Başka bir alan seç." }); }
+    const count = await client.query("SELECT COUNT(*)::integer AS total FROM city_buildings WHERE city_player_id = $1 AND building_type <> 'center'", [req.player.sub]);
+    if (Number(count.rows[0]?.total || 0) >= 9) { await client.query("ROLLBACK"); return res.status(409).json({ error: "Dokuz inşa alanının tamamı dolu." }); }
+    const cost = BUILDING_COST;
+    if (Number(city.wood) < cost.wood || Number(city.stone) < cost.stone || Number(city.iron) < cost.iron) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ error: "Yeterli kaynağın yok. Gerekli: " + cost.wood + " odun, " + cost.stone + " taş, " + cost.iron + " demir." });
+    }
+    await client.query("UPDATE player_cities SET wood = wood - $2, stone = stone - $3, iron = iron - $4, updated_at = NOW() WHERE player_id = $1", [req.player.sub, cost.wood, cost.stone, cost.iron]);
+    await client.query("INSERT INTO city_buildings (city_player_id, building_type, x, y, level, slot_index) VALUES ($1, $2, $3, $4, 1, $5)", [req.player.sub, type, x, y, slot]);
+    await client.query("COMMIT");
+    return res.status(201).json({ success: true, type, slot, x, y, cost, message: BUILDINGS[type].name + "  inşa edildi." });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    if (error.code === "23505") return res.status(409).json({ error: "Bu alan veya bina başka bir işlemde kullanıldı. Köyünü yenileyip tekrar dene." });
+    console.error("Bina inşa hatası:", error);
+    return res.status(500).json({ error: "Bina inşa edilemedi." });
+  } finally {
+    client.release();
+  }
 }
