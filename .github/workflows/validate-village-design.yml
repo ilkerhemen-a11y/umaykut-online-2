@@ -1,0 +1,27 @@
+name: Validate village design
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "public/village3d.js"
+      - "public/game.js"
+      - "public/village2d.js"
+      - "public/style.css"
+      - ".github/workflows/validate-village-design.yml"
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check JavaScript syntax
+        run: |
+          node --check public/village3d.js
+          node --check public/game.js
+          node --check public/village2d.js
+          node --check src/buildings.js
+          node --check src/server.js
