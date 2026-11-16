@@ -972,3 +972,26 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
   background:#17251fee;color:#fff0c2;font-size:9px;letter-spacing:.7px;white-space:nowrap;
 }
 #village.has-3d-village .village-buildings-layer>.placed-building.placed-center{display:flex!important}
+
+
+/* 2D village: render the user's original image atlas as flat building sprites. */
+#village #village3dCanvas{display:none!important}
+#village #village2dCanvas{display:block!important;position:absolute;inset:0;width:100%;height:100%;z-index:0}
+#village .village-buildings-layer{display:block!important;position:absolute;inset:0;z-index:7;pointer-events:none}
+#village .village-buildings-layer>.placed-building{pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;border:0;background:transparent;box-shadow:none;transform:translate(-50%,-50%);filter:drop-shadow(0 5px 5px #172312aa);min-width:0}
+#village .village-buildings-layer>.placed-building .building-art,
+#village .village-buildings-layer>.placed-building .keep-art{display:block!important;flex:none;background-repeat:no-repeat;background-size:500% 200%;border:0;object-fit:initial}
+#village .village-buildings-layer>.placed-building.placed-center{left:50%!important;top:47%!important;width:clamp(136px,39vw,178px);height:auto;z-index:12!important}
+#village .village-buildings-layer>.placed-building.placed-center .keep-art{width:100%;height:clamp(170px,48vw,220px)}
+#village .village-buildings-layer>.placed-building:not(.placed-center){width:clamp(66px,16vw,92px);height:auto;z-index:8}
+#village .village-buildings-layer>.placed-building:not(.placed-center) .building-art{width:100%;height:clamp(62px,15vw,88px)}
+#village .village-buildings-layer>.placed-building b{display:block;margin-top:0;padding:3px 7px;border:1px solid #d8b65b;border-radius:8px;background:#17251fee;color:#fff0c2;font-size:8px;letter-spacing:.4px;white-space:nowrap}
+#village .village-buildings-layer>.placed-building small{display:block;font-size:7px;color:#fff0c2;background:#17251fee;border-radius:6px;padding:2px 5px}
+#village .building-slot{z-index:9}
+@media(max-width:699px){
+ #village .village-scene{height:clamp(600px,68dvh,790px)!important;min-height:600px!important}
+ #village .village-buildings-layer>.placed-building.placed-center{width:clamp(128px,39vw,158px)}
+ #village .village-buildings-layer>.placed-building.placed-center .keep-art{height:clamp(160px,47vw,190px)}
+ #village .village-buildings-layer>.placed-building:not(.placed-center){width:clamp(56px,15vw,72px)}
+ #village .village-buildings-layer>.placed-building:not(.placed-center) .building-art{height:clamp(52px,14vw,68px)}
+}
