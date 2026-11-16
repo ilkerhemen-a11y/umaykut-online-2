@@ -933,3 +933,26 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
 #village.has-3d-village .village-buildings-layer>.placed-building:not(.placed-center){background:transparent;border:0;box-shadow:none;filter:none}
 #village.has-3d-village .village-buildings-layer>.placed-building:not(.placed-center) b{background:#17251feF;border:1px solid #b99a58;border-radius:7px;color:#fff0c2;padding:2px 5px;font-size:8px}
 #village.has-3d-village .village-buildings-layer>.placed-building:not(.placed-center) small{display:none}
+
+
+/* Approved concept B: grand Seljuk citadel, dominant palace and unmistakable nine plots */
+#village .village-scene{background:radial-gradient(ellipse at 50% 45%,#b9c77b 0%,#829b50 55%,#425f34 100%)!important}
+#village .village-building-slots{z-index:12!important;pointer-events:none}
+#village .building-slot{
+ width:clamp(54px,13vw,70px)!important;height:clamp(54px,13vw,70px)!important;
+ border:2px solid #ffe39a!important;border-radius:50%!important;
+ background:radial-gradient(circle at 34% 28%,#fff3c9 0%,#c79a3b 22%,#503817 70%,#211b12 100%)!important;
+ color:#fff4c8!important;box-shadow:0 0 0 4px #171b16b8,0 0 18px 5px #f4c85a9c,inset 0 2px 8px #fff7d5a8,0 7px 16px #10180fbb!important;
+ pointer-events:auto!important;backdrop-filter:none!important
+}
+#village .building-slot span{font-size:34px!important;line-height:34px!important;font-weight:900!important;color:#fff7d9!important;text-shadow:0 2px 5px #39260d,0 0 9px #fff0ad!important}
+#village .building-slot small{font-size:8px!important;line-height:10px!important;font-weight:900!important;letter-spacing:1px!important;color:#fff2c6!important;text-shadow:0 1px 3px #21170c}
+#village .building-slot:active{transform:translate(-50%,-50%) scale(.92)!important;box-shadow:0 0 0 6px #ffe5a566,0 0 25px 8px #ffd46cbb!important}
+#village #village3dCanvas{z-index:2!important}
+#village #village2dCanvas{z-index:1!important}
+#village .village-title{background:linear-gradient(145deg,#332718f5,#17130df2);border:1px solid #f1cf77;box-shadow:0 4px 16px #0009}
+@media(max-width:699px){
+ #village .building-slot{width:clamp(48px,12.5vw,60px)!important;height:clamp(48px,12.5vw,60px)!important}
+ #village .building-slot span{font-size:29px!important;line-height:29px!important}
+ #village .building-slot small{font-size:7px!important}
+}
