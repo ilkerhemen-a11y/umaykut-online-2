@@ -101,11 +101,7 @@ function walls(){
   if(Math.sin(a)>0&&Math.abs(Math.cos(a))<.17)continue;
   box(tx-4,ty-14,8,12,2,"#d2c19a","#756447");
  }
- const gx=x,gy=y+ry-4;
- poly([[gx-34,gy+7],[gx,gy-12],[gx+34,gy+7],[gx+34,gy+34],[gx,gy+47],[gx-34,gy+34]],"#9b8966","#51452f",2);
- poly([[gx-34,gy+7],[gx,gy-12],[gx+34,gy+7],[gx,gy+16],[gx,gy-2],[gx-34,gy+16]],"#d2c19a","#66543a",1);
- box(gx-11,gy+10,22,30,9,"#392e20","#e0c98e");box(gx-3,gy+16,6,23,3,"#171711");
- tower(x-rx*.96,y-ry*.1,.95);tower(x+rx*.96,y-ry*.1,.95);
+  tower(x-rx*.96,y-ry*.1,.95);tower(x+rx*.96,y-ry*.1,.95);
  tower(x-rx*.58,y-ry*.82,.82);tower(x+rx*.58,y-ry*.82,.82);
 }
 function details(){
