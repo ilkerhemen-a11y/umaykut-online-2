@@ -81,6 +81,7 @@
         <div id="villageMapCamera" class="village-map-camera">
           <canvas id="village2dCanvas" aria-label="Yuvarlak surlarla çevrili izometrik Selçuklu köyü"></canvas>
           <div id="villageBuildingsLayer" class="village-buildings-layer" aria-label="Yerleştirilmiş köy binaları"></div>
+          <div id="villageBuildingSlots" class="village-building-slots" aria-label="Dokuz boş inşa alanı"></div>
         </div>
       </div>
       <div class="village-map-controls" aria-label="Köy haritası kontrolleri">
@@ -88,6 +89,11 @@
         <button id="villageZoomOut" type="button" aria-label="Köyü uzaklaştır">－</button>
         <button id="villageRecenter" type="button" aria-label="Köyü ortala">◎</button>
       </div>
+    </div>
+    <div id="buildingPlacement" class="building-placement" hidden>
+      <div class="build-selection-header"><h3 id="buildingPlacementTitle">İNŞA ALANI</h3><button id="closeBuildingPlacement" type="button" aria-label="İnşa seçimini kapat">✕</button></div>
+      <div id="buildingCatalog" class="building-catalog"></div>
+      <p id="buildingPlacementMessage" role="status"></p>
     </div>
     <div class="army-strip">
       <button class="army-title" id="openUnits" type="button">⚔️ ORDU BİRLİKLERİ · ASKER KATALOĞUNU AÇ</button>
