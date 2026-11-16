@@ -117,9 +117,9 @@ async function ensureSchema() {
     );
     DO $migration$
     BEGIN
-      IF NOT EXISTS (SELECT 1 FROM app_migrations WHERE name = 'reset-village-to-nine-build-slots-v1') THEN
+      IF NOT EXISTS (SELECT 1 FROM app_migrations WHERE name = 'reset-village-to-nine-build-slots-v2') THEN
         DELETE FROM city_buildings WHERE building_type <> 'center';
-        INSERT INTO app_migrations (name) VALUES ('reset-village-to-nine-build-slots-v1');
+        INSERT INTO app_migrations (name) VALUES ('reset-village-to-nine-build-slots-v2');
       END IF;
     END;
     $migration$;
