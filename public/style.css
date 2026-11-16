@@ -863,3 +863,14 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
  #world .map-coordinate{left:8px;bottom:47px;font-size:9px}
  #world .map-hint{bottom:8px;font-size:9px;max-width:calc(100% - 115px);white-space:normal;text-align:center}
 }
+/* 2026-11-16: expanded village camera with drag and zoom */
+#village .village-scene{height:calc(100% - 34px);min-height:560px}
+#village .village-map-viewport{position:absolute;inset:0;overflow:hidden;touch-action:none;cursor:grab;z-index:1}
+#village .village-map-viewport.dragging{cursor:grabbing}
+#village .village-map-camera{position:absolute;left:50%;top:50%;width:100%;height:100%;transform-origin:center center;will-change:transform}
+#village #village2dCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+#village .village-buildings-layer{position:absolute;inset:0;z-index:5}
+#village .village-map-controls{position:absolute;right:10px;bottom:88px;z-index:10;display:grid;gap:6px}
+#village .village-map-controls button{width:38px;height:38px;border:1px solid #d4ae5a;border-radius:11px;background:linear-gradient(145deg,#263b35ed,#101b18ed);color:#ffe29a;font-size:23px;box-shadow:0 3px 10px #0008}
+@media(max-width:699px){#village .village-scene{min-height:560px}#village .village-map-controls{right:8px;bottom:94px;gap:5px}#village .village-map-controls button{width:34px;height:34px;font-size:21px}}
+@media(min-width:700px){#village .village-scene{min-height:680px}#village .village-map-controls{right:18px;bottom:100px}}
