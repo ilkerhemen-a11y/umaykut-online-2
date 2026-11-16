@@ -79,7 +79,6 @@
       <div class="village-next-level"><span>⌛</span><div><small>BİR SONRAKİ SEVİYE</small><b>15.000 ALTIN</b></div><span>›</span></div>
       <div id="villageMapViewport" class="village-map-viewport" aria-label="Yakınlaştırılabilir ve sürüklenebilir köy haritası">
         <div id="villageMapCamera" class="village-map-camera">
-          <canvas id="village3dCanvas" aria-label="Üç boyutlu Selçuklu köyü"></canvas>
           <canvas id="village2dCanvas" aria-label="Yuvarlak surlarla çevrili izometrik Selçuklu köyü"></canvas>
           <div id="villageBuildingsLayer" class="village-buildings-layer" aria-label="Yerleştirilmiş köy binaları"></div>
           <div id="villageBuildingSlots" class="village-building-slots" aria-label="Dokuz boş inşa alanı"></div>
@@ -127,5 +126,4 @@
 <div class="modal" id="modal"><div class="modal-card"><button class="close" id="closeModal">✕</button><h2 id="modalTitle">Merkez Binası</h2><p id="modalText">Köyünün kalbi.</p><label id="modalWorkerField" class="modal-worker-field" hidden>Gönderilecek işçi sayısı<input id="workerAmount" type="number" min="0" step="1" inputmode="numeric"></label><div id="buildingUpgradeActions" class="building-upgrade-actions" hidden><div id="constructionWorkersDisplay" class="construction-workers-display" aria-live="polite"></div><div id="buildingUpgradeCost" class="building-upgrade-cost"></div><div id="buildingUpgradeTimer" class="building-upgrade-timer"></div><button class="gold-button" id="startBuildingUpgrade" type="button">Seviyeyi yükselt</button><button class="speedup-button" id="speedUpBuilding" type="button" disabled>⏩ 5 dk hızlandırma · Pazar yakında</button></div><button class="gold-button" id="modalAction">Kapat</button></div></div>
 <script src="/game.js"></script>
 <script src="/village2d.js" defer></script>
-<script type="module" src="/village3d.js"></script>
 </body></html>

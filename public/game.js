@@ -238,11 +238,10 @@ let selectedUpgradeBuilding=null, buildingSpeedupsAvailable=0, buildingTimerInte
 const buildingCatalog={center:{name:"Merkez Binası",purpose:"Köyünün kalbi. Tüm şehir gelişimini yönetir."},school:{name:"Medrese",purpose:"Selçuklu çinileriyle süslü ilim merkezi."},barracks:{name:"Kışla",purpose:"Askerî birliklerin konuşlandığı ve eğitildiği merkez."},market:{name:"Pazar",purpose:"Ticaret ve kaynak alışverişi."},stonemason:{name:"Maden Ocağı",purpose:"Taş ve maden kaynaklarının çıkarıldığı ocak."},stable:{name:"At Ahırı",purpose:"At yetiştiriciliği ve süvari birlikleri."},blacksmith:{name:"Demirci",purpose:"Silah, zırh ve metal eşya üretimi."},mill:{name:"Yel Değirmeni",purpose:"Tahılın öğütülmesi ve un üretimi."},farm:{name:"Çiftlik",purpose:"Tahıl ve yiyecek üretimi."}};
 const buildingArt={school:"seljuk-hall",barracks:"barracks",market:"market",stonemason:"mine",stable:"stable",blacksmith:"blacksmith",mill:"mill",farm:"farm"};
 const buildSlotPositions=[[28,32],[50,25],[72,32],[81,48],[72,68],[50,77],[28,68],[19,48],[50,88]];
+const userBuildingCells={school:1,barracks:2,market:3,stonemason:4,stable:6,blacksmith:7,mill:8,farm:9};
+function getUserBuildingPreview(type){const index=type==="center"?0:userBuildingCells[type];return index===undefined?null:{src:"/assets/user-buildings-atlas.png",col:index%5,row:Math.floor(index/5)};}
 const buildIcons={school:"",barracks:"",market:"",stonemason:"",stable:"",blacksmith:"",mill:"",farm:""};
-function currentProjectedSlots(){
- const positions=window.umaykut3d?.getSlotPositions?.();
- return Array.isArray(positions)&&positions.length===9?positions:buildSlotPositions.map(([x,y])=>({x,y}));
-}
+function currentProjectedSlots(){return buildSlotPositions.map(([x,y])=>({x,y}));}
 function repositionVillageOverlays(){
  const positions=currentProjectedSlots();
  document.querySelectorAll("#villageBuildingSlots .building-slot,#villageBuildingsLayer .placed-building[data-slot]").forEach(element=>{
@@ -273,9 +272,9 @@ function openBuildSelection(slot){
  if(!panel||!catalog)return;
  catalog.replaceChildren();message.textContent=""+slot+". alan için bir bina seç. İnşa maliyeti: 30 odun · 20 taş · 5 demir.";
  const heading=$("#buildingPlacementTitle");if(heading)heading.textContent=slot+". İNŞA ALANI";
- Object.entries(buildingCatalog).filter(([type])=>type!=="center"&&window.umaykut3d?.getBuildingPreview?.(type)).forEach(([type,building])=>{
+ Object.entries(buildingCatalog).filter(([type])=>type!=="center"&&getUserBuildingPreview(type)).forEach(([type,building])=>{
   const option=document.createElement("button");option.type="button";option.className="build-option";
-  const icon=document.createElement("span");icon.className="build-option-icon";const preview=window.umaykut3d?.getBuildingPreview?.(type);if(preview){icon.style.backgroundImage="url("+preview.src+")";icon.style.backgroundSize="500% 200%";icon.style.backgroundPosition=(preview.col*25)+"% "+(preview.row*100)+"%";}else{icon.textContent=buildIcons[type]||"";}
+  const icon=document.createElement("span");icon.className="build-option-icon";const preview=getUserBuildingPreview(type);if(preview){icon.style.backgroundImage="url("+preview.src+")";icon.style.backgroundSize="500% 200%";icon.style.backgroundPosition=(preview.col*25)+"% "+(preview.row*100)+"%";}else{icon.textContent=buildIcons[type]||"";}
   const info=document.createElement("span");info.className="build-option-info";
   const name=document.createElement("b");name.textContent=building.name;
   const purpose=document.createElement("small");purpose.textContent=building.purpose;
@@ -346,14 +345,10 @@ async function refreshBuildingsAndCity(){
   const projected=slotNumber>=1&&slotNumber<=9?currentProjectedSlots()[slotNumber-1]:null;
   m.dataset.slot=slotNumber>=1&&slotNumber<=9?String(slotNumber):"";
   m.style.left=(projected?.x??Number(v.x))+"%";m.style.top=(projected?.y??Number(v.y))+"%";
-  const i=document.createElement(v.type==="center"?"div":"img");
-  if(v.type==="center"){
-   i.setAttribute("role","img");i.setAttribute("aria-label",v.name);
-   i.style.backgroundImage='url("/assets/user-buildings-atlas.png")';
-   i.style.backgroundSize="500% 200%";i.style.backgroundPosition="0% 0%";i.style.backgroundRepeat="no-repeat";
-  }else{
-   i.src="/assets/buildings/"+(buildingArt[v.type]||"shelter")+".svg";i.alt=v.name;
-  }
+  const i=document.createElement("div");
+  const preview=getUserBuildingPreview(v.type);
+  i.setAttribute("role","img");i.setAttribute("aria-label",v.name);
+  if(preview){i.style.backgroundImage='url("'+preview.src+'")';i.style.backgroundSize="500% 200%";i.style.backgroundPosition=(preview.col*25)+"% "+(preview.row*100)+"%";i.style.backgroundRepeat="no-repeat";}
   i.className=v.type==="center"?"keep-art":"building-art";
   const n=document.createElement("b");n.textContent=v.name;
   const l=document.createElement("small");l.textContent="Sv. "+v.level+(v.upgradeFinishesAt?" · ⏳":"");
@@ -361,7 +356,6 @@ async function refreshBuildingsAndCity(){
   m.addEventListener("click",e=>{e.stopPropagation();openBuildingUpgrade(v);});
   layer.append(m);
  });
- if(window.umaykut3d?.setBuildings)window.umaykut3d.setBuildings(data.buildings||[]);
  repositionVillageOverlays();
  if(selectedUpgradeBuilding){
   const latest=data.buildings.find(v=>v.type===selectedUpgradeBuilding.type);
@@ -387,11 +381,6 @@ $("#speedUpBuilding").addEventListener("click",async()=>{
  }catch(e){$("#modalText").textContent=e.message;button.disabled=false;}
 });
 window.addEventListener("umaykut2dready",()=>loadVillageBuildings());
-window.addEventListener("umaykut3dready",()=>{
- $("#village")?.classList.add("has-3d-village");
- loadVillageBuildings();
-});
-window.addEventListener("umaykut3dcamera",repositionVillageOverlays);
 function openWorkerAssignment(node){
   const field=$("#modalWorkerField"),input=$("#workerAmount");
   $("#modalTitle").textContent=node.icon+" "+node.name+" kaynağı";
