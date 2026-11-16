@@ -239,7 +239,6 @@ const buildingCatalog={center:{name:"Merkez Binası",purpose:"Köyünün kalbi. 
 const buildingArt={shelter:"shelter",temple:"temple",school:"school",barracks:"barracks",archery:"archery",stable:"stable",workshop:"workshop",stonemason:"stonemason",lumberjack:"lumberjack",blacksmith:"blacksmith",mill:"mill",farm:"farm",market:"market"};
 const buildSlotPositions=[[28,32],[50,25],[72,32],[81,48],[72,68],[50,77],[28,68],[19,48],[50,88]];
 const buildIcons={shelter:"🏕️",temple:"🛕",school:"📚",barracks:"🛡️",archery:"🏹",stable:"🐎",workshop:"⚒️",stonemason:"🪨",lumberjack:"🪵",blacksmith:"🔨",mill:"🌾",farm:"🌱",market:"🏪"};
-const initialBuildingCost={wood:30,stone:20,iron:5};
 function renderBuildSlots(buildings){
  const layer=$("#villageBuildingSlots");if(!layer)return;
  layer.replaceChildren();
