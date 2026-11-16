@@ -77,9 +77,17 @@
       <div class="village-title">İLK YURDUM <small>BOZKIRIN KALBİ</small></div>
       <div class="village-player-card"><span class="player-crest">♛</span><div><b id="villagePlayerName">İlker Bey</b><small>Seviye 12 · İlk Yurdum</small></div><span class="player-star">★</span></div>
       <div class="village-next-level"><span>⌛</span><div><small>BİR SONRAKİ SEVİYE</small><b>15.000 ALTIN</b></div><span>›</span></div>
-      <canvas id="village2dCanvas" aria-label="Yuvarlak surlarla çevrili izometrik Selçuklu köyü"></canvas>
-      
-      <div id="villageBuildingsLayer" class="village-buildings-layer" aria-label="Yerleştirilmiş köy binaları"></div>
+      <div id="villageMapViewport" class="village-map-viewport" aria-label="Yakınlaştırılabilir ve sürüklenebilir köy haritası">
+        <div id="villageMapCamera" class="village-map-camera">
+          <canvas id="village2dCanvas" aria-label="Yuvarlak surlarla çevrili izometrik Selçuklu köyü"></canvas>
+          <div id="villageBuildingsLayer" class="village-buildings-layer" aria-label="Yerleştirilmiş köy binaları"></div>
+        </div>
+      </div>
+      <div class="village-map-controls" aria-label="Köy haritası kontrolleri">
+        <button id="villageZoomIn" type="button" aria-label="Köyü yakınlaştır">＋</button>
+        <button id="villageZoomOut" type="button" aria-label="Köyü uzaklaştır">－</button>
+        <button id="villageRecenter" type="button" aria-label="Köyü ortala">◎</button>
+      </div>
     </div>
     <div class="army-strip">
       <button class="army-title" id="openUnits" type="button">⚔️ ORDU BİRLİKLERİ · ASKER KATALOĞUNU AÇ</button>
