@@ -235,10 +235,10 @@ $("#backVillageFromUnits").addEventListener("click",()=>show("village"));
 
 let villageEconomy=null, marketItems=[], constructionWorkers={active:0,max:3,available:3};
 let selectedUpgradeBuilding=null, buildingSpeedupsAvailable=0, buildingTimerInterval=null;
-const buildingCatalog={center:{name:"Merkez Binası",purpose:"Köyünün kalbi. Tüm şehir gelişimini yönetir."},shelter:{name:"Sığınak",purpose:"Düşman yağmalarına karşı kaynaklarının bir bölümünü korur."},temple:{name:"Tapınak",purpose:"Şehrinin işçi kapasitesini artırır."},school:{name:"Okul",purpose:"Üretime katkı sağlar, klan kapasitesini ve hâkimiyet alanını artırır."},barracks:{name:"Kışla",purpose:"Piyade birliklerinin kilidini açar ve eğitimini sağlar."},archery:{name:"Okçu Ocağı",purpose:"Okçu birliklerinin kilidini açar ve eğitimini sağlar."},stable:{name:"Ahır",purpose:"Süvari birliklerinin kilidini açar ve eğitimini sağlar."},workshop:{name:"Atölye",purpose:"Kuşatma makinelerinin kilidini açar ve üretimini sağlar."},stonemason:{name:"Taşçı",purpose:"Haritadaki taş madenlerinden elde edilen verimi artırır."},lumberjack:{name:"Keresteci",purpose:"Haritadaki odun kaynaklarından elde edilen verimi artırır."},blacksmith:{name:"Demirci",purpose:"Haritadaki demir madenlerinden elde edilen verimi artırır."},mill:{name:"Değirmen",purpose:"Tahıl üretimini destekler."},farm:{name:"Tarla",purpose:"Tahıl üretimini sağlar."},market:{name:"Pazar",purpose:"Altın üretimi ve kaynak takası sağlar."}};
-const buildingArt={shelter:"shelter",temple:"temple",school:"school",barracks:"barracks",archery:"archery",stable:"stable",workshop:"workshop",stonemason:"stonemason",lumberjack:"lumberjack",blacksmith:"blacksmith",mill:"mill",farm:"farm",market:"market"};
+const buildingCatalog={center:{name:"Merkez Binası",purpose:"Köyünün kalbi. Tüm şehir gelişimini yönetir."},school:{name:"Medrese",purpose:"Selçuklu çinileriyle süslü ilim merkezi."},barracks:{name:"Kışla",purpose:"Askerî birliklerin konuşlandığı ve eğitildiği merkez."},market:{name:"Pazar",purpose:"Ticaret ve kaynak alışverişi."},stonemason:{name:"Maden Ocağı",purpose:"Taş ve maden kaynaklarının çıkarıldığı ocak."},stable:{name:"At Ahırı",purpose:"At yetiştiriciliği ve süvari birlikleri."},blacksmith:{name:"Demirci",purpose:"Silah, zırh ve metal eşya üretimi."},mill:{name:"Yel Değirmeni",purpose:"Tahılın öğütülmesi ve un üretimi."},farm:{name:"Çiftlik",purpose:"Tahıl ve yiyecek üretimi."}};
+const buildingArt={school:"seljuk-hall",barracks:"barracks",market:"market",stonemason:"mine",stable:"stable",blacksmith:"blacksmith",mill:"mill",farm:"farm"};
 const buildSlotPositions=[[28,32],[50,25],[72,32],[81,48],[72,68],[50,77],[28,68],[19,48],[50,88]];
-const buildIcons={shelter:"🏕️",temple:"🛕",school:"📚",barracks:"🛡️",archery:"🏹",stable:"🐎",workshop:"⚒️",stonemason:"🪨",lumberjack:"🪵",blacksmith:"🔨",mill:"🌾",farm:"🌱",market:"🏪"};
+const buildIcons={school:"",barracks:"",market:"",stonemason:"",stable:"",blacksmith:"",mill:"",farm:""};
 function currentProjectedSlots(){
  const positions=window.umaykut3d?.getSlotPositions?.();
  return Array.isArray(positions)&&positions.length===9?positions:buildSlotPositions.map(([x,y])=>({x,y}));
@@ -273,9 +273,9 @@ function openBuildSelection(slot){
  if(!panel||!catalog)return;
  catalog.replaceChildren();message.textContent=""+slot+". alan için bir bina seç. İnşa maliyeti: 30 odun · 20 taş · 5 demir.";
  const heading=$("#buildingPlacementTitle");if(heading)heading.textContent=slot+". İNŞA ALANI";
- Object.entries(buildingCatalog).filter(([type])=>type!=="center").forEach(([type,building])=>{
+ Object.entries(buildingCatalog).filter(([type])=>type!=="center"&&window.umaykut3d?.getBuildingPreview?.(type)).forEach(([type,building])=>{
   const option=document.createElement("button");option.type="button";option.className="build-option";
-  const icon=document.createElement("span");icon.className="build-option-icon";icon.textContent=buildIcons[type]||"🏘️";
+  const icon=document.createElement("span");icon.className="build-option-icon";const preview=window.umaykut3d?.getBuildingPreview?.(type);if(preview){icon.style.backgroundImage="url("+preview.src+")";icon.style.backgroundSize="500% 200%";icon.style.backgroundPosition=(preview.col*25)+"% "+(preview.row*100)+"%";}else{icon.textContent=buildIcons[type]||"";}
   const info=document.createElement("span");info.className="build-option-info";
   const name=document.createElement("b");name.textContent=building.name;
   const purpose=document.createElement("small");purpose.textContent=building.purpose;

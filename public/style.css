@@ -933,3 +933,22 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
 #village.has-3d-village .village-buildings-layer>.placed-building:not(.placed-center){background:transparent;border:0;box-shadow:none;filter:none}
 #village.has-3d-village .village-buildings-layer>.placed-building:not(.placed-center) b{background:#17251feF;border:1px solid #b99a58;border-radius:7px;color:#fff0c2;padding:2px 5px;font-size:8px}
 #village.has-3d-village .village-buildings-layer>.placed-building:not(.placed-center) small{display:none}
+
+/* Yalnızca oyuncunun yüklediği bina görselleri: atlas önizlemeleri ve 3D görüntü etiketleri. */
+#village .building-catalog{grid-template-columns:repeat(2,minmax(0,1fr))}
+#village .build-option{align-items:center;min-height:76px}
+#village .build-option-icon{flex:0 0 58px;width:58px;height:58px;border-radius:8px;background-color:transparent;background-repeat:no-repeat;background-size:500% 200%;border:1px solid #9a7c42}
+#village .village-buildings-layer{display:block!important;position:absolute;inset:0;z-index:7;pointer-events:none}
+#village .village-buildings-layer .placed-building{pointer-events:auto;background:rgba(20,18,13,.76);border:1px solid #c99b43;border-radius:8px;padding:3px 6px;box-shadow:0 3px 8px #0008}
+#village .village-buildings-layer .placed-building .building-art,
+#village .village-buildings-layer .placed-building .keep-art{display:none!important}
+#village .village-buildings-layer .placed-building b{font-size:8px;color:#fff0c2;white-space:nowrap}
+#village .village-buildings-layer .placed-building small{display:none}
+@media(max-width:420px){#village .building-catalog{grid-template-columns:repeat(2,minmax(0,1fr))}#village .build-option-icon{flex-basis:48px;width:48px;height:48px}}
+
+/* Kullanıcının onayladığı dokuz inşa alanı ve gönderdiği bina görselleri */
+#village .building-slot{width:clamp(48px,12.5vw,60px);height:clamp(48px,12.5vw,60px);border-width:2px;box-shadow:0 0 0 4px #14251a99,0 0 16px 4px #f4c85a66,0 6px 16px #10180ebb,inset 0 2px 7px #fff7d566}
+#village .building-slot span{font-size:30px;line-height:30px}
+#village .building-slot small{font-size:7px;letter-spacing:.9px}
+#village .build-option-icon{background-position:center;background-repeat:no-repeat;background-size:500% 200%;flex:0 0 58px;width:58px;height:58px}
+@media(max-width:699px){#village .building-slot{width:clamp(48px,12.5vw,60px);height:clamp(48px,12.5vw,60px)}}
