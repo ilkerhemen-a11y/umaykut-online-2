@@ -440,9 +440,11 @@ if(canvas){
    while(playerBuildings.children.length)playerBuildings.remove(playerBuildings.children[0]);
    const slots=projectedBuildSlots();
    (buildings||[]).filter(b=>b.type!=="center").slice(0,9).forEach((b,i)=>{
+    const explicitSlot=Number(b.slotIndex);
     const px=Number(b.x),py=Number(b.y);
     const nearest=slots.map((p,index)=>({index,d:Math.hypot(p.x-px,p.y-py)})).sort((a,b)=>a.d-b.d)[0];
-    playerBuildings.add(makePlayerBuilding(b,nearest&&nearest.d<8?nearest.index:i));
+    const slotIndex=Number.isInteger(explicitSlot)&&explicitSlot>=1&&explicitSlot<=9?explicitSlot-1:(nearest&&nearest.d<8?nearest.index:i);
+    playerBuildings.add(makePlayerBuilding(b,slotIndex));
    });
   }
  };
