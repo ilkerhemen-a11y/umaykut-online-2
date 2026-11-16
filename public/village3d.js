@@ -29,16 +29,17 @@ if(canvas){
  const stoneTexture=makeSurfaceTexture("stone"),roofTexture=makeSurfaceTexture("roof"),woodTexture=makeSurfaceTexture("wood"),grassTexture=makeSurfaceTexture("grass");
  const grass=mat(0x78994d),grass2=mat(0x88a957),stone=mat(0xb9a17a),stoneLight=mat(0xd8c49a),stoneDark=mat(0x766348),gold=mat(0xd5a53d,.36,.58),goldLight=mat(0xf1d477,.3,.48),tile=mat(0x287d83,.42,.12),dark=mat(0x173b3e),wood=mat(0x654326),leaf=mat(0x426d35),leaf2=mat(0x628b3e);
  grass.map=grassTexture;stone.map=stoneTexture;stoneLight.map=stoneTexture;stoneDark.map=stoneTexture;wood.map=woodTexture;tile.map=roofTexture;[grass,stone,stoneLight,stoneDark,wood,tile].forEach(m=>m.needsUpdate=true);
- function mesh(geo,material,x,y,z,sx=1,sy=1,sz=1){const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
+ let activeGroup=scene;
+ function mesh(geo,material,x,y,z,sx=1,sy=1,sz=1){const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;activeGroup.add(m);return m;}
  function box(x,y,z,sx,sy,sz,material){return mesh(new THREE.BoxGeometry(sx,sy,sz),material,x,y,z);}
  // rolling earth platform and grass detailing
  mesh(new THREE.CylinderGeometry(13.5,14,1,80),grass,0,-.55,0,1,1,.86);
  mesh(new THREE.CylinderGeometry(12.7,13,0.08,80),grass2,0,-.02,0,1,1,.86);
  for(let i=0;i<100;i++){const a=i*2.399,r=2.5+(i%17)*.57;mesh(new THREE.SphereGeometry(.035,5,4),i%3?grass:leaf,Math.cos(a)*r,.035,Math.sin(a)*r,.7,1,.7);}
  // stone circular fortification wall, crenellations and gate
- mesh(new THREE.CylinderGeometry(9.8,10.2,1.45,72,1,true),stone,0,.78,0,1,1,.82);
- mesh(new THREE.CylinderGeometry(10.05,10.35,.18,72,1,true),stoneLight,0,1.52,0,1,1,.82);
- for(let i=0;i<48;i++){const a=i*Math.PI*2/48,x=Math.sin(a)*9.95,z=Math.cos(a)*8.15;box(x,1.83,z,.48,.55,.48,stoneLight);}
+ mesh(new THREE.CylinderGeometry(9.8,10.2,1.9,72,1,true),stone,0,.98,0,1,1,.82);
+ mesh(new THREE.CylinderGeometry(10.05,10.35,.22,72,1,true),stoneLight,0,1.98,0,1,1,.82);
+ for(let i=0;i<48;i++){const a=i*Math.PI*2/48,x=Math.sin(a)*9.95,z=Math.cos(a)*8.15;box(x,2.27,z,.48,.58,.48,stoneLight);}
  for(let i=0;i<8;i++){const a=i*Math.PI/4,x=Math.sin(a)*9.95,z=Math.cos(a)*8.15;
   mesh(new THREE.CylinderGeometry(.72,.86,2.65,12),stoneLight,x,1.22,z);
   mesh(new THREE.CylinderGeometry(.86,.8,.22,12),gold,x,2.62,z);
@@ -49,6 +50,7 @@ if(canvas){
  box(0,.85,8.58,1.55,1.95,.18,dark);
  mesh(new THREE.TorusGeometry(.8,.12,10,32,Math.PI),gold,0,1.85,8.48);
  box(-1.45,2.62,9,.5,.65,.6,stone);box(1.45,2.62,9,.5,.65,.6,stone);
+ const palaceGroup=new THREE.Group();scene.add(palaceGroup);activeGroup=palaceGroup;
  // central palace stepped foundations
  box(0,.25,0,7.2,.5,6.4,stoneDark);box(0,.55,0,6.8,.18,6.0,stoneLight);
  box(0,1.55,0,5.7,2.0,4.9,stone);
@@ -90,6 +92,7 @@ if(canvas){
   const crescent=mesh(new THREE.TorusGeometry(.22,.055,8,24),goldLight,x,5.68,z);crescent.scale.set(.8,1.2,.5);
  }
  minaret(-4.1,-1.5);minaret(4.1,-1.5);
+ activeGroup=scene;
  // small Seljuk kiosks, trees and courtyard paths
  for(const [x,z] of [[-6,-5],[6,-5],[-6,4],[6,4],[-3,-7],[3,-7]]){
   mesh(new THREE.CylinderGeometry(.12,.18,1.1,7),wood,x,.55,z);
@@ -101,6 +104,7 @@ if(canvas){
  // Seljuk architectural detailing: carved facade, stone courses and nine true 3D build pads.
  const carvedStone=mat(0xe4d2a8), turquoise=mat(0x1b7778,.48,.16), shadowStone=mat(0x4b4030);
  // Layered masonry courses on the central palace.
+ activeGroup=palaceGroup;
  for(let y=.82;y<2.25;y+=.34){
   for(let side of [-1,1]){
    for(let x=-2.55;x<=2.55;x+=.72){
@@ -127,19 +131,21 @@ if(canvas){
    box(x,1.1,z,.68,.1,.2,gold);
   }
  }
+ palaceGroup.scale.setScalar(1.22);
+ activeGroup=scene;
  // Nine circular, stone-rimmed construction foundations around the keep.
  const buildPadPositions=[[-4.8,-6.0],[0,-7.3],[4.8,-6.0],[7.1,-2.0],[7.1,3.0],[2.8,6.6],[-2.8,6.6],[-7.1,3.0],[-7.1,-2.0]];
- const padBase=mat(0x9b8969), padInner=mat(0x6d7950), padGlow=mat(0xd8b45d,.42,.35);
+ const padBase=mat(0xa99772), padInner=mat(0x78845b), padGlow=new THREE.MeshStandardMaterial({color:0xe3bd62,emissive:0x80530d,emissiveIntensity:.48,roughness:.34,metalness:.32});
  buildPadPositions.forEach(([x,z],i)=>{
-  const base=mesh(new THREE.CylinderGeometry(1.22,1.28,.22,40),padBase,x,.12,z);
-  const inset=mesh(new THREE.CylinderGeometry(1.04,1.04,.035,40),padInner,x,.245,z);
-  const rim=mesh(new THREE.TorusGeometry(1.12,.095,10,48),padGlow,x,.28,z);
+  const base=mesh(new THREE.CylinderGeometry(1.42,1.48,.24,48),padBase,x,.12,z);
+  const inset=mesh(new THREE.CylinderGeometry(1.22,1.22,.04,48),padInner,x,.265,z);
+  const rim=mesh(new THREE.TorusGeometry(1.32,.12,12,56),padGlow,x,.31,z);
   rim.rotation.x=Math.PI/2;
   for(let j=0;j<8;j++){
    const a=j*Math.PI/4;
-   mesh(new THREE.BoxGeometry(.16,.08,.12),carvedStone,x+Math.cos(a)*1.13,.31,z+Math.sin(a)*1.13);
+   mesh(new THREE.BoxGeometry(.16,.08,.12),carvedStone,x+Math.cos(a)*1.34,.34,z+Math.sin(a)*1.34);
   }
-  const marker=mesh(new THREE.CylinderGeometry(.13,.13,.025,16),goldLight,x,.29,z);
+  const marker=mesh(new THREE.CylinderGeometry(.17,.17,.03,20),goldLight,x,.34,z);
   marker.userData.buildSlot=i+1;
  });
  // Stone paths link the keep to the gate and outer construction ring.
@@ -465,8 +471,8 @@ if(canvas){
  function resize(){
   const w=canvas.clientWidth||innerWidth,h=canvas.clientHeight||500,aspect=w/h;
   renderer.setSize(w,h,false);camera.aspect=aspect;
-  if(aspect<.78){camera.fov=49;cameraRadius=34;orbitTheta=.38;orbitPhi=.94;}
-  else{camera.fov=36;cameraRadius=31;orbitTheta=.48;orbitPhi=.92;}
+  if(aspect<.78){camera.fov=48;cameraRadius=32;orbitTheta=.38;orbitPhi=.94;}
+  else{camera.fov=35;cameraRadius=29;orbitTheta=.48;orbitPhi=.92;}
   applyCamera();
  }
  new ResizeObserver(resize).observe(canvas);resize();
