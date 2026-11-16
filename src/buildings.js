@@ -18,7 +18,7 @@ const BUILDINGS = Object.freeze({
   farm: { name: "Tarla", icon: "🌱", purpose: "Tahıl üretimini sağlar." },
   market: { name: "Pazar", icon: "🏪", purpose: "Altın üretimi ve kaynak takası sağlar." },
 });
-const STARTING_BUILDINGS = Object.freeze([["center",50,50],["market",50,28],["shelter",62,30],["temple",72,37],["school",77,48],["barracks",75,59],["archery",65,68],["stable",54,72],["workshop",42,72],["stonemason",31,67],["lumberjack",24,57],["blacksmith",23,45],["mill",31,35],["farm",42,29]]);
+const STARTING_BUILDINGS = Object.freeze([["center",50,53],["market",18,47],["shelter",82,47],["temple",50,24],["school",78,62],["barracks",68,75],["archery",50,80],["stable",32,75],["workshop",22,62],["stonemason",20,35],["lumberjack",36,29],["blacksmith",64,29],["mill",80,35],["farm",50,38]]);
 async function ensureBuildingSchema(client = pool) {
   await client.query("CREATE TABLE IF NOT EXISTS city_buildings (id BIGSERIAL PRIMARY KEY, city_player_id BIGINT NOT NULL REFERENCES player_cities(player_id) ON DELETE CASCADE, building_type VARCHAR(24) NOT NULL, x NUMERIC(5,2) NOT NULL CHECK (x BETWEEN 3 AND 97), y NUMERIC(5,2) NOT NULL CHECK (y BETWEEN 3 AND 97), level INTEGER NOT NULL DEFAULT 1 CHECK (level BETWEEN 1 AND 10), upgrade_finishes_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE (city_player_id, building_type))");
   await client.query("ALTER TABLE city_buildings ADD COLUMN IF NOT EXISTS upgrade_finishes_at TIMESTAMPTZ");
