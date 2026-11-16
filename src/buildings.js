@@ -17,9 +17,8 @@ const BUILDINGS = Object.freeze({
   mill: { name: "Değirmen", icon: "🌾", purpose: "Tahıl üretimini destekler." },
   farm: { name: "Tarla", icon: "🌱", purpose: "Tahıl üretimini sağlar." },
   market: { name: "Pazar", icon: "🏪", purpose: "Altın üretimi ve kaynak takası sağlar." },
-  wall: { name: "Sur", icon: "🧱", purpose: "Şehrinin savunmasını güçlendirir." }
 });
-const STARTING_BUILDINGS = Object.freeze([["center",50,47],["shelter",50,22],["temple",63,24],["school",75,32],["barracks",81,45],["archery",79,59],["stable",70,71],["workshop",58,78],["stonemason",42,78],["lumberjack",30,71],["blacksmith",21,59],["mill",19,45],["farm",25,32],["market",37,24],["wall",50,87]]);
+const STARTING_BUILDINGS = Object.freeze([["center",50,50],["market",50,28],["shelter",62,30],["temple",72,37],["school",77,48],["barracks",75,59],["archery",65,68],["stable",54,72],["workshop",42,72],["stonemason",31,67],["lumberjack",24,57],["blacksmith",23,45],["mill",31,35],["farm",42,29]]);
 async function ensureBuildingSchema(client = pool) {
   await client.query("CREATE TABLE IF NOT EXISTS city_buildings (id BIGSERIAL PRIMARY KEY, city_player_id BIGINT NOT NULL REFERENCES player_cities(player_id) ON DELETE CASCADE, building_type VARCHAR(24) NOT NULL, x NUMERIC(5,2) NOT NULL CHECK (x BETWEEN 3 AND 97), y NUMERIC(5,2) NOT NULL CHECK (y BETWEEN 3 AND 97), level INTEGER NOT NULL DEFAULT 1 CHECK (level BETWEEN 1 AND 10), upgrade_finishes_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE (city_player_id, building_type))");
   await client.query("ALTER TABLE city_buildings ADD COLUMN IF NOT EXISTS upgrade_finishes_at TIMESTAMPTZ");
@@ -29,8 +28,9 @@ async function ensureBuildingSchema(client = pool) {
   await client.query("INSERT INTO player_items (player_id, item_code, quantity) SELECT id, 'building_speedup_5m', 0 FROM players ON CONFLICT (player_id, item_code) DO NOTHING");
 }
 async function ensureStartingBuildings(client, playerId) {
+  await client.query("DELETE FROM city_buildings WHERE city_player_id = $1 AND building_type = 'wall'", [playerId]);
   for (const [type, x, y] of STARTING_BUILDINGS) {
-    await client.query("INSERT INTO city_buildings (city_player_id, building_type, x, y, level) VALUES ($1, $2, $3, $4, 1) ON CONFLICT (city_player_id, building_type) DO NOTHING", [playerId, type, x, y]);
+    await client.query("INSERT INTO city_buildings (city_player_id, building_type, x, y, level) VALUES ($1, $2, $3, $4, 1) ON CONFLICT (city_player_id, building_type) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y", [playerId, type, x, y]);
   }
 }
 function quoteUpgrade(level) {
