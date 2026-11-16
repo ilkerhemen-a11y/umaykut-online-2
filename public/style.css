@@ -923,3 +923,13 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
  #village .placed-building:not(.placed-center) .building-art{height:clamp(40px,10vw,58px)}
  #village .placed-building:not(.placed-center) b{font-size:7px}
 }
+
+/* Three.js Seljuk village scene: keep the 2D drawing as a safe fallback. */
+#village #village3dCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;touch-action:none}
+#village #village2dCanvas{z-index:0}
+#village.has-3d-village #village2dCanvas{display:none}
+#village.has-3d-village .village-buildings-layer>.placed-building.placed-center .keep-art{display:none}
+#village.has-3d-village .village-buildings-layer>.placed-building:not(.placed-center) .building-art{opacity:0}
+#village.has-3d-village .village-buildings-layer>.placed-building:not(.placed-center){background:transparent;border:0;box-shadow:none;filter:none}
+#village.has-3d-village .village-buildings-layer>.placed-building:not(.placed-center) b{background:#17251feF;border:1px solid #b99a58;border-radius:7px;color:#fff0c2;padding:2px 5px;font-size:8px}
+#village.has-3d-village .village-buildings-layer>.placed-building:not(.placed-center) small{display:none}
