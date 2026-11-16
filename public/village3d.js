@@ -117,7 +117,7 @@ if(canvas){
     }
     if(!atlasTexture)return;
     const center=latestBuildings.find(b=>b.type==="center");
-    imageSprite(0,"center",0,0,displayHeight.center,buildingsGroup);
+    // Merkez bina, kullanıcının orijinal atlas hücresinden HTML katmanında gösterilir.
     // The user's own long Seljuk wall image forms the rear entrance wall.
     imageSprite(5,"wall",0,-10.2,4.25,buildingsGroup);
     latestBuildings.filter(b=>b.type!=="center").slice(0,9).forEach((building,index)=>{
