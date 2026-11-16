@@ -995,3 +995,83 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
  #village .village-buildings-layer>.placed-building:not(.placed-center){width:clamp(56px,15vw,72px)}
  #village .village-buildings-layer>.placed-building:not(.placed-center) .building-art{height:clamp(52px,14vw,68px)}
 }
+
+
+/* Visual polish pass: 2D-only village, original user sprites remain the sole building art. */
+#village .village-scene{
+  isolation:isolate;
+  background:linear-gradient(180deg,#8ea85a 0%,#b3b86d 42%,#718e49 100%)!important;
+  box-shadow:inset 0 0 55px #20361b55;
+}
+#village .village-scene:before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse at 50% 48%,#e8d49a22 0%,transparent 48%),
+    repeating-linear-gradient(28deg,transparent 0 38px,#f5e7b00b 39px 40px),
+    radial-gradient(#263d1e20 1px,transparent 1.8px);
+  background-size:auto,auto,17px 17px;
+}
+#village .village-map-viewport{z-index:1}
+#village .village-map-camera{transform-origin:center center;will-change:transform}
+#village #village2dCanvas{filter:saturate(1.08) contrast(1.04)}
+#village .village-buildings-layer>.placed-building{
+  min-width:0!important;min-height:0!important;max-width:none!important;
+  border:0!important;border-radius:0!important;background:transparent!important;
+  padding:0!important;box-shadow:none!important;text-shadow:0 2px 3px #10180f!important;
+  filter:drop-shadow(0 7px 6px #18251699)!important;
+}
+#village .village-buildings-layer>.placed-building .building-art,
+#village .village-buildings-layer>.placed-building .keep-art{
+  display:block!important;background-repeat:no-repeat!important;
+  background-size:500% 200%!important;background-color:transparent!important;
+  border:0!important;border-radius:0!important;object-fit:contain!important;
+}
+#village .village-buildings-layer>.placed-building.placed-center{
+  left:50%!important;top:47%!important;width:clamp(142px,42vw,184px)!important;
+  z-index:12!important;gap:0!important;
+}
+#village .village-buildings-layer>.placed-building.placed-center .keep-art{
+  width:100%!important;height:clamp(176px,51vw,218px)!important;
+}
+#village .village-buildings-layer>.placed-building:not(.placed-center){
+  width:clamp(66px,18vw,94px)!important;z-index:8!important;gap:1px!important;
+}
+#village .village-buildings-layer>.placed-building:not(.placed-center) .building-art{
+  width:100%!important;height:clamp(66px,18vw,94px)!important;
+}
+#village .village-buildings-layer>.placed-building b{
+  background:linear-gradient(180deg,#263b2bfa,#142219fa)!important;
+  border:1px solid #d6b66b!important;border-radius:7px!important;
+  color:#ffedbd!important;padding:3px 7px!important;
+  font:700 8px/1.15 Georgia,serif!important;letter-spacing:.35px;
+  box-shadow:0 2px 5px #0007;white-space:nowrap;
+}
+#village .village-buildings-layer>.placed-building small{
+  display:none!important;
+}
+#village .building-slot{
+  width:clamp(46px,12vw,58px)!important;height:clamp(46px,12vw,58px)!important;
+  border:2px solid #e6c77b!important;border-radius:50%!important;
+  background:radial-gradient(circle at 35% 28%,#496746f2,#1a3025f5 72%)!important;
+  box-shadow:0 0 0 3px #17271988,0 0 17px #f0ca6966,0 6px 13px #10180e99,inset 0 2px 5px #fff4cf55!important;
+  backdrop-filter:blur(2px);
+}
+#village .building-slot span{font-size:28px!important;color:#ffe3a0!important;text-shadow:0 2px 5px #000!important}
+#village .building-slot small{font-size:7px!important;letter-spacing:.8px;color:#fff0c9!important}
+#village .village-title{background:linear-gradient(180deg,#293e2df2,#142219f2);border:1px solid #dfbf70;box-shadow:0 5px 16px #10180e66}
+#village .village-player-card,#village .village-next-level{
+  background:linear-gradient(145deg,#263a2cf2,#142219f2);
+  border:1px solid #c9a75d;box-shadow:0 5px 15px #10180e66;
+}
+#village .village-map-controls button{
+  border-radius:50%;width:40px;height:40px;
+  box-shadow:0 4px 12px #10180e88,inset 0 1px 0 #ffffff33;
+}
+@media(max-width:699px){
+ #village .village-scene{height:clamp(640px,74dvh,820px)!important;min-height:640px!important}
+ #village .village-buildings-layer>.placed-building.placed-center{width:clamp(138px,42vw,160px)!important}
+ #village .village-buildings-layer>.placed-building.placed-center .keep-art{height:clamp(170px,50vw,198px)!important}
+ #village .village-buildings-layer>.placed-building:not(.placed-center){width:clamp(60px,17vw,76px)!important}
+ #village .village-buildings-layer>.placed-building:not(.placed-center) .building-art{height:clamp(60px,17vw,76px)!important}
+ #village .building-slot{width:clamp(43px,12vw,52px)!important;height:clamp(43px,12vw,52px)!important}
+}
