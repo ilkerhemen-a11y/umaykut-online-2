@@ -1214,3 +1214,12 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
   #village .village-scene{height:clamp(500px,62dvh,660px)!important;min-height:500px!important}
   #village .village-static-map-art{background-size:100% 100%!important}
 }
+
+#village .village-buildings-layer>.placed-building.placed-center,
+#village .village-buildings-layer>.placed-building:not(.placed-center){
+  background:transparent!important;box-shadow:none!important;filter:none!important;
+}
+#village .village-buildings-layer>.placed-building.placed-center::before,
+#village .village-buildings-layer>.placed-building.placed-center::after{content:none!important;display:none!important}
+#village .village-map-camera>canvas,
+#village .village-map-viewport canvas{display:none!important}
