@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101a13">
   <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
   <title>Umaykut Online 2 · V2</title>
-  <link rel="stylesheet" href="/app.css?v=20261117-army-unit-pages-1">
+  <link rel="stylesheet" href="/app.css?v=20261117-instant-troops-2">
   <link rel="stylesheet" href="/factions.css?v=20261117-founding-flow-2">
 </head>
 <body>
@@ -104,7 +104,7 @@
         <button class="primary-action" id="wall-action" type="button">Sur seviyesini yükselt</button>
       </dialog>
       <section class="army-strip">
-        <div class="army-title">⚔ ORDU BİRLİKLERİ <span>·</span> <small>Eğitim, birlikler ve ordu gücü</small></div>
+        <div class="army-title">⚔ ORDU BİRLİKLERİ <span>·</span> <small>Birlik seç ve ordunu güçlendir</small></div>
         <div class="army-units" id="army-units">
           <div><span>🪓</span><b>0</b><small>Piyade</small></div>
           <div><span>🏹</span><b>0</b><small>Okçu</small></div>
@@ -180,9 +180,9 @@
       <button type="button" data-action="settings" aria-haspopup="dialog" aria-controls="settings-dialog"><span>⚙️</span>Ayarlar</button>
     </nav>
     <dialog id="army-dialog" class="army-dialog" aria-labelledby="army-dialog-title">
-  <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · SAVAŞ HAZIRLIĞI</small><h2 id="army-dialog-title">Ordu ve Asker Yetiştirme</h2></div><button id="army-close" type="button" aria-label="Kapat">×</button></div>
+  <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · SAVAŞ HAZIRLIĞI</small><h2 id="army-dialog-title">Ordu Birlikleri</h2></div><button id="army-close" type="button" aria-label="Kapat">×</button></div>
   <div class="army-summary"><div><strong id="army-total-units">0</strong><small>Toplam asker</small></div><div><strong id="army-total-power">0</strong><small>Ordu gücü</small></div><div><strong id="army-faction-name">Göktürk</strong><small>Devlet</small></div></div>
-  <section class="army-training-queue"><h3>⏳ Eğitim kuyruğu</h3><div id="army-queue-list"><p>Aktif eğitim bulunmuyor.</p></div></section>
+  <section class="army-training-queue"><h3>⚔️ Ordu durumu</h3><div id="army-queue-list"><p>Askerler yetiştirildiğinde doğrudan orduna katılır.</p></div></section>
   <section class="army-recruit-section" id="army-unit-list-section"><h3>⚔️ Birlik seç</h3><p id="army-building-hint">İncelemek ve yetiştirmek istediğin birliği seç.</p><div id="army-unit-catalog" class="army-unit-catalog"><p>Ordu bilgileri yükleniyor…</p></div></section>
   <section class="army-unit-detail" id="army-unit-detail" hidden>
     <button type="button" id="army-unit-back" class="army-unit-back">← Birlik listesine dön</button>
@@ -230,6 +230,6 @@
     </dialog>
   </main>
 
-  <script type="module" src="/app.js?v=20261117-army-unit-pages-1"></script>
+  <script type="module" src="/app.js?v=20261117-instant-troops-2"></script>
 </body>
 </html>
