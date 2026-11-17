@@ -726,7 +726,8 @@ wallAction.addEventListener("click",async()=>{
   renderResourceBalances();renderWallDialog();wallMessage.textContent="Sur yükseltmesi başladı. Seviye "+result.wall.upgrade.targetLevel+" tamamlandığında savunman artacak.";
  }catch(error){wallMessage.textContent=error.message||"Sur yükseltmesi başlatılamadı.";wallAction.disabled=false;}
 });
-\n// Interactive wall marker positioning: the player chooses the exact point on the village image.
+
+// Interactive wall marker positioning: the player chooses the exact point on the village image.
 const wallPositionMarker=document.querySelector("#wall-position-marker");
 const wallPositionToggle=document.querySelector("#wall-position-toggle");
 const wallPositionConfirm=document.querySelector("#wall-position-confirm");
