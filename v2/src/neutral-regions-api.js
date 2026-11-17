@@ -56,7 +56,7 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
   if(req.method==='GET'&&path==='/api/game/neutral-regions'){
     const result=await pool.query(
       `SELECT id,region_name,world_x,world_y,guard_troops,owner_player_id,owner_faction_id,
-              claimed_by_player_id,claimed_at,claim_expires_at,garrison_troops,garrison_count,
+              claimed_by_player_id,claimed_faction_id,claimed_at,claim_expires_at,garrison_troops,garrison_count,
               (claim_expires_at<=NOW()) AS claim_expired
        FROM umaykut_v2.world_neutral_regions ORDER BY id`
     );
@@ -104,10 +104,10 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
       const claim=(!region.claimed_by_player_id||expired)?createNeutralClaim({playerId:session.id,factionId}):null;
       await client.query(
         `UPDATE umaykut_v2.world_neutral_regions SET
-          claimed_by_player_id=$2,claimed_at=COALESCE($3,claimed_at),claim_expires_at=COALESCE($4,claim_expires_at),
+          claimed_by_player_id=$2,claimed_faction_id=COALESCE($7,claimed_faction_id),claimed_at=COALESCE($3,claimed_at),claim_expires_at=COALESCE($4,claim_expires_at),
           garrison_troops=$5::jsonb,garrison_count=$6,updated_at=NOW()
          WHERE id=$1`,
-        [regionId,session.id,claim?.claimedAt||null,claim?.expiresAt||null,JSON.stringify(combined),capacity.total]
+        [regionId,session.id,claim?.claimedAt||null,claim?.expiresAt||null,JSON.stringify(combined),capacity.total,claim?.factionId||null]
       );
       await client.query('UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb,updated_at=NOW() WHERE player_id=$1',[session.id,JSON.stringify(nextOwn)]);
       await client.query('COMMIT');tx=false;
@@ -133,7 +133,7 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
       if(battle.canCapture){
         await client.query(
           `UPDATE umaykut_v2.world_neutral_regions SET owner_player_id=$2,owner_faction_id=$3,
-            claimed_by_player_id=NULL,claimed_at=NULL,claim_expires_at=NULL,
+            claimed_by_player_id=NULL,claimed_faction_id=NULL,claimed_at=NULL,claim_expires_at=NULL,
             garrison_troops=$4::jsonb,garrison_count=$5,guard_troops=$6::jsonb,updated_at=NOW()
            WHERE id=$1`,
           [regionId,session.id,factionId,JSON.stringify(attackerAfter),countTroops(attackerAfter),JSON.stringify(guardsAfter)]
