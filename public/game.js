@@ -188,7 +188,7 @@ async function openUnits(){
     const [catalog,army,training]=await Promise.all([api("/api/units/me"),api("/api/army/me"),api("/api/training/me")]);
     $("#unitsFactionTitle").textContent=catalog.factionName.toLocaleUpperCase("tr-TR");
     const counts=new Map(army.units.map(unit=>[unit.id,unit.quantity]));
-    renderUnits(catalog.units.map(unit=>({...unit,quantity:counts.get(unit.id)||0})));
+    renderUnits(catalog.units.map(unit=>({...unit,quantity:counts.get(unit.id)||0,factionId:catalog.factionId})));
     activeTraining=training.activeTraining;
     renderTrainingStatus();
   }catch(error){$("#unitCatalog").textContent=error.message;}
@@ -201,7 +201,17 @@ function renderUnits(units){
     const card=document.createElement("article");card.className="unit-card";
     const art=document.createElement("div");art.className="unit-art";
     if(siegeImages[unit.id]){const image=document.createElement("img");image.src=siegeImages[unit.id];image.alt=unit.role;art.append(image);}
-    else art.textContent=icons[index];
+    else {
+      const factionRow={gokturk:0,selcuk:1,hun:2}[unit.factionId]??0;
+      const spriteScale=1.7;
+      const spriteX=27+index*57;
+      const spriteY=53+factionRow*148;
+      art.classList.add("unit-art-sprite");
+      art.style.backgroundImage='url("https://i.hizliresim.com/ghjreyzt.png")';
+      art.style.backgroundPosition=`calc(50% - ${(spriteX+28.5)*spriteScale}px) ${-spriteY*spriteScale}px`;
+      art.setAttribute("role","img");
+      art.setAttribute("aria-label",unit.role+" asker görseli");
+    }
     const heading=document.createElement("h3");heading.textContent=unit.role;
     const meta=document.createElement("p");meta.className="unit-meta";meta.textContent=unit.building+" · Seviye "+unit.level;
     const count=document.createElement("p");count.className="unit-count";count.textContent="Ordudaki mevcut: "+Number(unit.quantity).toLocaleString("tr-TR");
