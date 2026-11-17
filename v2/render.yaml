@@ -5,8 +5,7 @@ services:
     plan: free
     region: frankfurt
     buildCommand: cd v2 && npm install
-    preDeployCommand: cd v2 && npm run migrate
-    startCommand: cd v2 && npm start
+    startCommand: cd v2 && npm run migrate && npm start
     healthCheckPath: /health
     autoDeployTrigger: commit
     envVars:
