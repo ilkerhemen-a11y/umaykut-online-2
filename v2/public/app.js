@@ -1024,13 +1024,13 @@ function renderWorldMap(data){
   marker.dataset.neutralVillage=String(village.id);
   marker.style.left=Number(village.world_x)+"%";marker.style.top=Number(village.world_y)+"%";
   const factionColors={gokturk:"#2587b8",hun:"#b94343",seljuk:"#d4a83e"};
-  const color=factionColors[village.owner_faction_id]||"#b99b61";
+  const color=factionColors[village.owner_faction_id]||factionColors[(neutralClaimIsActive(village)?village.claimed_faction_id:null)]||"#b99b61";
   marker.style.borderColor=color;marker.style.boxShadow="0 0 0 2px "+color+"55,0 3px 12px #000b";
   marker.setAttribute("aria-label",village.region_name+", "+(village.owner_faction_id?"fethedilmiş bölge":"tarafsız köy"));
   const icon=document.createElement("span");icon.textContent=village.owner_faction_id?"🏰":"🏘️";
   const name=document.createElement("small");name.textContent=village.region_name;
   const status=document.createElement("b");
-  status.textContent=village.owner_faction_id?({gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"}[village.owner_faction_id]+" hâkimiyeti"):(neutralClaimIsActive(village)?"Garnizon kuruldu":"Tarafsız");
+  status.textContent=village.owner_faction_id?({gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"}[village.owner_faction_id]+" hâkimiyeti"):(neutralClaimIsActive(village)?(({gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"}[village.claimed_faction_id]||"Geçici")+" geçici hâkimiyeti"):"Tarafsız");
   marker.append(icon,name,status);mapWorldCanvas.append(marker);
  });
  (data.resourceNodes||[]).forEach(node=>{
