@@ -241,7 +241,7 @@ const buildSlotPositions=[[28,32],[50,25],[72,32],[81,48],[72,68],[50,77],[28,68
 const userBuildingCells={school:1,barracks:2,market:3,stonemason:4,stable:6,blacksmith:7,mill:8,farm:9};
 function getUserBuildingPreview(type){const index=type==="center"?0:userBuildingCells[type];return index===undefined?null:{src:"/assets/user-buildings-atlas.png",col:index%5,row:Math.floor(index/5)};}
 const buildIcons={school:"",barracks:"",market:"",stonemason:"",stable:"",blacksmith:"",mill:"",farm:""};
-function currentProjectedSlots(){const projected=window.umaykut3d?.getSlotPositions?.();return Array.isArray(projected)&&projected.length===9?projected:buildSlotPositions.map(([x,y])=>({x,y}));}
+function currentProjectedSlots(){const ready=$("#village")?.classList.contains("has-3d-village");const projected=ready?window.umaykut3d?.getSlotPositions?.():null;return Array.isArray(projected)&&projected.length===9?projected:buildSlotPositions.map(([x,y])=>({x,y}));}
 function repositionVillageOverlays(){
  const positions=currentProjectedSlots();
  document.querySelectorAll("#villageBuildingSlots .building-slot,#villageBuildingsLayer .placed-building[data-slot]").forEach(element=>{
@@ -249,7 +249,7 @@ function repositionVillageOverlays(){
   if(point){element.style.left=point.x+"%";element.style.top=point.y+"%";}
  });
  const center=document.querySelector("#villageBuildingsLayer .placed-building.placed-center");
- const centerPoint=window.umaykut3d?.getCenterPosition?.();
+ const centerPoint=$("#village")?.classList.contains("has-3d-village")?window.umaykut3d?.getCenterPosition?.():null;
  if(center&&centerPoint){
   center.style.setProperty("left",centerPoint.x+"%","important");
   center.style.setProperty("top",centerPoint.y+"%","important");
