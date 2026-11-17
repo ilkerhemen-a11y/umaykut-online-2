@@ -26,5 +26,6 @@ jobs:
       - run: npm install
       - run: npm test
       - run: node --check src/server.js
+      - run: node --check src/army.js
       - run: node --check src/config.js
       - run: node --check public/app.js
