@@ -259,19 +259,27 @@ test("new registration creates a fresh level-one village and zero worker assignm
 });
 
 
-test("player profile requires a valid faction and village name and stores both", async (t) => {
+test("first-time village founding resets legacy building progress to level one", async (t) => {
   const secret = "test-session-secret-with-at-least-32-characters";
   const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
   const token = createSessionToken(playerId, secret);
   const writes = [];
   const pool = {
-    query: async (sql, values=[]) => {
+    query: async (sql) => {
       if (sql.startsWith("ALTER TABLE")) return {rows:[],rowCount:0};
       if (sql.includes("SELECT p.id FROM umaykut_v2.players")) return {rows:[{id:playerId}],rowCount:1};
-      if (sql.includes("UPDATE umaykut_v2.players SET village_name")) {writes.push({sql,values});return {rows:[],rowCount:1};}
-      if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) {writes.push({sql,values});return {rows:[],rowCount:1};}
-      throw new Error("Unexpected SQL in player-profile test: "+sql);
-    }
+      throw new Error("Unexpected pool query in founding test: "+sql);
+    },
+    connect: async () => ({
+      query: async (sql, values=[]) => {
+        if (["BEGIN","COMMIT","ROLLBACK"].includes(sql)) return {rows:[]};
+        if (sql.includes("SELECT village_name, faction_id")) return {rows:[{village_name:null,faction_id:"gokturk"}],rowCount:1};
+        writes.push({sql,values});
+        if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) return {rows:[],rowCount:1};
+        return {rows:[],rowCount:1};
+      },
+      release:()=>{}
+    })
   };
   const server=createServer({pool,sessionSecret:secret});
   await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
@@ -281,8 +289,50 @@ test("player profile requires a valid faction and village name and stores both",
   assert.equal(invalid.status,400);
   const saved=await fetch(base,{method:"PUT",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({villageName:"Bozkır Kartalları",factionId:"hun"})});
   assert.equal(saved.status,200);
-  assert.deepEqual(await saved.json(),{success:true,villageName:"Bozkır Kartalları",factionId:"hun"});
-  assert.equal(writes.length,2);
-  assert.equal(writes[0].values[1],"Bozkır Kartalları");
-  assert.equal(writes[1].values[1],"hun");
+  assert.deepEqual(await saved.json(),{success:true,villageName:"Bozkır Kartalları",factionId:"hun",firstSetup:true});
+  const stateWrite=writes.find(write=>write.sql.includes("INSERT INTO umaykut_v2.player_game_state"));
+  assert.ok(stateWrite);
+  const [,faction,resources,buildings,workers]=stateWrite.values;
+  assert.equal(faction,"hun");
+  const initialBuildings=JSON.parse(buildings);
+  assert.equal(Object.keys(initialBuildings).length,9);
+  for(const building of Object.values(initialBuildings)) assert.equal(building.level,1);
+  assert.equal(JSON.parse(resources).gold,1650);
+  assert.deepEqual(JSON.parse(workers),{grain:0,wood:0,stone:0});
+});
+
+test("founding an already established village preserves existing building progress", async (t) => {
+  const secret = "test-session-secret-with-at-least-32-characters";
+  const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+  const token = createSessionToken(playerId, secret);
+  const writes = [];
+  const pool = {
+    query: async sql => {
+      if (sql.startsWith("ALTER TABLE")) return {rows:[],rowCount:0};
+      if (sql.includes("SELECT p.id FROM umaykut_v2.players")) return {rows:[{id:playerId}],rowCount:1};
+      throw new Error("Unexpected pool query in established-village test: "+sql);
+    },
+    connect: async () => ({
+      query: async (sql, values=[]) => {
+        if (["BEGIN","COMMIT","ROLLBACK"].includes(sql)) return {rows:[]};
+        if (sql.includes("SELECT village_name, faction_id")) return {rows:[{village_name:"Eski Yurt",faction_id:"seljuk"}],rowCount:1};
+        writes.push({sql,values});
+        return {rows:[],rowCount:1};
+      },
+      release:()=>{}
+    })
+  };
+  const server=createServer({pool,sessionSecret:secret});
+  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+  t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const response=await fetch(`http://127.0.0.1:${server.address().port}/api/player/profile`,{
+    method:"PUT",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},
+    body:JSON.stringify({villageName:"Eski Yurt",factionId:"seljuk"})
+  });
+  assert.equal(response.status,200);
+  assert.equal((await response.json()).firstSetup,false);
+  const stateWrite=writes.find(write=>write.sql.includes("INSERT INTO umaykut_v2.player_game_state"));
+  assert.ok(stateWrite);
+  assert.doesNotMatch(stateWrite.sql,/buildings = EXCLUDED\.buildings/);
+  assert.doesNotMatch(stateWrite.sql,/resources = EXCLUDED\.resources/);
 });
