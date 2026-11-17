@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getTroopCatalog } from "../src/army.js";
+import { getTroopCatalog, settleTrainingQueue } from "../src/army.js";
 
 test("level-one barracks and stable only unlock their first units", () => {
   const catalog = getTroopCatalog("gokturk", {
@@ -56,4 +56,29 @@ test("numeric V2 building slots correctly unlock troops and reduce training time
   assert.equal(levelFive.find(unit => unit.id === "mounted_archer").unlocked, true);
   assert.ok(levelFive.find(unit => unit.id === "infantry").secondsPerUnit <
     levelOne.find(unit => unit.id === "infantry").secondsPerUnit);
+});
+
+test("troop training queue completes only when its server timestamp is reached", () => {
+  const now = Date.now();
+  const troops = { infantry: 3 };
+  const queue = [
+    { unitId: "infantry", amount: 4, startedAt: new Date(now - 5000).toISOString(), completesAt: new Date(now - 1).toISOString() },
+    { unitId: "archer", amount: 2, startedAt: new Date(now).toISOString(), completesAt: new Date(now + 10000).toISOString() }
+  ];
+  const first = settleTrainingQueue(troops, queue, now);
+  assert.deepEqual(first.troops, { infantry: 7 });
+  assert.equal(first.trainingQueue.length, 1);
+  assert.equal(first.trainingQueue[0].unitId, "archer");
+  assert.equal(first.changed, true);
+
+  const second = settleTrainingQueue(first.troops, first.trainingQueue, now + 11000);
+  assert.deepEqual(second.troops, { infantry: 7, archer: 2 });
+  assert.equal(second.trainingQueue.length, 0);
+});
+
+test("legacy training entries without timestamps are safely settled", () => {
+  const result = settleTrainingQueue({}, [{ unitId: "infantry", amount: 5 }], Date.now());
+  assert.deepEqual(result.troops, { infantry: 5 });
+  assert.equal(result.trainingQueue.length, 0);
+  assert.equal(result.changed, true);
 });
