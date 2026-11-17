@@ -1,4 +1,4 @@
-import { randomBytes, scrypt as scryptCallback, timingSafeEqual, createHmac } from "node:crypto";
+import { randomBytes, scrypt as scryptCallback, timingSafeEqual, createHmac, createHash } from "node:crypto";
 import { promisify } from "node:util";
 const scrypt=promisify(scryptCallback);
 const KEY_BYTES=64;
@@ -50,6 +50,7 @@ export function verifySessionToken(token,secret,now=Date.now()) {
     return {id:data.sub,expiresAt:data.exp};
   }catch{return null;}
 }
+export function sessionTokenHash(token){return createHash("sha256").update(token).digest("hex");}
 export function bearerToken(request) {
   const value=request.headers.authorization||"";
   return value.startsWith("Bearer ")?value.slice(7):null;
