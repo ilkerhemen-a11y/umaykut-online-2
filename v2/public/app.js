@@ -910,16 +910,22 @@ async function loadWorldPlayers(){
    const item=document.createElement("article");item.className="world-raid-card";
    const title=document.createElement("strong"),time=document.createElement("small");
    title.textContent=(raid.direction==="outgoing"?"Giden saldırı: ":"Gelen saldırı: ")+(raid.direction==="outgoing"?raid.defender_village:raid.attacker_village);
-   const ms=Date.parse(raid.arrives_at)-Date.now();
-   time.textContent=raid.status==="resolved"?"Savaş tamamlandı · Rapor hazır":ms>0?"Varışa yaklaşık "+Math.ceil(ms/60000)+" dk":"Varış zamanı geldi · savaş sonucu hazırlanıyor";
+   const arrivalMs=Date.parse(raid.arrives_at)-Date.now();
+   const returnMs=raid.return_at?Date.parse(raid.return_at)-Date.now():0;
+   if(raid.status==="marching")time.textContent=arrivalMs>0?"Hedefe varış: yaklaşık "+Math.ceil(arrivalMs/60000)+" dk":"Hedefe ulaştı · savaş sonucu hazırlanıyor";
+   else if(raid.status==="resolved")time.textContent=returnMs>0?"Savaş bitti · sağ kalan askerler dönüyor: "+Math.ceil(returnMs/60000)+" dk":"Dönüş tamamlanıyor · rapor hazır";
+   else time.textContent="Sefer tamamlandı · askerler köye döndü";
    item.append(title,time);
-   if(raid.status==="resolved"&&raid.battle_report){
+   if(raid.battle_report){
     const report=raid.battle_report,details=document.createElement("small");
     const ownLoss=raid.direction==="outgoing"?report.attackerLostCount:report.defenderLostCount;
     const enemyLoss=raid.direction==="outgoing"?report.defenderLostCount:report.attackerLostCount;
-    const loot=raid.direction==="outgoing"?raid.loot:{};
-    const lootText=Object.entries(loot||{}).filter(([,n])=>Number(n)>0).map(([key,n])=>key+": "+n).join(" · ");
-    details.textContent="Senin kaybın: "+ownLoss+" asker · Rakip kaybı: "+enemyLoss+" asker · Sur engeli: %"+report.wallDefensePercent+(lootText?" · Ganimet: "+lootText:"");
+    const ownBreakdown=raid.direction==="outgoing"?report.attackerLosses:report.defenderLosses;
+    const enemyBreakdown=raid.direction==="outgoing"?report.defenderLosses:report.attackerLosses;
+    const fmt=losses=>Object.entries(losses||{}).filter(([,n])=>Number(n)>0).map(([id,n])=>id+": "+n).join(", ")||"Yok";
+    const loot=raid.direction==="outgoing"?(raid.loot||{}):{};
+    const lootText=Object.entries(loot).filter(([,n])=>Number(n)>0).map(([key,n])=>key+": "+n).join(" · ");
+    details.textContent="Senin kayıpların: "+ownLoss+" ("+fmt(ownBreakdown)+") · Rakip kayıpları: "+enemyLoss+" ("+fmt(enemyBreakdown)+") · Sur engeli: %"+report.wallDefensePercent+(lootText?" · Ganimet: "+lootText:"");
     item.append(details);
    }
    activeRaidsList.append(item);
