@@ -38,7 +38,14 @@ function normalizeBuildings(stored, { reset = false } = {}) {
     const level = Number(saved?.level);
     const valid = !reset && saved?.type === initial.type &&
       Number.isSafeInteger(level) && level >= 1 && level <= 10;
-    normalized[slot] = valid ? { type: initial.type, level } : { ...initial };
+    const upgrade = saved?.upgrade;
+    const validUpgrade = valid && upgrade && Number(upgrade.targetLevel) === level + 1 &&
+      level < 10 && Number.isFinite(Date.parse(upgrade.startedAt)) &&
+      Number.isFinite(Date.parse(upgrade.completesAt)) &&
+      Date.parse(upgrade.completesAt) > Date.parse(upgrade.startedAt);
+    normalized[slot] = valid
+      ? { type: initial.type, level, ...(validUpgrade ? { upgrade } : {}) }
+      : { ...initial };
   }
   return normalized;
 }
