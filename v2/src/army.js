@@ -4,7 +4,7 @@ import {
 
 const RESOURCES = ["wood", "food", "iron", "gold"];
 const UNIT_BASE = {
-  scout: { name: "Keşifçi", icon: "🕵️", building: "barracks", level: 2, attack: 8, infantryDefense: 8, cavalryDefense: 6, speed: 12, carry: 0, seconds: 30, cost: { wood: 45, food: 35, iron: 10 } },
+  scout: { name: "Casus", icon: "🕵️", building: "barracks", level: 2, attack: 8, infantryDefense: 8, cavalryDefense: 6, speed: 12, carry: 0, seconds: 30, cost: { wood: 45, food: 35, iron: 10 } },
   infantry: { name: "Piyade", icon: "🪓", building: "barracks", level: 1, attack: 28, infantryDefense: 24, cavalryDefense: 18, speed: 6, carry: 30, seconds: 20, cost: { wood: 35, food: 45, iron: 15 } },
   archer: { name: "Okçu", icon: "🏹", building: "barracks", level: 3, attack: 34, infantryDefense: 15, cavalryDefense: 12, speed: 7, carry: 20, seconds: 25, cost: { wood: 55, food: 35, iron: 20 } },
   shield: { name: "Kalkanlı", icon: "🛡️", building: "barracks", level: 5, attack: 20, infantryDefense: 42, cavalryDefense: 35, speed: 5, carry: 25, seconds: 35, cost: { wood: 30, food: 60, iron: 45 } },
