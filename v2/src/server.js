@@ -284,6 +284,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             const defenderArmy=outcome.defenderSurvivors;
             const report={
               resolvedAt:new Date().toISOString(),attackerVillage:raid.attacker_village,defenderVillage:raid.defender_village,
+              winner:outcome.winner,resultCode:outcome.resultCode,outcomeText:outcome.outcomeText,
               attackerPower:outcome.attackPower,defenderPower:outcome.defensePower,
               wallLevel:wall.level,wallDefensePercent:outcome.wallDefensePercent,
               damageBeforeWall:outcome.damageBeforeWall,damageAfterWall:outcome.damageAfterWall,
