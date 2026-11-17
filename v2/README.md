@@ -28,5 +28,6 @@ The existing production service is not modified by this V2 branch. Never add dat
 - The bottom navigation switches between the village and a shared 2D world map.
 - The map currently shows the player's city and three selectable resource areas: grain, wood and stone.
 - The initial worker pool is 1,800, with zero workers assigned.
-- Selecting a resource and assigning workers updates a temporary in-browser preview only. It is not persisted and does not change server-side production or the PostgreSQL database yet.
+- The initial 1,800-worker pool is split between available workers and workers assigned to grain, wood and stone. Players can send workers to a region or recall them later. No production rates or resource yields are assumed yet.
+- Worker assignments are saved in this browser's local storage, so they survive refreshes on the same device/browser. They are not yet synced across devices or accounts and are not yet stored in PostgreSQL.
 - Distribution ratios and production rates remain undecided; no suggested 700/600/500 split or production coefficients are treated as approved game rules.
