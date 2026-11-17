@@ -13,8 +13,9 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   const html=await page.text();
   assert.match(html,/id="village-name-title">Yeni Yurdum/);
   assert.match(html,/id="founding-dialog"/);
+  assert.match(html,/id="map-city-name">Yeni Yurdum/);
   assert.match(html,/id="founding-village-name"/);
-  assert.match(html,/id="founding-submit" disabled/);
+  assert.match(html,/id="founding-submit"[^>]*disabled/);
   assert.match(html,/Kızıl Bozkır/);
   assert.match(html,/Altın Hâkimiyet/);
   assert.match(html,/Göklerin Hâkimiyeti/);
