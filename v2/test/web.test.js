@@ -11,7 +11,14 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   const page=await fetch(base+"/");
   assert.equal(page.status,200);
   const html=await page.text();
-  assert.match(html,/İlker'in Yurdu/);
+  assert.match(html,/id="village-name-title">Yeni Yurdum/);
+  assert.match(html,/id="founding-dialog"/);
+  assert.match(html,/id="founding-village-name"/);
+  assert.match(html,/id="founding-submit" disabled/);
+  assert.match(html,/Kızıl Bozkır/);
+  assert.match(html,/Altın Hâkimiyet/);
+  assert.match(html,/Göklerin Hâkimiyeti/);
+  assert.doesNotMatch(html,/İlker.in Yurdu/);
   assert.match(html,/id="settings-dialog"/);
   assert.match(html,/id="open-settings"/);
   assert.match(html,/data-action="settings"/);
@@ -19,15 +26,15 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261117-settings-logout-1"/);
+  assert.match(html,/href="\/app\.css\?v=20261117-founding-flow-1"/);
   assert.match(html,/src="\/app\.js\?v=20261117-settings-logout-1"/);
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n        </div>\n      </div>\n      <dialog id="building-dialog"',stageStart);
   assert.ok(stageEnd>stageStart);
   const stageHtml=html.slice(stageStart,stageEnd);
   assert.ok(stageHtml.includes('<img class="city-art"') && stageHtml.includes('<div class="building-numbers"'));
-  assert.match(html,/data-faction="gokturk"/);
-  assert.match(html,/data-faction-choice="gokturk" aria-pressed="true"/);
+  assert.doesNotMatch(html,/data-faction="gokturk"/);
+  assert.match(html,/data-faction-choice="gokturk" aria-pressed="false"/);
   assert.equal((html.match(/class="building-number(?: is-center)?"/g)||[]).length,9);
   assert.match(html,/1 numaralı Merkez Binası/);
   for(const [slot,name] of [["1","Merkez"],["2","Kışla"],["3","Ahır"],["4","Demirci"],["5","Okul"],["6","Keresteci"],["7","Tapınak"],["8","Pazar"],["9","Depo"]]){
@@ -77,6 +84,9 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/node\.querySelector\("\.building-label"\)/);
   assert.match(appScript,/"9":"warehouse"/);
   assert.match(appScript,/umaykut-faction-v2/);
+  assert.match(appScript,/api\\/player\\/profile/);
+  assert.match(appScript,/openFoundingDialog/);
+  assert.match(appScript,/updateVillageName/);
   assert.match(appScript,/gokturk/);
   assert.match(appScript,/updateWorkerSummary/);
   assert.match(appScript,/umaykut-worker-state-v2/);
