@@ -149,3 +149,7 @@
 .building-costs b{font-size:13px;color:#fff0c6}
 .building-message{min-height:30px;margin:10px 0;font:10px/1.4 Arial,sans-serif;text-align:center;color:#d9c99d}
 .building-dialog .primary-action:disabled{opacity:.45;filter:saturate(.5)}
+
+/* Keep the marker visually compact while giving mobile taps a larger hit area. */
+.building-number{position:relative}
+.building-number::before{content:"";position:absolute;inset:-8px;border-radius:50%}

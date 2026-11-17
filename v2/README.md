@@ -37,3 +37,9 @@ The existing production service is not modified by this V2 branch. Never add dat
 - The selected faction and the 1,800-worker distribution across grain, wood and stone are stored per player in PostgreSQL.
 - Existing browser-only worker assignments are imported once when a player first synchronizes. Later changes are saved to the player's account and are available across devices.
 - This persistence step does not yet generate resources, charge construction costs, or change army counts; those gameplay systems are the next implementation stages.
+
+## Buildings and upgrade costs
+- Every account starts with a level-1 central building and eight available construction slots.
+- A new building costs 30 wood, 20 stone and 5 iron.
+- The next upgrade costs the base amount multiplied by the target level: level 2 costs 60 wood, 40 stone and 10 iron; level 3 costs 90 wood, 60 stone and 15 iron, continuing through level 10.
+- Resource deductions and building levels are committed together in a database transaction; the server validates balances and prevents concurrent overspending.
