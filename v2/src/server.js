@@ -271,7 +271,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             }catch(error){if(tx){try{await client.query("ROLLBACK");}catch{}}console.error("V2 scout return failed",{missionId:item.id,message:String(error.message||"").slice(0,160)});}
             finally{client.release();}
           }
-          const reports=await pool.query("SELECT id,attacker_id,defender_id,attacker_village,defender_village,scout_count,departed_at,arrives_at,return_at,status,scout_report,defender_report FROM umaykut_v2.player_scout_missions WHERE attacker_id=$1 OR defender_id=$1 ORDER BY departed_at DESC LIMIT 30",[session.id]);
+          const reports=await pool.query("SELECT id,attacker_id,defender_id,attacker_village,defender_village,scout_count,departed_at,arrives_at,return_at,status,scout_report,CASE WHEN defender_id=$1 THEN defender_report ELSE NULL END AS defender_report FROM umaykut_v2.player_scout_missions WHERE attacker_id=$1 OR defender_id=$1 ORDER BY departed_at DESC LIMIT 30",[session.id]);
           return sendJson(res,200,{missions:reports.rows,serverNow:new Date().toISOString()});
         }
         if(req.method!=="POST"){res.setHeader("allow","GET, POST");return sendJson(res,405,{error:"Yöntem desteklenmiyor."});}
