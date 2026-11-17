@@ -256,3 +256,32 @@ test("new registration creates a fresh level-one village and zero worker assignm
   for(const building of Object.values(buildings)) assert.equal(building.level,1);
   assert.deepEqual(JSON.parse(workersArg),{grain:0,wood:0,stone:0});
 });
+
+
+test("player profile requires a valid faction and village name and stores both", async (t) => {
+  const secret = "test-session-secret-with-at-least-32-characters";
+  const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+  const token = createSessionToken(playerId, secret);
+  const writes = [];
+  const pool = {
+    query: async (sql, values=[]) => {
+      if (sql.startsWith("ALTER TABLE")) return {rows:[],rowCount:0};
+      if (sql.includes("SELECT p.id FROM umaykut_v2.players")) return {rows:[{id:playerId}],rowCount:1};
+      if (sql.includes("UPDATE umaykut_v2.players SET village_name")) {writes.push({sql,values});return {rows:[],rowCount:1};}
+      if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) {writes.push({sql,values});return {rows:[],rowCount:1};}
+      throw new Error("Unexpected SQL in player-profile test: "+sql);
+    }
+  };
+  const server=createServer({pool,sessionSecret:secret});
+  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+  t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const base=`http://127.0.0.1:${server.address().port}/api/player/profile`;
+  const invalid=await fetch(base,{method:"PUT",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({villageName:"Bozkır",factionId:""})});
+  assert.equal(invalid.status,400);
+  const saved=await fetch(base,{method:"PUT",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({villageName:"Bozkır Kartalları",factionId:"hun"})});
+  assert.equal(saved.status,200);
+  assert.deepEqual(await saved.json(),{success:true,villageName:"Bozkır Kartalları",factionId:"hun"});
+  assert.equal(writes.length,2);
+  assert.equal(writes[0].values[1],"Bozkır Kartalları");
+  assert.equal(writes[1].values[1],"hun");
+});
