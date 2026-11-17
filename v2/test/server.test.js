@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { createServer } from "../src/server.js";
 import { loadConfig } from "../src/config.js";
 import { createSessionToken } from "../src/auth.js";
-import { getWallProtection, resolveVillageDamage, resolveProtectedLoot } from "../src/combat.js";
+import { getWallProtection, resolveVillageDamage, resolveProtectedLoot, resolveBattle } from "../src/combat.js";
+import { getTroopCatalog } from "../src/army.js";
 
 test("config uses safe defaults", () => {
   const config = loadConfig({});
@@ -513,4 +514,28 @@ test("combat protection rejects invalid levels and negative or fractional values
   assert.throws(() => resolveProtectedLoot({
     defenderResources: { gold: 10 }, requestedLoot: { gold: 1.5 }, wallLevel: 1
   }), /tam sayı/);
+});
+
+test("battle resolution applies wall reduction, shelter protection, casualties and loot", () => {
+  const attackerCatalog = getTroopCatalog("gokturk", { "2": { type: "barracks", level: 5 }, "3": { type: "stable", level: 5 } });
+  const defenderCatalog = getTroopCatalog("seljuk", { "2": { type: "barracks", level: 5 }, "3": { type: "stable", level: 5 } });
+  const result = resolveBattle({
+    attackerTroops: { infantry: 40, archer: 20 },
+    defenderTroops: { infantry: 20, shield: 10 },
+    attackerCatalog, defenderCatalog,
+    defenderResources: { gold: 5000, wood: 6000, food: 4500, stone: 3500, iron: 2500 },
+    wallLevel: 4
+  });
+  assert.equal(result.wallDefensePercent, 20);
+  assert.ok(result.damageAfterWall <= result.damageBeforeWall);
+  assert.ok(result.damagePreventedByWall > 0);
+  assert.ok(result.attackerLostCount > 0);
+  assert.ok(result.defenderLostCount > 0);
+  assert.ok(result.loot.gold <= 3000);
+  assert.ok(result.loot.wood <= 3000);
+  assert.equal(result.protectedResources.gold, 2000);
+  assert.equal(result.protectedResources.wood, 2000);
+  assert.equal(result.defenderRemainingResources.gold + result.loot.gold, 5000);
+  assert.equal(result.defenderRemainingResources.wood + result.loot.wood, 6000);
+  assert.ok(result.carryCapacity >= Object.values(result.loot).reduce((sum,n)=>sum+n,0));
 });
