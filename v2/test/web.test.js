@@ -30,7 +30,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
   assert.match(html,/href="\/app\.css\?v=20261117-founding-flow-2"/);
-  assert.match(html,/src="\/app\.js\?v=20261117-founding-flow-2"/);
+  assert.match(html,/src="\\/app\\.js\\?v=20261117-level-one-registration-fix-1"/);
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n        </div>\n      </div>\n      <dialog id="building-dialog"',stageStart);
   assert.ok(stageEnd>stageStart);
