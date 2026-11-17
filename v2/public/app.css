@@ -96,3 +96,39 @@
 .wall-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}.wall-stat-grid>div{display:grid;gap:5px;padding:13px;border:1px solid #9a7946;border-radius:10px;background:#1b281e}.wall-stat-grid b{font:700 22px Georgia,serif;color:#f4d78d}.wall-stat-grid small{font:11px/1.4 Arial,sans-serif;color:#d8c9a7}.wall-dialog .building-costs{grid-template-columns:1fr 1fr}.wall-number small{min-width:max-content}
 
 .wall-shelter-breakdown{margin:0 0 12px;padding:9px 10px;border:1px solid #6e6747;border-radius:8px;background:#151f18;color:#e6d5a7;font:11px/1.6 Arial,sans-serif;text-align:center}
+
+
+/* Army recruitment and faction-specific unit cards */
+.army-dialog{width:min(94vw,620px);max-height:90dvh;overflow:auto;border:1px solid #c9a35b;border-radius:17px;background:linear-gradient(155deg,#26372b,#0c1510 78%);color:#f5e8c6;padding:16px;box-shadow:0 20px 80px #000e}
+.army-dialog::backdrop{background:#020704d9;backdrop-filter:blur(5px)}
+.army-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.army-dialog-head small{font:8px Arial,sans-serif;letter-spacing:1.5px;color:#d8b86b}
+.army-dialog-head h2{margin:5px 0 13px;font-size:21px;color:#f2d78f}
+.army-dialog-head button{width:34px;height:34px;border:1px solid #806a43;border-radius:50%;background:#111a14;color:#f6e5bd;font-size:25px}
+.army-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:13px}
+.army-summary>div{display:grid;gap:4px;padding:10px 5px;border:1px solid #806b43;border-radius:9px;background:#111d15;text-align:center;min-width:0}
+.army-summary strong{font:bold 19px Georgia,serif;color:#f4d78d;overflow-wrap:anywhere}
+.army-summary small{font:9px Arial,sans-serif;color:#c8bea4}
+.army-training-queue,.army-recruit-section{margin-top:12px;padding:11px;border:1px solid #75613c;border-radius:11px;background:#101b14}
+.army-training-queue h3,.army-recruit-section h3{margin:0 0 8px;font-size:14px;color:#e9ce89}
+.army-training-queue p,.army-recruit-section>p{margin:0;font:11px/1.4 Arial,sans-serif;color:#c9bea2}
+.army-queue-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #ffffff18}
+.army-queue-item strong{font-size:11px;color:#f3e5c2}
+.army-queue-item small{font:10px Arial,sans-serif;color:#f0d184;white-space:nowrap}
+.army-unit-catalog{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.army-unit-card{min-width:0;padding:9px;border:1px solid #7e6a42;border-radius:10px;background:linear-gradient(145deg,#1c2b21,#0b140e)}
+.army-unit-card.is-locked{opacity:.67}
+.army-unit-card-head{display:flex;align-items:center;gap:8px;min-height:42px}
+.army-unit-emblem{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border:1px solid #9a804a;border-radius:9px;background:#293526;font-size:23px}
+.army-unit-card-head>div{display:grid;gap:4px;min-width:0}
+.army-unit-card-head strong{font-size:11px;color:#f4e5be;overflow-wrap:anywhere}
+.army-unit-card-head small{font:9px Arial,sans-serif;color:#c3b697}
+.army-unit-card>p{margin:8px 0 5px;font:9px/1.5 Arial,sans-serif;color:#c8c0a8}
+.army-unit-card .army-unit-cost{color:#e8d092}
+.army-unlock{display:block;min-height:24px;font:9px/1.4 Arial,sans-serif;color:#d5b66f}
+.army-recruit-controls{display:grid;grid-template-columns:65px 1fr;gap:6px;margin-top:7px}
+.army-recruit-controls input{width:100%;min-width:0;padding:8px 5px;border:1px solid #806b43;border-radius:7px;background:#0b140e;color:#fff0c5;text-align:center}
+.army-recruit-controls button{padding:8px 5px;border:1px solid #d0ae65;border-radius:7px;background:linear-gradient(#94713a,#59401e);color:#fff0c5;font:bold 10px Arial,sans-serif}
+.army-recruit-controls button:disabled{opacity:.45}
+.army-message{min-height:18px;margin:11px 2px 0;text-align:center;font:11px/1.4 Arial,sans-serif;color:#f0d184}
+@media(max-width:380px){.army-dialog{padding:12px}.army-unit-catalog{grid-template-columns:1fr}.army-summary strong{font-size:16px}}
