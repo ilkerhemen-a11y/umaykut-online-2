@@ -925,7 +925,8 @@ async function loadWorldPlayers(){
     const fmt=losses=>Object.entries(losses||{}).filter(([,n])=>Number(n)>0).map(([id,n])=>id+": "+n).join(", ")||"Yok";
     const loot=raid.direction==="outgoing"?(raid.loot||{}):{};
     const lootText=Object.entries(loot).filter(([,n])=>Number(n)>0).map(([key,n])=>key+": "+n).join(" · ");
-    details.textContent="Senin kayıpların: "+ownLoss+" ("+fmt(ownBreakdown)+") · Rakip kayıpları: "+enemyLoss+" ("+fmt(enemyBreakdown)+") · Sur engeli: %"+report.wallDefensePercent+(lootText?" · Ganimet: "+lootText:"");
+    const outcome=report.winner===(raid.direction==="outgoing"?"attacker":"defender")?"Zafer":"Savunma başarılı";
+    details.textContent=outcome+" · "+(report.outcomeText||"Savaş tamamlandı")+" · Senin kayıpların: "+ownLoss+" ("+fmt(ownBreakdown)+") · Rakip kayıpları: "+enemyLoss+" ("+fmt(enemyBreakdown)+") · Savunma gücü: "+report.defenderPower+" · Sur engeli: %"+report.wallDefensePercent+(lootText?" · Ganimet: "+lootText:"");
     item.append(details);
    }
    activeRaidsList.append(item);
