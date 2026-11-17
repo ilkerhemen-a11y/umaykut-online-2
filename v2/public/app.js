@@ -35,6 +35,7 @@ document.querySelectorAll("[data-faction-choice]").forEach(button=>{
 });
 function openFoundingDialog(player,profile){
  selectedFoundingFaction=null;
+ document.querySelectorAll("[data-faction-choice]").forEach(button=>{button.setAttribute("aria-pressed","false");button.classList.remove("selected");});
  foundingVillageName.value=profile?.villageName||player?.village_name||"";
  foundingMessage.textContent="Devletini seç ve köyüne bir isim ver. Bu seçim hesabına kaydedilecek.";
  foundingSubmit.disabled=true;
