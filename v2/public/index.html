@@ -169,6 +169,11 @@
           </div>
         </div>
       </section>
+      <section class="world-players-panel" aria-labelledby="world-players-title">
+        <div class="world-players-heading"><div><small>ORTAK DÜNYA</small><h2 id="world-players-title">Diğer oyuncu köyleri</h2></div><button id="refresh-world-players" type="button">Yenile</button></div>
+        <div id="world-player-list"><p>Oyuncu köyleri yükleniyor…</p></div>
+        <h3>⚔️ Seferdeki ordular</h3><div id="active-raids-list"><p>Aktif sefer bulunmuyor.</p></div>
+      </section>
       <p class="map-prototype-note">Harita önizlemesi · Devlet seçimin ve işçi dağılımın hesabınla senkronize edilir.</p>
     </section>
 
@@ -190,7 +195,14 @@
   </section>
   <p id="army-message" class="army-message" role="status" aria-live="polite"></p>
 </dialog>
-\n    <dialog id="founding-dialog" class="founding-dialog" aria-labelledby="founding-title">
+\n    <dialog id="attack-dialog" class="army-dialog" aria-labelledby="attack-dialog-title">
+      <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · SEFER HAZIRLIĞI</small><h2 id="attack-dialog-title">Saldırı Ordusu</h2></div><button id="attack-close" type="button" aria-label="Kapat">×</button></div>
+      <p id="attack-target-name" class="army-message">Hedef köy</p>
+      <section><h3>Gönderilecek birlikler</h3><div id="attack-unit-list"></div></section>
+      <p id="attack-message" class="army-message" role="status" aria-live="polite"></p>
+      <button id="send-attack" class="founding-submit" type="button">⚔️ Saldırı emrini gönder</button>
+    </dialog>
+    <dialog id="founding-dialog" class="founding-dialog" aria-labelledby="founding-title">
       <div class="founding-heading"><small>UMAYKUT ONLINE II · YENİ BİR BAŞLANGIÇ</small><h2 id="founding-title">Yurdunu Kur</h2><p>Önce devletini seç, sonra köyüne ad ver. Bu seçimler hesabına kaydedilir.</p></div>
       <form id="founding-form">
         <label for="founding-village-name">Köyünün adı</label>
