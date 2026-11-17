@@ -101,7 +101,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/function updateWallUpgradeCountdown\(\)/);
   assert.match(appScript,/gameWall\?\.upgrade\?\[\{slot:"wall"/);
   assert.match(appScript,/renderUpgradeTracker\(\);wallMessage\.textContent="Sur yükseltmesi başladı/);
-  assert.match(appScript,/doğrudan orduna eklendi/);
+  assert.match(appScript,/eğitim kuyruğuna eklendi/);
   assert.doesNotMatch(appScript,/Eğitim süresi/);
   assert.match(css,/\.army-units\{display:flex;gap:5px;overflow-x:auto/);
   assert.match(html,/Ordu durumu/);
