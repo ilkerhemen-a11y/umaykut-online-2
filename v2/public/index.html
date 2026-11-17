@@ -215,7 +215,25 @@
   </section>
   <p id="army-message" class="army-message" role="status" aria-live="polite"></p>
 </dialog>
-\n    <dialog id="attack-dialog" class="army-dialog" aria-labelledby="attack-dialog-title">
+\n    <dialog id="neutral-region-dialog" class="army-dialog neutral-region-dialog" aria-labelledby="neutral-region-title">
+      <div class="army-dialog-head">
+        <div><small>UMAYKUT ONLINE II · TOPRAK FETHİ</small><h2 id="neutral-region-title">Tarafsız Bölge</h2></div>
+        <button id="neutral-region-close" type="button" aria-label="Kapat">×</button>
+      </div>
+      <div class="neutral-region-stats">
+        <div><small>MUHAFIZ</small><strong id="neutral-guard-count">0</strong></div>
+        <div><small>GARNİZON</small><strong id="neutral-garrison-count">0 / 100.000</strong></div>
+      </div>
+      <p id="neutral-region-owner" class="army-message">Tarafsız bölge</p>
+      <p id="neutral-region-countdown" class="neutral-region-countdown" aria-live="polite">İlk garnizon dört saatlik mücadeleyi başlatır.</p>
+      <section id="neutral-region-troop-section">
+        <h3>Gönderilecek birlikler</h3>
+        <div id="neutral-region-unit-list"></div>
+      </section>
+      <p id="neutral-region-message" class="army-message" role="status" aria-live="polite"></p>
+      <button id="neutral-region-action" class="founding-submit" type="button">⚔️ Garnizon kur</button>
+    </dialog>
+    <dialog id="attack-dialog" class="army-dialog" aria-labelledby="attack-dialog-title">
       <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · SEFER HAZIRLIĞI</small><h2 id="attack-dialog-title">Saldırı Ordusu</h2></div><button id="attack-close" type="button" aria-label="Kapat">×</button></div>
       <p id="attack-target-name" class="army-message">Hedef köy</p>
       <section><h3>Gönderilecek birlikler</h3><div id="attack-unit-list"></div></section>
