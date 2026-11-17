@@ -241,7 +241,8 @@ const buildSlotPositions=[[28,32],[50,25],[72,32],[81,48],[72,68],[50,77],[28,68
 const userBuildingCells={school:1,barracks:2,market:3,stonemason:4,stable:6,blacksmith:7,mill:8,farm:9};
 function getUserBuildingPreview(type){const index=type==="center"?0:userBuildingCells[type];return index===undefined?null:{src:"/assets/user-buildings-atlas.png",col:index%5,row:Math.floor(index/5)};}
 const buildIcons={school:"",barracks:"",market:"",stonemason:"",stable:"",blacksmith:"",mill:"",farm:""};
-function currentProjectedSlots(){const ready=$("#village")?.classList.contains("has-3d-village");const projected=ready?window.umaykut3d?.getSlotPositions?.():null;return Array.isArray(projected)&&projected.length===9?projected:buildSlotPositions.map(([x,y])=>({x,y}));}
+const staticVillageSlotPositions=[{x:32,y:35},{x:50,y:28},{x:68,y:35},{x:76,y:50},{x:69,y:66},{x:60,y:80},{x:31,y:66},{x:24,y:50},{x:41,y:80}];
+function currentProjectedSlots(){return staticVillageSlotPositions;}
 function repositionVillageOverlays(){
  const positions=currentProjectedSlots();
  document.querySelectorAll("#villageBuildingSlots .building-slot,#villageBuildingsLayer .placed-building[data-slot]").forEach(element=>{
@@ -264,8 +265,8 @@ function renderBuildSlots(buildings){
   const slot=index+1;if(occupied.has(slot))return;
   const button=document.createElement("button");button.type="button";button.className="building-slot";
   button.style.left=x+"%";button.style.top=y+"%";button.dataset.slot=String(slot);
-  button.setAttribute("aria-label",slot+". boş inşa alanı. Bina seçmek için dokun.");
-  const icon=document.createElement("span");icon.textContent="+";
+  button.setAttribute("aria-label",(slot+1)+". numaralı boş inşa alanı. Bina seçmek için dokun.");
+  const icon=document.createElement("span");icon.textContent=String(slot+1);
   const label=document.createElement("small");label.textContent="İNŞA";
   button.append(icon,label);
   button.addEventListener("click",event=>{event.stopPropagation();openBuildSelection(slot);});
@@ -276,8 +277,8 @@ function closeBuildSelection(){const panel=$("#buildingPlacement");if(panel)pane
 function openBuildSelection(slot){
  const panel=$("#buildingPlacement"),catalog=$("#buildingCatalog"),message=$("#buildingPlacementMessage");
  if(!panel||!catalog)return;
- catalog.replaceChildren();message.textContent=""+slot+". alan için bir bina seç. İnşa maliyeti: 30 odun · 20 taş · 5 demir.";
- const heading=$("#buildingPlacementTitle");if(heading)heading.textContent=slot+". İNŞA ALANI";
+ catalog.replaceChildren();message.textContent=""+(slot+1)+". numaralı alan için bir bina seç. İnşa maliyeti: 30 odun · 20 taş · 5 demir.";
+ const heading=$("#buildingPlacementTitle");if(heading)heading.textContent=(slot+1)+". NUMARALI İNŞA ALANI";
  Object.entries(buildingCatalog).filter(([type])=>type!=="center"&&getUserBuildingPreview(type)).forEach(([type,building])=>{
   const option=document.createElement("button");option.type="button";option.className="build-option";
   const icon=document.createElement("span");icon.className="build-option-icon";const preview=getUserBuildingPreview(type);if(preview){icon.style.backgroundImage="url("+preview.src+")";icon.style.backgroundSize="500% 200%";icon.style.backgroundPosition=(preview.col*25)+"% "+(preview.row*100)+"%";}else{icon.textContent=buildIcons[type]||"";}
@@ -350,7 +351,11 @@ async function refreshBuildingsAndCity(){
   const slotNumber=Number(v.slotIndex);
   const projected=slotNumber>=1&&slotNumber<=9?currentProjectedSlots()[slotNumber-1]:null;
   m.dataset.slot=slotNumber>=1&&slotNumber<=9?String(slotNumber):"";
-  m.style.left=(projected?.x??Number(v.x))+"%";m.style.top=(projected?.y??Number(v.y))+"%";
+  m.style.left=(v.type==="center"?50:(projected?.x??Number(v.x)))+"%";
+  m.style.top=(v.type==="center"?52:(projected?.y??Number(v.y)))+"%";
+  const number=document.createElement("span");number.className="building-number";
+  number.textContent=v.type==="center"?"1":String(slotNumber+1);
+  number.setAttribute("aria-hidden","true");
   const i=document.createElement("div");
   const preview=getUserBuildingPreview(v.type);
   i.setAttribute("role","img");i.setAttribute("aria-label",v.name);
@@ -358,7 +363,8 @@ async function refreshBuildingsAndCity(){
   i.className=v.type==="center"?"keep-art":"building-art";
   const n=document.createElement("b");n.textContent=v.name;
   const l=document.createElement("small");l.textContent="Sv. "+v.level+(v.upgradeFinishesAt?" · ⏳":"");
-  m.append(i,n,l);
+  m.append(number,i,n,l);
+  m.setAttribute("aria-label",number.textContent+". "+v.name+", seviye "+v.level+"/10. Yükseltme ayrıntılarını aç.");
   m.addEventListener("click",e=>{e.stopPropagation();openBuildingUpgrade(v);});
   layer.append(m);
  });
@@ -516,3 +522,22 @@ $("#navShop").addEventListener("click",()=>{setActiveNav("navShop");openMarket()
 async function openMarket(){show("shopScreen");const list=$("#marketItemList");list.textContent="Pazar tezgâhları hazırlanıyor…";try{const data=await api("/api/market/me");$("#marketGold").textContent=Number(data.gold).toLocaleString("tr-TR")+" altın";$("#marketInventory").textContent="⏩ 5 dk hızlandırma: "+data.speedupsAvailable+" adet";list.replaceChildren();data.items.forEach(item=>{const card=document.createElement("article");card.className="market-item";const icon=document.createElement("div");icon.className="market-item-icon";icon.textContent=item.icon;const info=document.createElement("div");info.className="market-item-info";const title=document.createElement("b");title.textContent=item.name;const desc=document.createElement("small");desc.textContent=item.description;const price=document.createElement("strong");price.textContent="🪙 "+item.price+" altın";const buy=document.createElement("button");buy.className="gold-button";buy.textContent="Satın al";buy.addEventListener("click",()=>purchaseMarketItem(item.code,buy));info.append(title,desc,price);card.append(icon,info,buy);list.append(card);});}catch(e){list.textContent=e.message;}}
 async function purchaseMarketItem(code,button){button.disabled=true;try{const result=await api("/api/market/buy",{method:"POST",body:JSON.stringify({code})});await loadPlayerData();await openMarket();$("#marketInventory").textContent=result.message+" · "+$("#marketInventory").textContent;}catch(e){modal("Satın alma başarısız",e.message,"Tamam");button.disabled=false;}}
 $("#backVillageFromShop").addEventListener("click",()=>{setActiveNav("navVillage");show("village");});
+
+
+/* Static illustrated city map: pan/zoom without WebGL. */
+(()=>{
+ const viewport=document.getElementById("villageMapViewport"),camera=document.getElementById("villageMapCamera");
+ if(!viewport||!camera)return;
+ let scale=1,dx=0,dy=0;const pointers=new Map();let pinchStart=0,scaleStart=1,lastPoint=null;
+ const apply=()=>{camera.style.transform="translate(calc(-50% + "+dx+"px),calc(-50% + "+dy+"px)) scale("+scale+")";};
+ const zoom=factor=>{scale=Math.max(1,Math.min(1.65,scale*factor));apply();};
+ document.getElementById("villageZoomIn")?.addEventListener("click",()=>zoom(1.12));
+ document.getElementById("villageZoomOut")?.addEventListener("click",()=>zoom(.9));
+ document.getElementById("villageRecenter")?.addEventListener("click",()=>{scale=1;dx=0;dy=0;apply();});
+ const distance=()=>{const p=[...pointers.values()];return p.length<2?0:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);};
+ viewport.addEventListener("pointerdown",e=>{if(e.target.closest("button"))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});viewport.setPointerCapture(e.pointerId);if(pointers.size===1)lastPoint={x:e.clientX,y:e.clientY};else{pinchStart=distance();scaleStart=scale;lastPoint=null;}});
+ viewport.addEventListener("pointermove",e=>{if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===1&&lastPoint){dx+=e.clientX-lastPoint.x;dy+=e.clientY-lastPoint.y;lastPoint={x:e.clientX,y:e.clientY};apply();}else if(pointers.size===2&&pinchStart>0){scale=Math.max(1,Math.min(1.65,scaleStart*distance()/pinchStart));apply();}});
+ const release=e=>{pointers.delete(e.pointerId);if(pointers.size===1){lastPoint={...pointers.values().next().value};pinchStart=0;}else{lastPoint=null;pinchStart=0;}};
+ viewport.addEventListener("pointerup",release);viewport.addEventListener("pointercancel",release);
+ apply();
+})();

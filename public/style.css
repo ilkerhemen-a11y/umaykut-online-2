@@ -1105,3 +1105,67 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
  #village .village-buildings-layer>.placed-building:not(.placed-center) .building-art{height:clamp(48px,13vw,64px)!important}
  #village .building-slot{width:clamp(38px,10vw,46px)!important;height:clamp(38px,10vw,46px)!important}
 }
+
+
+/* Illustrated static village map with numbered, clickable building hotspots. */
+#village .village-map-camera{
+  width:100%;height:100%;transform:translate(-50%,-50%);
+  background:#829b50;overflow:visible;
+}
+#village .village-static-map-art{
+  position:absolute;inset:0;
+  background-image:url("/assets/seljuk-city-map.webp");
+  background-size:100% 100%;background-position:center;background-repeat:no-repeat;
+  pointer-events:none;
+}
+#village #village3dCanvas,#village #village2dCanvas{display:none!important}
+#village .village-buildings-layer{z-index:8!important;pointer-events:none}
+#village .village-building-slots{z-index:7!important;pointer-events:none}
+#village .village-buildings-layer>.placed-building{
+  position:absolute;transform:translate(-50%,-50%);
+  display:flex!important;flex-direction:column;align-items:center;justify-content:center;
+  width:clamp(54px,15vw,76px)!important;min-width:0!important;max-width:90px!important;
+  min-height:0!important;height:auto!important;gap:2px!important;padding:3px!important;
+  overflow:visible;border:0!important;border-radius:9px!important;
+  background:linear-gradient(145deg,#20372de8,#14251fe8)!important;
+  box-shadow:0 3px 9px #172213aa,0 0 0 1px #e7c56e!important;
+  color:#fff0c4!important;pointer-events:auto;text-shadow:0 1px 3px #000!important;
+}
+#village .placed-building .building-number{
+  position:absolute;top:-13px;left:-9px;display:grid;place-items:center;
+  width:25px;height:25px;border:2px solid #f5d27a;border-radius:50%;
+  background:linear-gradient(145deg,#e0b94f,#815a1f);color:#fff;
+  font-size:12px;font-weight:900;line-height:1;box-shadow:0 2px 6px #0009;
+}
+#village .placed-building .building-art{
+  display:block!important;width:36px!important;height:34px!important;
+  background-size:500% 200%!important;background-repeat:no-repeat!important;
+  border:0!important;border-radius:0!important;
+}
+#village .placed-building .keep-art{display:none!important}
+#village .placed-building b{font-size:9px!important;line-height:1.1;white-space:nowrap}
+#village .placed-building small{font-size:8px!important;color:#f4d98f!important}
+#village .placed-building.placed-center{
+  left:50%!important;top:52%!important;width:104px!important;
+  padding:5px 7px!important;z-index:12!important;
+}
+#village .placed-building.placed-center .building-number{
+  top:-15px;left:-10px;width:29px;height:29px;font-size:14px;
+}
+#village .building-slot{
+  width:clamp(32px,8.5vw,42px)!important;height:clamp(32px,8.5vw,42px)!important;
+  border:2px solid #f1d27e!important;border-radius:50%!important;
+  background:linear-gradient(145deg,#213b31f2,#13251ff2)!important;
+  color:#ffe6a2!important;box-shadow:0 2px 8px #0009,0 0 0 3px #1a2a1c66!important;
+}
+#village .building-slot span{font-size:14px!important;line-height:16px!important;font-weight:900}
+#village .building-slot small{font-size:6px!important;letter-spacing:.3px}
+#village .village-map-viewport{touch-action:none}
+@media(max-width:699px){
+ #village .village-scene{height:clamp(520px,60dvh,680px)!important;min-height:520px!important}
+ #village .village-title{top:64px}
+ #village .village-player-card{transform:scale(.82);transform-origin:top left}
+ #village .village-next-level{transform:scale(.82);transform-origin:top right}
+ #village .village-map-controls{top:122px;bottom:auto;right:8px}
+ #village .village-map-controls button{width:34px;height:34px}
+}
