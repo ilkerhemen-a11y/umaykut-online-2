@@ -208,7 +208,7 @@ function renderUnits(units){
       const spriteY=53+factionRow*148;
       art.classList.add("unit-art-sprite");
       art.style.backgroundImage='url("https://i.hizliresim.com/ghjreyzt.png")';
-      art.style.backgroundPosition=`calc(50% - ${(spriteX+28.5)*spriteScale}px) ${-spriteY*spriteScale}px`;
+      art.style.backgroundPosition=`calc(50% + ${((427-57)/2-spriteX)*spriteScale}px) ${-spriteY*spriteScale}px`;
       art.setAttribute("role","img");
       art.setAttribute("aria-label",unit.role+" asker görseli");
     }
