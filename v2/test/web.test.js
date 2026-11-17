@@ -29,8 +29,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261117-army-unit-pages-1"/);
-  assert.ok(html.includes('src="/app.js?v=20261117-army-unit-pages-1"'));
+  assert.match(html,/href="\/app\.css\?v=20261117-instant-troops-2"/);
+  assert.ok(html.includes('src="/app.js?v=20261117-instant-troops-2"'));
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n      <section id="building-upgrade-tracker"',stageStart);
   assert.ok(stageEnd>stageStart);
@@ -63,7 +63,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
 
   // Building markers must overlay the image itself, not flow after it.
-  const styles=await fetch(base+"/app.css?v=20261117-army-unit-pages-1");
+  const styles=await fetch(base+"/app.css?v=20261117-instant-troops-2");
   assert.equal(styles.status,200);
   const css=await styles.text();
   assert.ok(css.includes(".city-frame{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
@@ -88,7 +88,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,3);
 
-  const script=await fetch(base+"/app.js?v=20261117-army-unit-pages-1");
+  const script=await fetch(base+"/app.js?v=20261117-instant-troops-2");
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.match(appScript,/data-faction-choice/);
@@ -99,6 +99,12 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.doesNotMatch(appScript,/wallPosition|WALL_POSITION_KEY/);
   assert.match(appScript,/setInterval\(\(\)=>\{updateUpgradeTracking\(\);updateWallUpgradeCountdown\(\);\},1000\)/);
   assert.match(appScript,/function updateWallUpgradeCountdown\(\)/);
+  assert.match(appScript,/gameWall\?\.upgrade\?\[\{slot:"wall"/);
+  assert.match(appScript,/renderUpgradeTracker\(\);wallMessage\.textContent="Sur yükseltmesi başladı/);
+  assert.match(appScript,/doğrudan orduna eklendi/);
+  assert.doesNotMatch(appScript,/Eğitim süresi/);
+  assert.match(css,/\.army-units\{display:flex;gap:5px;overflow-x:auto/);
+  assert.match(html,/Ordu durumu/);
   assert.match(html,/id="army-unit-detail"/);
   assert.match(html,/id="army-unit-back"/);
   assert.match(appScript,/function renderArmyUnitDetail\(unitId\)/);
