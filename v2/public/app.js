@@ -331,6 +331,7 @@ function showScreen(screen){
  villageView.hidden=isMap;
  mapView.hidden=!isMap;
  navButtons.forEach(button=>button.classList.toggle("active",button.dataset.screen===screen));
+ if(isMap&&authToken)loadWorldPlayers();
 }
 navButtons.forEach(button=>{
  button.addEventListener("click",()=>{
@@ -877,4 +878,81 @@ document.querySelector("#army-unit-detail").addEventListener("click",async event
   if(selectedArmyUnitId)renderArmyUnitDetail(selectedArmyUnitId);
   armyMessageNode.textContent=amount+" asker eğitim kuyruğuna eklendi. Kaynaklar hesabından düşüldü.";
  }catch(error){armyMessageNode.textContent=error.message||"Asker yetiştirme başlatılamadı.";button.disabled=false;}
+});
+
+const worldPlayerList=document.querySelector("#world-player-list");
+const activeRaidsList=document.querySelector("#active-raids-list");
+const attackDialog=document.querySelector("#attack-dialog");
+const attackUnitList=document.querySelector("#attack-unit-list");
+const attackMessage=document.querySelector("#attack-message");
+const attackTargetName=document.querySelector("#attack-target-name");
+let selectedAttackTarget=null;
+async function loadWorldPlayers(){
+ if(!authToken||!worldPlayerList)return;
+ worldPlayerList.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Köyler aranıyor…"}));
+ try{
+  const [playersData,raidsData]=await Promise.all([
+   authRequest("/api/game/players",{token:authToken}),
+   authRequest("/api/game/attacks",{token:authToken})
+  ]);
+  worldPlayerList.replaceChildren();
+  if(!playersData.players.length)worldPlayerList.append(Object.assign(document.createElement("p"),{textContent:"Henüz başka bir oyuncu köy kurmamış."}));
+  playersData.players.forEach(player=>{
+   const card=document.createElement("article");card.className="world-player-card";
+   const info=document.createElement("div"),name=document.createElement("strong"),meta=document.createElement("small");
+   name.textContent=player.village_name;meta.textContent=(factions[player.faction_id]?.name||"Devlet")+" · "+player.username;info.append(name,meta);
+   const action=document.createElement("button");action.type="button";action.textContent="Saldırı hazırla";action.dataset.attackTarget=player.id;
+   card.append(info,action);worldPlayerList.append(card);
+  });
+  activeRaidsList.replaceChildren();
+  if(!raidsData.attacks.length)activeRaidsList.append(Object.assign(document.createElement("p"),{textContent:"Aktif sefer bulunmuyor."}));
+  raidsData.attacks.forEach(raid=>{
+   const item=document.createElement("article");item.className="world-raid-card";
+   const title=document.createElement("strong"),time=document.createElement("small");
+   title.textContent=(raid.direction==="outgoing"?"Giden saldırı: ":"Gelen saldırı: ")+(raid.direction==="outgoing"?raid.defender_village:raid.attacker_village);
+   const ms=Date.parse(raid.arrives_at)-Date.now();time.textContent=ms>0?"Varışa yaklaşık "+Math.ceil(ms/60000)+" dk":"Varış zamanı geldi · savaş sonucu bekleniyor";
+   item.append(title,time);activeRaidsList.append(item);
+  });
+ }catch(error){worldPlayerList.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Oyuncu köyleri yüklenemedi."}));}
+}
+function openAttackDialog(target){
+ selectedAttackTarget=target;
+ const factionName=factions[target.faction_id]?.name||"Devlet";
+ attackTargetName.textContent="Hedef: "+target.village_name+" · "+factionName;
+ attackMessage.textContent="Göndermek istediğin asker sayılarını seç.";
+ attackUnitList.replaceChildren();
+ armyState.catalog.forEach(unit=>{
+  const owned=Number(armyState.troops[unit.id]||0);if(owned<=0)return;
+  const label=document.createElement("label");label.className="attack-unit-row";
+  const name=document.createElement("span");name.textContent=unit.icon+" "+unit.name+" · Mevcut "+armyNumber(owned);
+  const input=document.createElement("input");input.type="number";input.min="0";input.max=String(owned);input.value="0";input.dataset.attackUnit=unit.id;input.setAttribute("aria-label",unit.name+" gönderilecek sayısı");
+  label.append(name,input);attackUnitList.append(label);
+ });
+ if(!attackUnitList.children.length){attackMessage.textContent="Gönderilecek hazır asker bulunmuyor. Önce asker yetiştir.";return;}
+ attackDialog.showModal();
+}
+worldPlayerList.addEventListener("click",async event=>{
+ const button=event.target.closest("[data-attack-target]");if(!button)return;
+ try{
+  if(!armyState)await loadArmyState();
+  const data=await authRequest("/api/game/players",{token:authToken});
+  const target=data.players.find(player=>player.id===button.dataset.attackTarget);
+  if(target)openAttackDialog(target);
+ }catch(error){attackMessage.textContent=error.message||"Hedef köy seçilemedi.";}
+});
+document.querySelector("#refresh-world-players").addEventListener("click",loadWorldPlayers);
+document.querySelector("#attack-close").addEventListener("click",()=>attackDialog.close());
+document.querySelector("#send-attack").addEventListener("click",async()=>{
+ if(!selectedAttackTarget)return;
+ const troops={};
+ attackUnitList.querySelectorAll("[data-attack-unit]").forEach(input=>{const amount=Number(input.value);if(amount>0)troops[input.dataset.attackUnit]=amount;});
+ if(!Object.keys(troops).length){attackMessage.textContent="En az bir birlik seçmelisin.";return;}
+ const button=document.querySelector("#send-attack");button.disabled=true;attackMessage.textContent="Saldırı emri sunucuya gönderiliyor…";
+ try{
+  const result=await authRequest("/api/game/attack",{method:"POST",token:authToken,body:{targetPlayerId:selectedAttackTarget.id,troops}});
+  attackMessage.textContent="Saldırı yola çıktı! Varış süresi yaklaşık "+Math.ceil(result.marchSeconds/60)+" dakika.";
+  await loadArmyState();await loadWorldPlayers();
+  setTimeout(()=>{if(attackDialog.open)attackDialog.close();},1200);
+ }catch(error){attackMessage.textContent=error.message||"Saldırı gönderilemedi.";}
+ finally{button.disabled=false;}
 });
