@@ -160,6 +160,7 @@ function openBuildingDialog(slot){
 // In-game marker calibration: labels stay attached to their building markers.
 const markerEditToggle=document.querySelector("#marker-edit-toggle");
 const markerReset=document.querySelector("#marker-reset");
+const markerExport=document.querySelector("#marker-export");
 const markerStatus=document.querySelector("#marker-status");
 const markerStorageKey="umaykut-village-marker-positions-v2";
 const markerNodes=[...document.querySelectorAll("[data-building-slot]")];
@@ -170,17 +171,44 @@ let markerEditMode=false;
 let activeMarker=null;
 let activeMarkerPointer=null;
 
-function saveMarkerPositions(){
- const positions=Object.fromEntries(markerNodes.map(node=>[
+function getMarkerPositions(){
+ return Object.fromEntries(markerNodes.map(node=>[
   node.dataset.buildingSlot,
-  {left:parseFloat(node.style.left),top:parseFloat(node.style.top)}
+  {left:Number(parseFloat(node.style.left).toFixed(2)),top:Number(parseFloat(node.style.top).toFixed(2))}
  ]));
+}
+function saveMarkerPositions(){
+ const positions=getMarkerPositions();
  try{
   localStorage.setItem(markerStorageKey,JSON.stringify(positions));
   return true;
  }catch{
   return false;
  }
+}
+async function copyMarkerPositions(){
+ const serialized=JSON.stringify(getMarkerPositions(),null,2);
+ let copied=false;
+ try{
+  if(navigator.clipboard?.writeText){
+   await navigator.clipboard.writeText(serialized);
+   copied=true;
+  }
+ }catch{}
+ if(!copied){
+  const field=document.createElement("textarea");
+  field.value=serialized;
+  field.setAttribute("readonly","");
+  field.style.position="fixed";
+  field.style.left="-9999px";
+  document.body.append(field);
+  field.select();
+  try{copied=document.execCommand("copy");}catch{}
+  field.remove();
+ }
+ if(markerStatus)markerStatus.textContent=copied
+  ?"Dokuz binanın konumu kopyalandı. Sohbete yapıştırabilirsin."
+  :"Kopyalama başarısız. Tarayıcı izinlerini kontrol et.";
 }
 function restoreMarkerPositions(){
  try{
@@ -203,9 +231,10 @@ function setMarkerEditMode(enabled){
   markerEditToggle.textContent=markerEditMode?"Düzenlemeyi Bitir":"Konumları Düzenle";
  }
  if(markerReset)markerReset.hidden=!markerEditMode;
+ if(markerExport)markerExport.hidden=!markerEditMode;
  if(markerStatus){
   markerStatus.textContent=markerEditMode
-   ?"Numarayı basılı tutup doğru binanın üzerine sürükle. Konumlar otomatik kaydedilir."
+   ?"Numarayı basılı tutup doğru binanın üzerine sürükle. Sonra Konumları Kopyala'ya dokun."
    :"Bina numaralarını hizalamak için Konumları Düzenle'ye dokun.";
  }
 }
@@ -253,6 +282,7 @@ markerNodes.forEach(node=>{
 markerEditToggle?.addEventListener("click",()=>{
  setMarkerEditMode(!markerEditMode);
 });
+markerExport?.addEventListener("click",()=>{copyMarkerPositions();});
 markerReset?.addEventListener("click",()=>{
  markerNodes.forEach(node=>{
   const position=defaultMarkerPositions[node.dataset.buildingSlot];
