@@ -126,31 +126,7 @@
       </div>
       <div class="world-map" aria-label="Gezilebilir ortak dünya haritası. Kaydırarak haritada ilerleyebilirsin." tabindex="0">
         <div class="map-world-canvas" id="map-world-canvas">
-        <svg class="map-landscape" viewBox="0 0 640 760" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <defs>
-            <linearGradient id="map-ground" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8ca65e"/><stop offset=".52" stop-color="#6e8b4c"/><stop offset="1" stop-color="#496b3d"/></linearGradient>
-            <linearGradient id="map-water" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#8dc4c1"/><stop offset="1" stop-color="#397f86"/></linearGradient>
-            <pattern id="map-grain" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M4 20l4-7m0 7l4-7m4 7l4-7" stroke="#d9c77a" stroke-width="2" opacity=".42"/></pattern>
-          </defs>
-          <rect width="640" height="760" fill="url(#map-ground)"/>
-          <path d="M-30 160Q95 95 180 160T355 140T670 180V245Q520 205 420 245T205 235T-30 255Z" fill="#9eb76c" opacity=".5"/>
-          <path d="M-25 590Q90 520 190 580T390 565T665 590V760H-25Z" fill="#385d38" opacity=".36"/>
-          <path d="M-30 350Q100 285 180 360T340 350T500 370T680 330" fill="none" stroke="#d5c58e" stroke-width="24" opacity=".5"/>
-          <path d="M-30 350Q100 285 180 360T340 350T500 370T680 330" fill="none" stroke="#786b4a" stroke-width="2" stroke-dasharray="8 12" opacity=".65"/>
-          <path d="M470 -30Q430 95 475 175T450 335T500 480T445 790" fill="none" stroke="url(#map-water)" stroke-width="48" opacity=".9"/>
-          <path d="M470 -30Q430 95 475 175T450 335T500 480T445 790" fill="none" stroke="#c3e0ca" stroke-width="3" opacity=".55"/>
-          <path d="M65 55l40-28 42 12 25 42-27 34-56-5zM530 70l38-30 42 20 13 43-40 27-46-17zM65 650l42-34 55 16 12 46-47 28-54-18zM530 625l35-32 48 18 16 47-45 26-48-20z" fill="#71805a" stroke="#c4c08b" stroke-width="5" opacity=".8"/>
-          <path d="M0 0H640V180Q500 230 320 180T0 210Z" fill="url(#map-grain)" opacity=".42"/>
-          <g fill="#254c32" opacity=".9">
-            <circle cx="75" cy="180" r="19"/><circle cx="104" cy="165" r="23"/><circle cx="132" cy="194" r="17"/><circle cx="90" cy="220" r="21"/>
-            <circle cx="560" cy="210" r="22"/><circle cx="590" cy="184" r="17"/><circle cx="610" cy="230" r="22"/><circle cx="545" cy="250" r="18"/>
-            <circle cx="90" cy="490" r="21"/><circle cx="120" cy="465" r="18"/><circle cx="145" cy="500" r="23"/><circle cx="75" cy="530" r="17"/>
-            <circle cx="540" cy="570" r="22"/><circle cx="575" cy="545" r="18"/><circle cx="600" cy="580" r="21"/><circle cx="520" cy="605" r="17"/>
-          </g>
-          <g fill="#9cad70" opacity=".8"><circle cx="75" cy="170" r="8"/><circle cx="104" cy="155" r="9"/><circle cx="560" cy="200" r="8"/><circle cx="90" cy="480" r="8"/><circle cx="540" cy="560" r="9"/></g>
-          <path d="M320 0Q300 140 320 240T310 440T320 760" fill="none" stroke="#c6b68b" stroke-width="12" opacity=".5"/>
-          <path d="M0 390Q180 400 320 385T640 390" fill="none" stroke="#d8c99c" stroke-width="10" opacity=".45"/>
-        </svg>
+        <img class="map-landscape map-terrain-image" src="/assets/IMG-20261117-WA7167.jpg" alt="" aria-hidden="true" fetchpriority="high">
         <div class="map-region-label north">KUZEY ORMANLARI</div>
         <div class="map-region-label south">GÜNEY TAŞLIĞI</div>
         <div class="map-compass" aria-label="Kuzey">N<br>▲</div>
