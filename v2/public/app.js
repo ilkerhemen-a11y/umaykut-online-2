@@ -910,8 +910,19 @@ async function loadWorldPlayers(){
    const item=document.createElement("article");item.className="world-raid-card";
    const title=document.createElement("strong"),time=document.createElement("small");
    title.textContent=(raid.direction==="outgoing"?"Giden saldırı: ":"Gelen saldırı: ")+(raid.direction==="outgoing"?raid.defender_village:raid.attacker_village);
-   const ms=Date.parse(raid.arrives_at)-Date.now();time.textContent=ms>0?"Varışa yaklaşık "+Math.ceil(ms/60000)+" dk":"Varış zamanı geldi · savaş sonucu bekleniyor";
-   item.append(title,time);activeRaidsList.append(item);
+   const ms=Date.parse(raid.arrives_at)-Date.now();
+   time.textContent=raid.status==="resolved"?"Savaş tamamlandı · Rapor hazır":ms>0?"Varışa yaklaşık "+Math.ceil(ms/60000)+" dk":"Varış zamanı geldi · savaş sonucu hazırlanıyor";
+   item.append(title,time);
+   if(raid.status==="resolved"&&raid.battle_report){
+    const report=raid.battle_report,details=document.createElement("small");
+    const ownLoss=raid.direction==="outgoing"?report.attackerLostCount:report.defenderLostCount;
+    const enemyLoss=raid.direction==="outgoing"?report.defenderLostCount:report.attackerLostCount;
+    const loot=raid.direction==="outgoing"?raid.loot:{};
+    const lootText=Object.entries(loot||{}).filter(([,n])=>Number(n)>0).map(([key,n])=>key+": "+n).join(" · ");
+    details.textContent="Senin kaybın: "+ownLoss+" asker · Rakip kaybı: "+enemyLoss+" asker · Sur engeli: %"+report.wallDefensePercent+(lootText?" · Ganimet: "+lootText:"");
+    item.append(details);
+   }
+   activeRaidsList.append(item);
   });
  }catch(error){worldPlayerList.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Oyuncu köyleri yüklenemedi."}));}
 }
