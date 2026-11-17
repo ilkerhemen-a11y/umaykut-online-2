@@ -92,6 +92,7 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
     const nextOwn=subtractTroops(ownTroops,troops);
 
     if(path.endsWith('/garrison')){
+      if(region.owner_player_id){await client.query('ROLLBACK');tx=false;return json(res,409,{error:'Bu bölge artık fethedilmiş. Yeni garnizon kuramazsın.'}),true;}
       const expired=region.claimed_by_player_id&&expireNeutralClaim({claimExpiresAt:region.claim_expires_at});
       if(region.claimed_by_player_id&&!expired&&region.claimed_by_player_id!==session.id){
         await client.query('ROLLBACK');tx=false;
