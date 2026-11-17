@@ -50,6 +50,35 @@ function normalizeBuildings(stored, { reset = false } = {}) {
   return normalized;
 }
 
+const WALL_MAX_LEVEL = 10;
+const WALL_DEFENSE_PER_LEVEL = 5;
+const WALL_SHELTER_PER_RESOURCE_PER_LEVEL = 500;
+const WALL_UPGRADE_DURATIONS_MS = Object.freeze({2:5*60*1000,3:15*60*1000,4:30*60*1000,5:60*60*1000,6:2*60*60*1000,7:4*60*60*1000,8:8*60*60*1000,9:12*60*60*1000,10:24*60*60*1000});
+function normalizeWall(stored){
+ const source=typeof stored==="string"?JSON.parse(stored||"{}"):(stored||{});
+ const level=Number(source.level);
+ const valid=Number.isSafeInteger(level)&&level>=1&&level<=WALL_MAX_LEVEL;
+ const upgrade=source.upgrade;
+ const validUpgrade=valid&&upgrade&&Number(upgrade.targetLevel)===level+1&&level<WALL_MAX_LEVEL&&Number.isFinite(Date.parse(upgrade.startedAt))&&Number.isFinite(Date.parse(upgrade.completesAt))&&Date.parse(upgrade.completesAt)>Date.parse(upgrade.startedAt);
+ let settled=valid?{level,...(validUpgrade?{upgrade}:{})}:{level:1};
+ if(settled.upgrade&&Date.parse(settled.upgrade.completesAt)<=Date.now())settled={level:Number(settled.upgrade.targetLevel)};
+ return settled;
+}
+function wallEffects(level){
+ const safeLevel=Math.max(1,Math.min(WALL_MAX_LEVEL,Number(level)||1));
+ return {defensePercent:safeLevel*WALL_DEFENSE_PER_LEVEL,shelterCapacity:Object.fromEntries(["gold","wood","food","stone","iron"].map(key=>[key,safeLevel*WALL_SHELTER_PER_RESOURCE_PER_LEVEL]))};
+}
+function wallUpgradeCost(targetLevel){
+ if(!Number.isSafeInteger(targetLevel)||targetLevel<2||targetLevel>WALL_MAX_LEVEL)throw new RangeError("Geçersiz hedef sur seviyesi.");
+ const scale=Math.pow(1.65,targetLevel-2);
+ return {wood:Math.round(250*scale),stone:Math.round(220*scale),iron:Math.round(90*scale),gold:Math.round(100*scale)};
+}
+function settleWallUpgrade(wall,now=Date.now()){
+ const normalized=normalizeWall(wall);
+ if(normalized.upgrade&&Date.parse(normalized.upgrade.completesAt)<=now)return {level:normalized.upgrade.targetLevel};
+ return normalized;
+}
+
 const BUILDING_UPGRADE_DURATIONS_MS = Object.freeze({
   2: 2 * 60 * 1000, 3: 5 * 60 * 1000, 4: 15 * 60 * 1000,
   5: 30 * 60 * 1000, 6: 60 * 60 * 1000, 7: 2 * 60 * 60 * 1000,
@@ -160,6 +189,38 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
     }
 
 
+
+    if(url.pathname==="/api/game/wall"){
+      if(!pool)return sendJson(res,503,{error:"Oyun kayıt servisi henüz yapılandırılmadı."});
+      if(!sessionSecret||sessionSecret.length<32)return sendJson(res,503,{error:"Oturum güvenlik ayarı eksik."});
+      if(req.method!=="POST"){res.setHeader("allow","POST");return sendJson(res,405,{error:"Yöntem desteklenmiyor."});}
+      const token=bearerToken(req);const session=verifySessionToken(token,sessionSecret);
+      if(!session)return sendJson(res,401,{error:"Oturum geçersiz veya süresi dolmuş."});
+      try{
+        const player=await pool.query("SELECT p.id FROM umaykut_v2.players p JOIN umaykut_v2.player_sessions s ON s.player_id=p.id WHERE p.id=$1 AND s.token_hash=$2 AND s.expires_at>NOW()",[session.id,sessionTokenHash(token)]);
+        if(!player.rowCount)return sendJson(res,401,{error:"Oyuncu oturumu bulunamadı."});
+        const input=await readJson(req);if(input.action!=="upgrade")return sendJson(res,400,{error:"Geçersiz sur işlemi."});
+        const client=await pool.connect();let inTransaction=false;
+        try{
+          await client.query("BEGIN");inTransaction=true;
+          await client.query("INSERT INTO umaykut_v2.player_game_state(player_id) VALUES($1) ON CONFLICT(player_id) DO NOTHING",[session.id]);
+          const result=await client.query("SELECT resources,wall FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",[session.id]);
+          const row=result.rows[0];const resources=typeof row.resources==="string"?JSON.parse(row.resources):{...row.resources};
+          let wall=settleWallUpgrade(row.wall||{});
+          if(wall.upgrade){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,409,{error:"Sur zaten yükseltiliyor.",wall,wallEffects:wallEffects(wall.level)});}
+          if(wall.level>=WALL_MAX_LEVEL){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,409,{error:"Sur en yüksek seviye olan 10'a ulaştı.",wall,wallEffects:wallEffects(wall.level)});}
+          const targetLevel=wall.level+1,cost=wallUpgradeCost(targetLevel);
+          const missing=Object.fromEntries(Object.entries(cost).filter(([key,amount])=>Number(resources[key]||0)<amount).map(([key,amount])=>[key,amount-Number(resources[key]||0)]));
+          if(Object.keys(missing).length){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,409,{error:"Sur yükseltmesi için yeterli kaynak yok.",missing,cost});}
+          for(const [key,amount] of Object.entries(cost))resources[key]=Number(resources[key])-amount;
+          const startedAt=new Date(),completesAt=new Date(startedAt.getTime()+WALL_UPGRADE_DURATIONS_MS[targetLevel]);
+          wall={level:wall.level,upgrade:{targetLevel,startedAt:startedAt.toISOString(),completesAt:completesAt.toISOString()}};
+          await client.query("UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb,wall=$3::jsonb,updated_at=NOW() WHERE player_id=$1",[session.id,JSON.stringify(resources),JSON.stringify(wall)]);
+          await client.query("COMMIT");inTransaction=false;
+          return sendJson(res,200,{success:true,wall,cost,durationMs:WALL_UPGRADE_DURATIONS_MS[targetLevel],resources,wallEffects:wallEffects(wall.level),serverNow:new Date().toISOString()});
+        }catch(error){if(inTransaction){try{await client.query("ROLLBACK");}catch{}}throw error;}finally{client.release();}
+      }catch(error){console.error("V2 wall upgrade failed",{code:error.code||"UNKNOWN",message:String(error.message||"Unknown wall error").slice(0,200)});return sendJson(res,error.status||500,{error:error.status?error.message:"Sur yükseltmesi tamamlanamadı."});}
+    }
 
     if (url.pathname === "/api/game/buildings") {
       if (!pool) return sendJson(res, 503, { error: "Oyun kayıt servisi henüz yapılandırılmadı." });
@@ -395,7 +456,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           );
           const state = await pool.query(
             `SELECT p.village_name, s.faction_id, s.worker_pool, s.worker_assignments,
-                    s.worker_state_initialized, s.resources, s.buildings, s.updated_at
+                    s.worker_state_initialized, s.resources, s.buildings, s.wall, s.updated_at
              FROM umaykut_v2.players p
              JOIN umaykut_v2.player_game_state s ON s.player_id = p.id
              WHERE p.id = $1`,
@@ -424,6 +485,8 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             workerStateInitialized: row.worker_state_initialized,
             resources: row.resources,
             buildings,
+            wall: settleWallUpgrade(row.wall||{}),
+            wallEffects: wallEffects(settleWallUpgrade(row.wall||{}).level),
             updatedAt: row.updated_at,
             serverNow: new Date().toISOString()
           });
@@ -451,7 +514,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
                  worker_assignments = EXCLUDED.worker_assignments,
                  worker_state_initialized = TRUE,
                  updated_at = NOW()
-           RETURNING faction_id, worker_pool, worker_assignments, worker_state_initialized, resources, buildings, updated_at`,
+           RETURNING faction_id, worker_pool, worker_assignments, worker_state_initialized, resources, buildings, wall, updated_at`,
           [playerId, factionId, JSON.stringify(workerAssignments)]
         );
         const row = saved.rows[0];
@@ -463,6 +526,8 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           workerStateInitialized: row.worker_state_initialized,
           resources: row.resources,
           buildings: row.buildings,
+          wall: settleWallUpgrade(row.wall||{}),
+          wallEffects: wallEffects(settleWallUpgrade(row.wall||{}).level),
           updatedAt: row.updated_at
         });
       } catch (error) {
