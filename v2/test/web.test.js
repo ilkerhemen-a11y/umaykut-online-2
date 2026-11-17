@@ -17,6 +17,17 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/data-faction-choice="gokturk" aria-pressed="true"/);
   assert.equal((html.match(/class="building-number(?: is-center)?"/g)||[]).length,9);
   assert.match(html,/1 numaralı merkez binası/);
+
+  // Building markers must overlay the image itself, not flow after it.
+  const styles=await fetch(base+"/app.css");
+  assert.equal(styles.status,200);
+  const css=await styles.text();
+  assert.match(css,/\\.city-frame\\{[^}]*height:auto;aspect-ratio:auto;max-height:none;min-height:0/);
+  assert.match(css,/\\.city-art\\{position:relative;display:block;width:100%;height:auto/);
+  assert.match(css,/\\.building-numbers\\{position:absolute;inset:0;pointer-events:none\\}/);
+  assert.match(css,/\\.building-number\\{position:absolute;transform:translate\\(-50%,-50%\\)/);
+  assert.match(css,/pointer-events:auto/);
+  assert.doesNotMatch(css,/\\.city-frame\\{[^}]*max-height:(?:min\\(67dvh,760px\\)|700px|58dvh)/);
   assert.match(html,/id="map-view" hidden/);
   assert.match(html,/id="workers-available">1\.800/);
   assert.match(html,/id="workers-assigned-total">0 görevde/);
