@@ -942,6 +942,26 @@ function renderWorldMap(data){
   stone:{icon:"🪨",name:"Taş Madeni"},
   gold:{icon:"🪙",name:"Altın Madeni"}
  };
+
+ const neutralVillages=[
+  {id:"akpinar",name:"Akpınar Obası",x:16,y:19,guard:1,loot:"Odun ve yiyecek"},
+  {id:"bozkaya",name:"Bozkaya Köyü",x:39,y:13,guard:2,loot:"Taş ve yiyecek"},
+  {id:"yesilirmak",name:"Yeşilırmak Yerleşimi",x:67,y:22,guard:2,loot:"Yiyecek ve altın"},
+  {id:"demirkapi",name:"Demirkapı Obası",x:87,y:48,guard:3,loot:"Demir ve taş"},
+  {id:"karayurt",name:"Karayurt Köyü",x:19,y:79,guard:2,loot:"Odun ve demir"},
+  {id:"gokpinar",name:"Gökpınar Obası",x:61,y:88,guard:3,loot:"Altın ve yiyecek"}
+ ];
+ neutralVillages.forEach(village=>{
+  const marker=document.createElement("button");marker.type="button";
+  marker.className="map-point map-neutral-village dynamic-world-marker";
+  marker.dataset.neutralVillage=village.id;
+  marker.style.left=village.x+"%";marker.style.top=village.y+"%";
+  marker.setAttribute("aria-label",village.name+", tarafsız köy");
+  const icon=document.createElement("span");icon.textContent="🏘️";
+  const name=document.createElement("small");name.textContent=village.name;
+  const status=document.createElement("b");status.textContent="Tarafsız · Sv. "+village.guard;
+  marker.append(icon,name,status);mapWorldCanvas.append(marker);
+ });
  (data.resourceNodes||[]).forEach(node=>{
   const type=mineTypes[node.resource_type];if(!type)return;
   const marker=document.createElement("button");marker.type="button";
@@ -981,6 +1001,24 @@ mapWorldCanvas?.addEventListener("click",async event=>{
    const labels={iron:"Demir Madeni",stone:"Taş Madeni",gold:"Altın Madeni"};
    mapPrompt.hidden=false;resourcePanel.hidden=true;
    mapPrompt.textContent=labels[node.resource_type]+" · Verim seviyesi "+node.yield_level+"/9. Bu maden ortak dünyada keşfedildi.";
+  }
+  return;
+ }
+
+ const neutralMarker=event.target.closest("[data-neutral-village]");
+ if(neutralMarker){
+  const villages={
+   akpinar:{name:"Akpınar Obası",guard:1,loot:"Odun ve yiyecek"},
+   bozkaya:{name:"Bozkaya Köyü",guard:2,loot:"Taş ve yiyecek"},
+   yesilirmak:{name:"Yeşilırmak Yerleşimi",guard:2,loot:"Yiyecek ve altın"},
+   demirkapi:{name:"Demirkapı Obası",guard:3,loot:"Demir ve taş"},
+   karayurt:{name:"Karayurt Köyü",guard:2,loot:"Odun ve demir"},
+   gokpinar:{name:"Gökpınar Obası",guard:3,loot:"Altın ve yiyecek"}
+  };
+  const village=villages[neutralMarker.dataset.neutralVillage];
+  if(village){
+   mapPrompt.hidden=false;resourcePanel.hidden=true;
+   mapPrompt.textContent=village.name+" · Tarafsız yerleşim · Muhafız seviyesi "+village.guard+" · Bölge kaynakları: "+village.loot+". Fetih ve bölge sahipliği henüz etkinleştirilmedi.";
   }
   return;
  }
