@@ -155,3 +155,6 @@
 /* Keep the marker visually compact while giving mobile taps a larger hit area. */
 .building-number{position:relative}
 .building-number::before{content:"";position:absolute;inset:-8px;border-radius:50%}
+
+/* Faction palette is applied only after the player confirms a state. */
+.game-shell:not([data-faction]){--faction-main:#c6a04d;--faction-dark:#70501f;--faction-light:#f5df9a;--roof-tint:#d8ad48;--faction-shadow:#76511c}
