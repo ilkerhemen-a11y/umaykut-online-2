@@ -36,6 +36,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(stageEnd>stageStart);
   const stageHtml=html.slice(stageStart,stageEnd);
   assert.ok(stageHtml.includes('<img class="city-art"') && stageHtml.includes('<div class="building-numbers"'));
+  assert.match(stageHtml,/class="wall-number" aria-label="Sur bölümü 1"/);
   assert.doesNotMatch(html,/data-faction="gokturk"/);
   assert.match(html,/data-faction-choice="gokturk" aria-pressed="false"/);
   assert.equal((html.match(/class="building-number(?: is-center)?"/g)||[]).length,9);
@@ -56,7 +57,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
 
   // Building markers must overlay the image itself, not flow after it.
-  const styles=await fetch(base+"/app.css?v=20261117-founding-flow-2");
+  const styles=await fetch(base+"/app.css?v=20261117-wall-marker-1");
   assert.equal(styles.status,200);
   const css=await styles.text();
   assert.ok(css.includes(".city-frame{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
@@ -64,6 +65,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(css.includes(".city-art{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:fill;"));
   
   assert.ok(css.includes(".building-numbers{position:absolute;inset:0;pointer-events:none}"));
+  assert.match(css,/\.wall-number\{[^}]*left:50%[^}]*top:7%/);
   assert.ok(css.includes(".building-number{position:absolute;transform:translate(-50%,-50%);"));
   assert.ok(css.includes("pointer-events:auto"));
   assert.ok(css.includes(".building-label{position:absolute;"));
