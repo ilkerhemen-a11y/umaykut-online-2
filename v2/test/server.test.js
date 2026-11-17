@@ -255,7 +255,8 @@ test("new registration creates a fresh level-one village and zero worker assignm
     query: async (sql, values=[]) => {
       if (sql.startsWith("ALTER TABLE")) return {rows:[],rowCount:0};
       if (sql.includes("INSERT INTO umaykut_v2.players")) {
-        return { rows:[{id:playerId,username:"YeniOyuncu",email:"new@example.com"}],rowCount:1 };
+        assert.match(sql, /password_hash, village_name\) VALUES\(\$1, \$2, \$3, \$4, \$5, NULL\)/);
+        return { rows:[{id:playerId,username:"YeniOyuncu",email:"new@example.com",village_name:null}],rowCount:1 };
       }
       if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) {
         writes.push({sql,values});
@@ -275,6 +276,9 @@ test("new registration creates a fresh level-one village and zero worker assignm
   });
   assert.equal(response.status,201);
   assert.equal(writes.length,1);
+  assert.match(writes[0].sql, /faction_id, resources, buildings, worker_assignments, worker_state_initialized/);
+  assert.match(writes[0].sql, /ON CONFLICT \(player_id\) DO UPDATE/);
+  assert.match(writes[0].sql, /faction_id = NULL/);
   const [playerIdArg,resourcesArg,buildingsArg,workersArg]=writes[0].values;
   assert.equal(playerIdArg,playerId);
   assert.equal(JSON.parse(resourcesArg).gold,1650);
