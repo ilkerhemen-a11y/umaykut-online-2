@@ -57,6 +57,7 @@ foundingForm.addEventListener("submit",async event=>{
   setFaction(profile.factionId);
   foundingDialog.close();
   await loadGameState();
+  await loadArmyState();
  }catch(error){
   foundingMessage.textContent=error.message||"Köyün kurulamadı. Tekrar dene.";
   foundingSubmit.disabled=false;
@@ -612,6 +613,7 @@ async function enterGame(player,token){
  gameShell.removeAttribute("inert");
  gameShell.removeAttribute("aria-hidden");
  await loadGameState();
+ await loadArmyState();
  const profile=await authRequest("/api/player/profile",{token:authToken});
  if(profile.villageName&&profile.factionId){
   updateVillageName(profile.villageName);
