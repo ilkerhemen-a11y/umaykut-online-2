@@ -16,7 +16,7 @@ test("barracks and stable levels unlock advanced troop tiers", () => {
   const catalog = getTroopCatalog("seljuk", {
     barracks: { level: 10 }, stable: { level: 10 }
   });
-  assert.equal(catalog.length, 7);
+  assert.equal(catalog.length, 8);
   assert.ok(catalog.every(unit => unit.unlocked));
 });
 
