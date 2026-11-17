@@ -7,9 +7,10 @@
   <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
   <title>Umaykut Online 2 · V2</title>
   <link rel="stylesheet" href="/app.css">
+  <link rel="stylesheet" href="/factions.css">
 </head>
 <body>
-  <main class="game-shell">
+  <main class="game-shell" data-faction="seljuk">
     <header class="top">
       <div class="brand"><span class="brand-mark">✦</span><div><strong>UMAYKUT</strong><small>BOZKIRIN HÂKİMİYETİ</small></div></div>
       <div class="resources" aria-label="Kaynaklar">
@@ -20,14 +21,23 @@
         <div class="resource"><span>⛏️</span><b>8.040</b><small>Demir</small></div>
         <div class="resource"><span>🐎</span><b>100</b><small>At</small></div>
       </div>
-      <div class="realm"><span>İLKER'İN YURDU</span><b>SEVİYE 1</b><span class="realm-sub">Selçuklu diyarı</span></div>
+      <div class="realm"><span>İLKER'İN YURDU</span><b>SEVİYE 1</b><span class="realm-sub" id="realm-faction">Selçuklu diyarı</span></div>
     </header>
 
     <section class="village-wrap" aria-label="Köy görünümü">
       <div class="village-heading"><div><small>HOŞ GELDİN, BEYİM</small><h1>İlker'in Yurdu</h1></div><div class="player-level">✦ <span>Oyuncu Bey<br><small>Seviye 1 · İlk adım</small></span></div></div>
-      <div class="city-frame">
+      <section class="faction-panel" aria-label="Devlet seçimi">
+        <div class="faction-caption">DEVLETİNİ SEÇ</div>
+        <div class="faction-switcher" role="group" aria-label="Devlet görünümünü seç">
+          <button type="button" data-faction-choice="hun" aria-pressed="false"><span class="faction-symbol">🐺</span><span>Hun</span><small>Kırmızı</small></button>
+          <button type="button" data-faction-choice="seljuk" aria-pressed="true"><span class="faction-symbol">☀</span><span>Selçuklu</span><small>Altın</small></button>
+          <button type="button" data-faction-choice="gokturk" aria-pressed="false"><span class="faction-symbol">𐰴</span><span>Göktürk</span><small>Mavi</small></button>
+        </div>
+      </section>
+      <div class="city-frame" aria-label="Köy haritası">
         <img class="city-art" src="/assets/seljuk-city-map.webp" alt="Dairesel surlarla çevrili Selçuklu şehri" fetchpriority="high">
         <div class="city-shade"></div>
+        <div class="faction-tint" aria-hidden="true"></div>
         <div class="building-points" id="building-points" aria-label="Şehir binaları"></div>
         <div class="map-hint">Bir binaya dokunarak ayrıntılarını görüntüle</div>
       </div>
