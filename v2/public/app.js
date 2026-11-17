@@ -940,15 +940,15 @@ async function loadWorldPlayers(){
   scoutData.missions.forEach(mission=>{
    const card=document.createElement("article");card.className="world-raid-card";
    const title=document.createElement("strong"),status=document.createElement("small");
-   title.textContent="Keşif: "+mission.defender_village;
+   title.textContent=mission.defender_report?"Köyüne keşif geldi: "+mission.attacker_village:"Keşif: "+mission.defender_village;
    const arrival=Date.parse(mission.arrives_at)-Date.now(),returning=mission.return_at?Date.parse(mission.return_at)-Date.now():0;
-   status.textContent=mission.status==="marching"?"Hedefe varış: "+Math.max(0,Math.ceil(arrival/60000))+" dk":mission.status==="resolved"?"Keşif tamamlandı · dönüş: "+Math.max(0,Math.ceil(returning/60000))+" dk":"Keşif birliği köye döndü";
+   status.textContent=mission.defender_report?"Savunma bildirimi · Gelen casus: "+mission.defender_report.incomingScouts+" · Kaybedilen casus: "+mission.defender_report.ownScoutsLost+" · Kalan: "+mission.defender_report.ownScoutsRemaining:mission.status==="marching"?"Hedefe varış: "+Math.max(0,Math.ceil(arrival/60000))+" dk":mission.status==="resolved"?"Keşif tamamlandı · dönüş: "+Math.max(0,Math.ceil(returning/60000))+" dk":"Keşif birliği köye döndü";
    card.append(title,status);
    if(mission.scout_report){
     const report=mission.scout_report,detail=document.createElement("small");
     const resources=Object.entries(report.resources||{}).map(([key,value])=>key+": "+value).join(" · ");
     const troops=Object.entries(report.troops||{}).map(([key,value])=>key+": "+value).join(" · ")||"Asker bulunamadı";
-    detail.textContent="Kaynaklar: "+resources+" · Savunma ordusu: "+troops;
+    detail.textContent=report.informationGathered===false?"Keşif başarısız. Casusların tamamı kaybedildi.": "Kaynaklar: "+resources+" · Savunma ordusu: "+troops+" · Geri dönecek casus: "+Number(report.attackerSurvivors||0);
     card.append(detail);
    }
    scoutReportsList.append(card);
