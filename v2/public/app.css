@@ -190,3 +190,10 @@
 .attack-unit-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.1);color:#f3e8d4}
 .attack-unit-row input{width:76px;min-height:40px;border:1px solid #9c814f;border-radius:9px;background:#111b1d;color:#fff;text-align:center}
 #attack-dialog{max-width:min(94vw,520px);max-height:85vh;overflow:auto}
+
+.scout-section-title{display:flex;align-items:center;gap:9px}
+.scout-section-title img{width:34px;height:34px;object-fit:cover;border-radius:8px;border:1px solid rgba(202,165,91,.55)}
+.scout-report-card{justify-content:flex-start;align-items:flex-start;gap:11px}
+.scout-portrait{width:48px;height:48px;flex:0 0 48px;object-fit:cover;border-radius:9px;border:1px solid rgba(202,165,91,.6);box-shadow:0 3px 10px rgba(0,0,0,.25)}
+.scout-report-content{min-width:0;flex:1}
+.scout-report-content small{overflow-wrap:anywhere}
