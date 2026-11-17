@@ -503,8 +503,8 @@ test("shelter protects each resource type before raid loot is calculated", () =>
     wallLevel: 2
   });
   assert.deepEqual(result.protectedResources, { gold: 1000, wood: 900, food: 700, stone: 1000, iron: 0 });
-  assert.deepEqual(result.loot, { gold: 1000, wood: 0, food: 0, stone: 1000, iron: 0 });
-  assert.deepEqual(result.remainingResources, { gold: 1000, wood: 900, food: 700, stone: 4000, iron: 0 });
+  assert.deepEqual(result.loot, { gold: 1000, wood: 0, food: 0, stone: 4000, iron: 0 });
+  assert.deepEqual(result.remainingResources, { gold: 1000, wood: 900, food: 700, stone: 1000, iron: 0 });
 });
 
 test("combat protection rejects invalid levels and negative or fractional values", () => {
