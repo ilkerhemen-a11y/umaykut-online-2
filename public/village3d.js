@@ -122,7 +122,10 @@ if(canvas){
   gateFrame.holes.push(gateOpening);
   const gateArch=new THREE.Mesh(new THREE.ShapeGeometry(gateFrame),wallTop);
   gateArch.position.set(0,.04,11.28);gateArch.material.side=THREE.DoubleSide;gateArch.castShadow=true;scene.add(gateArch);
-  const gateShadow=new THREE.Mesh(new THREE.ShapeGeometry(gateOpening),stoneDark);
+  const gateShadowShape=new THREE.Shape();
+  gateShadowShape.moveTo(-1.12,0);gateShadowShape.lineTo(1.12,0);gateShadowShape.lineTo(1.12,1.75);
+  gateShadowShape.quadraticCurveTo(0,3.18,-1.12,1.75);gateShadowShape.closePath();
+  const gateShadow=new THREE.Mesh(new THREE.ShapeGeometry(gateShadowShape),stoneDark);
   gateShadow.position.set(0,.045,11.29);gateShadow.material.side=THREE.DoubleSide;scene.add(gateShadow);
   const gateLintel=new THREE.Mesh(new THREE.BoxGeometry(3.75,.2,.78),gold);
   gateLintel.position.set(0,3.83,11.25);scene.add(gateLintel);
@@ -176,7 +179,8 @@ if(canvas){
   }
   function renderBuildings(){
     while(buildingsGroup.children.length){
-      const child=buildingsGroup.children.pop();
+      const child=buildingsGroup.children[0];
+      buildingsGroup.remove(child);
       if(child.material?.map)child.material.map.dispose();
       if(child.material)child.material.dispose();
     }
@@ -214,22 +218,21 @@ if(canvas){
     orbitTheta=.42;orbitPhi=.92;
     cameraRadius=(canvas.clientWidth/(canvas.clientHeight||1))<.78?35:30;applyCamera();
   }
-  window.umaykut3d={
-    getSlotPositions(){return projectedBuildSlots();},
-    getCenterPosition(){return projectedCenterPosition();},
-    setBuildings(buildings){latestBuildings=Array.isArray(buildings)?buildings:[];renderBuildings();},
-    getBuildingPreview(type){const index=assetCells[type];return index===undefined?null:{src:atlasDataUrl,col:index%5,row:Math.floor(index/5)};},
-    zoomIn(){cameraRadius=Math.max(24,cameraRadius-2.5);applyCamera();},
-    zoomOut(){cameraRadius=Math.min(45,cameraRadius+2.5);applyCamera();},
-    resetCamera
-  };
-
   async function loadUserImages(){
     atlasTexture=await new THREE.TextureLoader().loadAsync(atlasDataUrl);
     atlasTexture.colorSpace=THREE.SRGBColorSpace;
     atlasTexture.magFilter=THREE.LinearFilter;
     atlasTexture.minFilter=THREE.LinearMipmapLinearFilter;
     renderBuildings();
+    window.umaykut3d={
+      getSlotPositions(){return projectedBuildSlots();},
+      getCenterPosition(){return projectedCenterPosition();},
+      setBuildings(buildings){latestBuildings=Array.isArray(buildings)?buildings:[];renderBuildings();},
+      getBuildingPreview(type){const index=assetCells[type];return index===undefined?null:{src:atlasDataUrl,col:index%5,row:Math.floor(index/5)};},
+      zoomIn(){cameraRadius=Math.max(24,cameraRadius-2.5);applyCamera();},
+      zoomOut(){cameraRadius=Math.min(45,cameraRadius+2.5);applyCamera();},
+      resetCamera
+    };
     document.getElementById("village")?.classList.add("has-3d-village");
     window.dispatchEvent(new Event("umaykut3dready"));
   }
