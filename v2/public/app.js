@@ -841,7 +841,7 @@ function renderArmyCatalog(){
   title.append(name,owned);head.append(emblem,title);
   const stats=document.createElement("p");stats.textContent="Saldırı "+unit.attack+" · Piyade savunması "+unit.infantryDefense+" · Süvari savunması "+unit.cavalryDefense+" · Hız "+unit.speed;
   const cost=document.createElement("p");cost.className="army-unit-cost";
-  cost.textContent=Object.entries(unit.cost).map(([key,value])=>({wood:"Odun",food:"Yiyecek",iron:"Demir",gold:"Altın"}[key]+" "+armyNumber(value)).join(" · ");
+  cost.textContent=Object.entries(unit.cost).map(([key,value])=>({wood:"Odun",food:"Yiyecek",iron:"Demir",gold:"Altın"}[key]+" "+armyNumber(value))).join(" · ");
   const unlock=document.createElement("small");unlock.className="army-unlock";
   unlock.textContent=unit.unlocked?(unit.building==="barracks"?"Kışla seviyesi "+unit.requiredLevel:"Ahır seviyesi "+unit.requiredLevel):((unit.building==="barracks"?"Kışla":"Ahır")+" seviye "+unit.requiredLevel+" gerekli");
   const controls=document.createElement("div");controls.className="army-recruit-controls";
