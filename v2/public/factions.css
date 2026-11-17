@@ -1,0 +1,44 @@
+/* Three selectable nation identities for the shared village layout. */
+.game-shell{--faction-main:#c6a04d;--faction-dark:#70501f;--faction-light:#f5df9a;--roof-tint:#d8ad48;--faction-shadow:#76511c}
+.game-shell[data-faction="hun"]{--faction-main:#b83e3d;--faction-dark:#692426;--faction-light:#f0b5a5;--roof-tint:#bd302f;--faction-shadow:#591c20}
+.game-shell[data-faction="seljuk"]{--faction-main:#d2a94e;--faction-dark:#77501d;--faction-light:#ffe29a;--roof-tint:#e0b84f;--faction-shadow:#6b4818}
+.game-shell[data-faction="gokturk"]{--faction-main:#2586a0;--faction-dark:#17495f;--faction-light:#a8e2ed;--roof-tint:#1689a8;--faction-shadow:#103c51}
+.faction-panel{display:grid;gap:5px;margin-top:-2px}
+.faction-caption{font:8px Arial,sans-serif;letter-spacing:1.8px;text-align:center;color:var(--faction-light)}
+.faction-switcher{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.faction-switcher button{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;align-items:center;justify-items:center;column-gap:6px;padding:6px 4px;border:1px solid color-mix(in srgb,var(--faction-main) 55%,#51432d);border-radius:9px;background:linear-gradient(145deg,#1c2921,#111a14);color:#e9ddbd;font: bold 11px Arial,sans-serif;cursor:pointer;touch-action:manipulation}
+.faction-switcher button .faction-symbol{grid-row:1/3;font-size:21px;color:var(--faction-light)}
+.faction-switcher button small{font:8px Arial,sans-serif;color:#b9b19a}
+.faction-switcher button.selected{border-color:var(--faction-light);background:linear-gradient(145deg,color-mix(in srgb,var(--faction-dark) 75%,#18231b),#111812);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--faction-light) 35%,transparent),0 0 12px color-mix(in srgb,var(--faction-main) 28%,transparent);color:#fff2ce}
+.faction-switcher button:focus-visible{outline:2px solid white;outline-offset:2px}
+.top{border-bottom-color:var(--faction-main)}
+.brand,.brand small,.realm,.realm b{color:var(--faction-light)}
+.resource,.player-level,.city-frame,.army-strip,.bottom-nav{border-color:var(--faction-main)}
+.resource{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--faction-light) 14%,transparent)}
+.village-heading h1,.player-level{color:var(--faction-light)}
+.player-level{background:linear-gradient(145deg,color-mix(in srgb,var(--faction-dark) 42%,#17251d),#17251d)}
+.city-frame{box-shadow:0 8px 28px #0008,inset 0 0 0 2px color-mix(in srgb,var(--faction-light) 18%,transparent)}
+.building-point{border-color:var(--faction-light);background:radial-gradient(circle at 35% 25%,var(--faction-light),var(--faction-main) 60%,var(--faction-dark));box-shadow:0 3px 9px #000b,0 0 0 2px color-mix(in srgb,var(--faction-shadow) 65%,transparent)}
+.building-point.center{background:radial-gradient(circle at 35% 25%,#fff5ce,var(--faction-main) 62%,var(--faction-dark))}
+.army-strip{background:linear-gradient(150deg,color-mix(in srgb,var(--faction-dark) 32%,#172a35),#101a1d)}
+.army-title{color:var(--faction-light)}
+.bottom-nav button{border-color:var(--faction-main)}
+.bottom-nav button.active{background:linear-gradient(145deg,var(--faction-main),var(--faction-dark));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--faction-light) 42%,transparent)}
+.building-dialog{border-color:var(--faction-main)}
+.eyebrow,.level-row strong{color:var(--faction-light)}
+.level-track span{background:linear-gradient(90deg,var(--faction-dark),var(--faction-light))}
+.primary-action{border-color:var(--faction-light);background:linear-gradient(var(--faction-main),var(--faction-dark))}
+.faction-tint{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.58;mix-blend-mode:color;transition:opacity .2s ease;background:
+ radial-gradient(ellipse 7% 3.5% at 50% 49%,var(--roof-tint) 0 54%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 37% 36%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 63% 36%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 76% 46%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 76% 58%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 66% 65%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 50% 70%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 34% 64%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 24% 51%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 25% 40%,var(--roof-tint) 0 56%,transparent 100%)}
+.building-points{z-index:2}
+.map-hint{z-index:3}
+@media(min-width:600px){.faction-switcher button{font-size:12px;padding:8px}.faction-switcher button .faction-symbol{font-size:24px}}
