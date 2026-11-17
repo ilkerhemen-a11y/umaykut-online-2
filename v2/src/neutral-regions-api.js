@@ -88,7 +88,7 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
     if(!['gokturk','hun','seljuk'].includes(factionId)){await client.query('ROLLBACK');tx=false;return json(res,409,{error:'Önce Göktürk, Hun veya Selçuklu devletini seçmelisin.'}),true;}
     const ownTroops=parse(player.troops);
     const amount=countTroops(troops);
-    if(amount<1){await client.query('ROLLBACK');tx=false;return json(res,400,{error:'En az bir asker göndermelisin.'}),true;}
+    if(amount<1&&!path.endsWith('/challenge')){await client.query('ROLLBACK');tx=false;return json(res,400,{error:'En az bir asker göndermelisin.'}),true;}
     const nextOwn=subtractTroops(ownTroops,troops);
 
     if(path.endsWith('/garrison')){
