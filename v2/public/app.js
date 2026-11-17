@@ -28,6 +28,30 @@ let savedFaction="gokturk";
 try{savedFaction=localStorage.getItem("umaykut-faction-v2")||"gokturk";}catch{}
 setFaction(savedFaction);
 
+// Keep the building overlay in the exact same rendered box as the source image.
+const villageFrame=document.querySelector(".city-frame");
+const villageStage=document.querySelector(".city-stage");
+const villageImage=document.querySelector(".city-art");
+function fitVillageImage(){
+ if(!villageFrame||!villageStage||!villageImage||!villageImage.naturalWidth||!villageImage.naturalHeight)return;
+ const frameWidth=villageFrame.clientWidth;
+ const frameHeight=villageFrame.clientHeight;
+ if(!frameWidth||!frameHeight)return;
+ const scale=Math.min(frameWidth/villageImage.naturalWidth,frameHeight/villageImage.naturalHeight);
+ villageStage.style.width=Math.round(villageImage.naturalWidth*scale)+"px";
+ villageStage.style.height=Math.round(villageImage.naturalHeight*scale)+"px";
+}
+if(villageImage){
+ if(villageImage.complete)fitVillageImage();
+ else villageImage.addEventListener("load",fitVillageImage,{once:true});
+ if(typeof ResizeObserver==="function"){
+  const villageResizeObserver=new ResizeObserver(fitVillageImage);
+  villageResizeObserver.observe(villageFrame);
+ }else{
+  window.addEventListener("resize",fitVillageImage,{passive:true});
+ }
+}
+
 const DEFAULT_RESOURCES={gold:1650,wood:6900,food:9350,stone:7480,iron:8040,horses:100};
 const BUILDING_TYPES={
  center:{name:"Merkez Binası",shortName:"Merkez",icon:"🏰",description:"Yurdunun kalbi. Diğer yapıların gelişimini yönetir."},
