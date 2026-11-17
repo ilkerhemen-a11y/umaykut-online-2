@@ -15,13 +15,13 @@ function setFaction(key){
   button.setAttribute("aria-pressed",String(active));
   button.classList.toggle("selected",active);
  });
- try{localStorage.setItem("umaykut-faction",faction);}catch{}
+ try{localStorage.setItem("umaykut-faction-v2",faction);}catch{}
 }
 document.querySelectorAll("[data-faction-choice]").forEach(button=>{
  button.addEventListener("click",()=>setFaction(button.dataset.factionChoice));
 });
-let savedFaction="seljuk";
-try{savedFaction=localStorage.getItem("umaykut-faction")||"seljuk";}catch{}
+let savedFaction="gokturk";
+try{savedFaction=localStorage.getItem("umaykut-faction-v2")||"gokturk";}catch{}
 setFaction(savedFaction);
 
 document.querySelectorAll(".bottom-nav button").forEach(button=>{
