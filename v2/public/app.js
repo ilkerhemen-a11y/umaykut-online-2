@@ -827,7 +827,7 @@ function renderArmyQueue(){
  armyState.trainingQueue.forEach(job=>{
   const item=document.createElement("div");item.className="army-queue-item";
   const title=document.createElement("strong");title.textContent=job.name+" × "+armyNumber(job.amount);
-  const time=document.createElement("small");time.textContent="Doğrudan orduya katılır";
+  const time=document.createElement("small");const remainingMs=Date.parse(job.completesAt)-getServerNow();const remaining=Math.max(0,Math.ceil(remainingMs/1000));const hours=Math.floor(remaining/3600),minutes=Math.floor((remaining%3600)/60),seconds=remaining%60;time.textContent=remainingMs<=0?"Tamamlanıyor…":"Yetiştiriliyor · "+(hours?hours+" sa ":"")+(minutes?minutes+" dk ":"")+seconds+" sn kaldı";
   item.append(title,time);armyQueueNode.append(item);
  });
 }
@@ -848,7 +848,7 @@ async function openArmyDialog(){
  armyDialog.showModal();
  await loadArmyState();
  if(armyRefreshTimer)clearInterval(armyRefreshTimer);
- armyRefreshTimer=setInterval(()=>{if(armyDialog.open&&armyState)renderArmyQueue();},1000);
+ armyRefreshTimer=setInterval(()=>{if(armyDialog.open)loadArmyState();},5000);
 }
 document.querySelector('[data-action="army"]').addEventListener("click",openArmyDialog);
 document.querySelector("#army-close").addEventListener("click",()=>{armyDialog.close();if(armyRefreshTimer)clearInterval(armyRefreshTimer);});
@@ -875,6 +875,6 @@ document.querySelector("#army-unit-detail").addEventListener("click",async event
   armyState=result;gameResources={...gameResources,...result.resources};renderResourceBalances();
   renderArmySummary();renderArmyCatalog();renderArmyQueue();
   if(selectedArmyUnitId)renderArmyUnitDetail(selectedArmyUnitId);
-  armyMessageNode.textContent=amount+" asker doğrudan orduna eklendi. Kaynaklar hesabından düşüldü.";
+  armyMessageNode.textContent=amount+" asker eğitim kuyruğuna eklendi. Kaynaklar hesabından düşüldü.";
  }catch(error){armyMessageNode.textContent=error.message||"Asker yetiştirme başlatılamadı.";button.disabled=false;}
 });
