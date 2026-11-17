@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="/factions.css">
 </head>
 <body>
-  <main class="game-shell" data-faction="seljuk">
+  <main class="game-shell" data-faction="gokturk">
     <header class="top">
       <div class="brand"><span class="brand-mark">✦</span><div><strong>UMAYKUT</strong><small>BOZKIRIN HÂKİMİYETİ</small></div></div>
       <div class="resources" aria-label="Kaynaklar">
@@ -21,7 +21,7 @@
         <div class="resource"><span>⛏️</span><b>8.040</b><small>Demir</small></div>
         <div class="resource"><span>🐎</span><b>100</b><small>At</small></div>
       </div>
-      <div class="realm"><span>İLKER'İN YURDU</span><b>SEVİYE 1</b><span class="realm-sub" id="realm-faction">Selçuklu diyarı</span></div>
+      <div class="realm"><span>İLKER'İN YURDU</span><b>SEVİYE 1</b><span class="realm-sub" id="realm-faction">Göktürk diyarı</span></div>
     </header>
 
     <section class="village-wrap" aria-label="Köy görünümü">
@@ -30,12 +30,23 @@
         <div class="faction-caption">DEVLETİNİ SEÇ</div>
         <div class="faction-switcher" role="group" aria-label="Devlet görünümünü seç">
           <button type="button" data-faction-choice="hun" aria-pressed="false"><span class="faction-symbol">🐺</span><span>Hun</span><small>Kırmızı</small></button>
-          <button type="button" data-faction-choice="seljuk" aria-pressed="true"><span class="faction-symbol">☀</span><span>Selçuklu</span><small>Altın</small></button>
-          <button type="button" data-faction-choice="gokturk" aria-pressed="false"><span class="faction-symbol">𐰴</span><span>Göktürk</span><small>Mavi</small></button>
+          <button type="button" data-faction-choice="seljuk" aria-pressed="false"><span class="faction-symbol">☀</span><span>Selçuklu</span><small>Altın</small></button>
+          <button type="button" data-faction-choice="gokturk" aria-pressed="true"><span class="faction-symbol">𐰴</span><span>Göktürk</span><small>Mavi</small></button>
         </div>
       </section>
-      <div class="city-frame" aria-label="Köy haritası">
-        <img class="city-art" src="/assets/IMG-20261117-WA0073.jpg" alt="Orman içinde dairesel taş surlarla çevrili, merkez binası ve dokuz yapısı bulunan Umaykut köyü" fetchpriority="high">
+      <div class="city-frame" aria-label="Göktürk köyü ve numaralandırılmış binalar">
+        <img class="city-art" src="/assets/IMG-20261117-WA0073.jpg" alt="Orman içinde dairesel taş surlarla çevrili, merkez binası ve sekiz çevre binası bulunan Göktürk köyü" fetchpriority="high">
+        <div class="building-numbers" aria-label="Köy binaları">
+          <span class="building-number is-center" style="left:50%;top:45%" aria-label="1 numaralı merkez binası">1</span>
+          <span class="building-number" style="left:39%;top:34%" aria-label="2 numaralı bina">2</span>
+          <span class="building-number" style="left:62%;top:34%" aria-label="3 numaralı bina">3</span>
+          <span class="building-number" style="left:24%;top:42%" aria-label="4 numaralı bina">4</span>
+          <span class="building-number" style="left:76%;top:42%" aria-label="5 numaralı bina">5</span>
+          <span class="building-number" style="left:21%;top:51%" aria-label="6 numaralı bina">6</span>
+          <span class="building-number" style="left:78%;top:51%" aria-label="7 numaralı bina">7</span>
+          <span class="building-number" style="left:38%;top:57%" aria-label="8 numaralı bina">8</span>
+          <span class="building-number" style="left:63%;top:57%" aria-label="9 numaralı bina">9</span>
+        </div>
       </div>
       <section class="army-strip">
         <div class="army-title">⚔ ORDU BİRLİKLERİ <span>·</span> <small>İlk birliğini kurmaya hazırlan</small></div>
