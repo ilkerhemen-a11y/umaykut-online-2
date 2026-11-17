@@ -437,7 +437,7 @@ test("game state preserves valid in-progress building upgrades across reloads", 
   const state=await response.json();
   assert.deepEqual(state.buildings["1"].upgrade,upgrade);
   assert.equal(state.buildings["1"].level,1);
-  assert.equal(persisted,null,"an active timer should not be rewritten or discarded");
+  assert.deepEqual(persisted["1"].upgrade,upgrade,"an active timer must survive normalization and persistence");
 });
 
 test("established characters keep valid building levels while missing slots are repaired", async (t) => {
