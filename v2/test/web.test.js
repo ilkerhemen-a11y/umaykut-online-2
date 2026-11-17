@@ -16,7 +16,10 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/data-faction="gokturk"/);
   assert.match(html,/data-faction-choice="gokturk" aria-pressed="true"/);
   assert.equal((html.match(/class="building-number(?: is-center)?"/g)||[]).length,9);
-  assert.match(html,/1 numaralı merkez binası/);
+  assert.match(html,/1 numaralı Merkez Binası/);
+  for(const [slot,name] of [["1","Merkez"],["2","Kışla"],["3","Ahır"],["4","Oduncu Ocağı"],["5","Çiftlik"],["6","Taş Ocağı"],["7","Demir Madeni"],["8","Pazar"],["9","Depo"]]){
+    assert.match(html,new RegExp('data-building-slot="'+slot+'"[^>]*>[\\s\\S]*?building-label">'+name+'<'));
+  }
 
   // Building markers must overlay the image itself, not flow after it.
   const styles=await fetch(base+"/app.css");
@@ -27,6 +30,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(css.includes(".building-numbers{position:absolute;inset:0;pointer-events:none}"));
   assert.ok(css.includes(".building-number{position:absolute;transform:translate(-50%,-50%);"));
   assert.ok(css.includes("pointer-events:auto"));
+  assert.ok(css.includes(".building-label{position:absolute;"));
+  assert.ok(css.includes("font:700 7px/1.2 Arial,sans-serif"));
   assert.ok(!css.includes(".city-frame{max-height:700px}"));
   assert.ok(!css.includes(".city-frame{min-height:360px;max-height:58dvh}"));
   assert.match(html,/id="map-view" hidden/);
@@ -39,6 +44,9 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.match(appScript,/data-faction-choice/);
+  assert.match(appScript,/BUILDING_SLOT_TYPES/);
+  assert.match(appScript,/node\.querySelector\("\.building-label"\)/);
+  assert.match(appScript,/"9":"warehouse"/);
   assert.match(appScript,/umaykut-faction-v2/);
   assert.match(appScript,/gokturk/);
   assert.match(appScript,/updateWorkerSummary/);
