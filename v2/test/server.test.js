@@ -66,12 +66,25 @@ test("game state is returned only to a valid V2 player session", async (t) => {
       if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) {
         return { rows: [], rowCount: 1 };
       }
-      if (sql.includes("SELECT faction_id, worker_pool, worker_assignments")) {
+      if (sql.includes("SELECT p.village_name, s.faction_id, s.worker_pool")) {
         return { rows: [{
+          village_name: "Bozkır",
           faction_id: "gokturk",
           worker_pool: 1800,
           worker_assignments: { grain: 20, wood: 30, stone: 10 },
           worker_state_initialized: true,
+          resources: { gold: 1650 },
+          buildings: {
+            "1": { type: "center", level: 3 },
+            "2": { type: "barracks", level: 2 },
+            "3": { type: "stable", level: 1 },
+            "4": { type: "blacksmith", level: 1 },
+            "5": { type: "school", level: 1 },
+            "6": { type: "lumberyard", level: 1 },
+            "7": { type: "temple", level: 1 },
+            "8": { type: "market", level: 1 },
+            "9": { type: "warehouse", level: 1 }
+          },
           updated_at: "2026-11-17T12:00:00.000Z"
         }], rowCount: 1 };
       }
@@ -89,6 +102,9 @@ test("game state is returned only to a valid V2 player session", async (t) => {
   assert.equal(state.factionId, "gokturk");
   assert.equal(state.workerPool, 1800);
   assert.deepEqual(state.workerAssignments, { grain: 20, wood: 30, stone: 10 });
+  assert.equal(state.buildings["1"].level, 3);
+  assert.equal(state.buildings["2"].level, 2);
+  assert.equal(Object.keys(state.buildings).length, 9);
 });
 
 test("game state rejects worker assignments above the starting pool", async (t) => {
@@ -335,4 +351,81 @@ test("founding an already established village preserves existing building progre
   assert.ok(stateWrite);
   assert.doesNotMatch(stateWrite.sql,/buildings = EXCLUDED\.buildings/);
   assert.doesNotMatch(stateWrite.sql,/resources = EXCLUDED\.resources/);
+});
+
+test("unfounded characters are repaired to nine level-one buildings on state load", async (t) => {
+  const secret = "test-session-secret-with-at-least-32-characters";
+  const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+  const token = createSessionToken(playerId, secret);
+  let persisted = null;
+  const pool = {
+    query: async (sql, values=[]) => {
+      if (sql.includes("SELECT p.id FROM umaykut_v2.players")) return { rows:[{id:playerId}], rowCount:1 };
+      if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) return { rows:[], rowCount:1 };
+      if (sql.includes("SELECT p.village_name, s.faction_id, s.worker_pool")) {
+        return { rows:[{
+          village_name:null, faction_id:null, worker_pool:1800,
+          worker_assignments:{grain:0,wood:0,stone:0}, worker_state_initialized:true,
+          resources:{gold:1650}, buildings:{"1":{type:"center",level:7}},
+          updated_at:"2026-11-17T12:00:00.000Z"
+        }], rowCount:1 };
+      }
+      if (sql.includes("UPDATE umaykut_v2.player_game_state SET buildings")) {
+        persisted = JSON.parse(values[1]);
+        return { rows:[], rowCount:1 };
+      }
+      throw new Error("Unexpected SQL in initial-building repair test: "+sql);
+    }
+  };
+  const server=createServer({pool,sessionSecret:secret});
+  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+  t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const response=await fetch(`http://127.0.0.1:${server.address().port}/api/game/state`,{
+    headers:{Authorization:"Bearer "+token}
+  });
+  assert.equal(response.status,200);
+  const state=await response.json();
+  assert.equal(Object.keys(state.buildings).length,9);
+  for(const building of Object.values(state.buildings)) assert.equal(building.level,1);
+  assert.deepEqual(persisted,state.buildings);
+});
+
+test("established characters keep valid building levels while missing slots are repaired", async (t) => {
+  const secret = "test-session-secret-with-at-least-32-characters";
+  const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+  const token = createSessionToken(playerId, secret);
+  let persisted = null;
+  const pool = {
+    query: async (sql, values=[]) => {
+      if (sql.includes("SELECT p.id FROM umaykut_v2.players")) return { rows:[{id:playerId}], rowCount:1 };
+      if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) return { rows:[], rowCount:1 };
+      if (sql.includes("SELECT p.village_name, s.faction_id, s.worker_pool")) {
+        return { rows:[{
+          village_name:"Eski Yurt", faction_id:"gokturk", worker_pool:1800,
+          worker_assignments:{grain:0,wood:0,stone:0}, worker_state_initialized:true,
+          resources:{gold:1650},
+          buildings:{"1":{type:"center",level:4},"2":{type:"barracks",level:2}},
+          updated_at:"2026-11-17T12:00:00.000Z"
+        }], rowCount:1 };
+      }
+      if (sql.includes("UPDATE umaykut_v2.player_game_state SET buildings")) {
+        persisted = JSON.parse(values[1]);
+        return { rows:[], rowCount:1 };
+      }
+      throw new Error("Unexpected SQL in established-building repair test: "+sql);
+    }
+  };
+  const server=createServer({pool,sessionSecret:secret});
+  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+  t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const response=await fetch(`http://127.0.0.1:${server.address().port}/api/game/state`,{
+    headers:{Authorization:"Bearer "+token}
+  });
+  assert.equal(response.status,200);
+  const state=await response.json();
+  assert.equal(state.buildings["1"].level,4);
+  assert.equal(state.buildings["2"].level,2);
+  assert.equal(Object.keys(state.buildings).length,9);
+  assert.equal(state.buildings["9"].level,1);
+  assert.deepEqual(persisted,state.buildings);
 });
