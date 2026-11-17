@@ -30,7 +30,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
   assert.match(html,/href="\/app\.css\?v=20261117-founding-flow-2"/);
-  assert.ok(html.includes('src="/app.js?v=20261117-level-one-registration-fix-1"'));
+  assert.ok(html.includes('src="/app.js?v=20261117-building-interaction-level-one-fix-2"'));
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n        </div>\n      </div>\n      <dialog id="building-dialog"',stageStart);
   assert.ok(stageEnd>stageStart);
@@ -88,6 +88,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/"9":"warehouse"/);
   assert.match(appScript,/umaykut-faction-v2/);
   assert.ok(appScript.includes('"/api/player/profile"'));
+  assert.ok(appScript.includes('node.addEventListener("click",()=>openBuildingDialog(node.dataset.buildingSlot))'));
+  assert.ok(appScript.includes('function openBuildingDialog(slot)'));
   assert.match(appScript,/openFoundingDialog/);
   assert.match(appScript,/await loadGameState\(\)/);
   assert.match(appScript,/updateVillageName/);
