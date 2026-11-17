@@ -98,3 +98,10 @@
 @media(min-width:600px){.map-view{padding:16px 20px}.world-map{max-height:680px}.map-point>span{width:44px;height:44px;font-size:23px}.map-point small{font-size:9px}.map-detail{padding:13px}}
 
 .village-wrap[hidden]{display:none!important}
+
+.worker-summary em{grid-column:2;font:8px Arial,sans-serif;color:#b9d5bd;font-style:normal;white-space:nowrap}
+.worker-actions{display:grid!important;grid-template-columns:minmax(54px,1fr) auto auto;gap:6px!important}
+.worker-actions button{padding:0 11px;min-height:36px;white-space:nowrap}
+.worker-actions button:disabled{opacity:.38;filter:saturate(.3)}
+.worker-actions input{width:100%;box-sizing:border-box}
+@media(max-width:360px){.worker-actions{grid-template-columns:minmax(45px,1fr) auto auto;gap:4px!important}.worker-actions button{padding:0 8px;font-size:10px}}
