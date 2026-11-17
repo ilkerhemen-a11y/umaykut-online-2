@@ -10,6 +10,34 @@ const buildings=[
  {id:9,name:"Demirci",icon:"⚒️",x:24,y:51,level:1,description:"Demir işleme ve ekipman üretim merkezi."},
  {id:10,name:"Sığınak",icon:"🛡️",x:25,y:40,level:1,description:"Şehrin güvenliği için korunaklı yapı."}
 ];
+const factions={
+ hun:{name:"Hun diyarı",mapAlt:"Kırmızı kubbeli ve kırmızı sancaklı Hun şehri",themeColor:"#7b2528"},
+ seljuk:{name:"Selçuklu diyarı",mapAlt:"Altın kubbeli ve altın sancaklı Selçuklu şehri",themeColor:"#8d6a2d"},
+ gokturk:{name:"Göktürk diyarı",mapAlt:"Mavi kubbeli ve mavi sancaklı Göktürk şehri",themeColor:"#176b83"}
+};
+const shell=document.querySelector(".game-shell");
+const factionLabel=document.querySelector("#realm-faction");
+const cityArt=document.querySelector(".city-art");
+function setFaction(key){
+ const faction=factions[key] ? key : "seljuk";
+ shell.dataset.faction=faction;
+ factionLabel.textContent=factions[faction].name;
+ cityArt.alt=factions[faction].mapAlt;
+ document.querySelector('meta[name="theme-color"]').content=factions[faction].themeColor;
+ document.querySelectorAll("[data-faction-choice]").forEach(button=>{
+  const active=button.dataset.factionChoice===faction;
+  button.setAttribute("aria-pressed",String(active));
+  button.classList.toggle("selected",active);
+ });
+ try{localStorage.setItem("umaykut-faction",faction);}catch{}
+}
+document.querySelectorAll("[data-faction-choice]").forEach(button=>{
+ button.addEventListener("click",()=>setFaction(button.dataset.factionChoice));
+});
+let savedFaction="seljuk";
+try{savedFaction=localStorage.getItem("umaykut-faction")||"seljuk";}catch{}
+setFaction(savedFaction);
+
 const points=document.querySelector("#building-points");
 const dialog=document.querySelector("#building-dialog");
 let selected=null;
