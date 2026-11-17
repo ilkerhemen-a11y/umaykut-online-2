@@ -207,23 +207,21 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             inTransaction = false;
             return sendJson(res, 409, { error: "Bu binanın başlangıç seviyesi bulunamadı. Oyunu yenileyip tekrar dene." });
           }
-          const currentLevel = Number(current.level);
-          if (!Number.isSafeInteger(currentLevel) || currentLevel < 1) {
-            await client.query("ROLLBACK");
-            inTransaction = false;
-            return sendJson(res, 409, { error: "Bina seviyesi geçersiz." });
-          }
-          if (currentLevel >= 10) {
-            await client.query("ROLLBACK");
-            inTransaction = false;
-            return sendJson(res, 409, { error: "Bu bina en yüksek seviye olan 10'a ulaştı." });
-          }
           const settled = settleCompletedBuildingUpgrades(buildings);
           for (const [buildingSlot, building] of Object.entries(settled.buildings)) buildings[buildingSlot] = building;
           const currentBuilding = buildings[key];
           if (currentBuilding.upgrade) {
             await client.query("ROLLBACK"); inTransaction = false;
             return sendJson(res, 409, { error: "Bu bina zaten yükseltiliyor.", building: currentBuilding, buildings });
+          }
+          const currentLevel = Number(currentBuilding.level);
+          if (!Number.isSafeInteger(currentLevel) || currentLevel < 1) {
+            await client.query("ROLLBACK"); inTransaction = false;
+            return sendJson(res, 409, { error: "Bina seviyesi geçersiz." });
+          }
+          if (currentLevel >= 10) {
+            await client.query("ROLLBACK"); inTransaction = false;
+            return sendJson(res, 409, { error: "Bu bina en yüksek seviye olan 10'a ulaştı." });
           }
           const targetLevel = currentLevel + 1;
           const cost = buildingUpgradeCost(targetLevel);
