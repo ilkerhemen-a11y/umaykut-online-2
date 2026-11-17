@@ -4,7 +4,7 @@ import { dirname, extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig } from "./config.js";
 import { createPool } from "./database.js";
-import { bearerToken, createSessionToken, hashPassword, validateRegistration, verifyPassword, verifySessionToken } from "./auth.js";
+import { bearerToken, createSessionToken, hashPassword, sessionTokenHash, validateRegistration, verifyPassword, verifySessionToken } from "./auth.js";
 const config=loadConfig(),here=dirname(fileURLToPath(import.meta.url)),webRoot=resolve(here,"../public"),assetRoot=resolve(here,"../../public/assets");
 const mimeTypes={".html":"text/html; charset=utf-8",".css":"text/css; charset=utf-8",".js":"text/javascript; charset=utf-8",".svg":"image/svg+xml",".webp":"image/webp",".png":"image/png",".jpg":"image/jpeg",".jpeg":"image/jpeg"};
 function sendJson(res,status,payload){res.writeHead(status,{"content-type":"application/json; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff"});res.end(JSON.stringify(payload));}
@@ -22,7 +22,7 @@ export function createServer({pool=createPool(),sessionSecret=process.env.SESSIO
     try{const input=await readJson(req),issue=validateRegistration(input);if(issue)return sendJson(res,400,{error:issue});
      const username=input.username.trim(),email=input.email.trim().toLowerCase(),passwordHash=await hashPassword(input.password);
      const result=await pool.query("INSERT INTO players(username,username_normalized,email,email_normalized,password_hash) VALUES($1,lower($1),$2,lower($2),$3) RETURNING id,username,email,created_at",[username,email,passwordHash]);
-     const player=result.rows[0],token=createSessionToken(player.id,sessionSecret);return sendJson(res,201,{player,token,tokenType:"Bearer"});
+     const player=result.rows[0],token=createSessionToken(player.id,sessionSecret),session=verifySessionToken(token,sessionSecret);await pool.query("INSERT INTO player_sessions(player_id,token_hash,expires_at) VALUES($1,$2,to_timestamp($3))",[player.id,sessionTokenHash(token),session.expiresAt]);return sendJson(res,201,{player,token,tokenType:"Bearer"});
     }catch(error){if(error.code==="23505")return sendJson(res,409,{error:"Bu oyuncu adı veya e-posta zaten kayıtlı."});return sendJson(res,error.status||500,{error:error.status?error.message:"Kayıt işlemi tamamlanamadı."});}
    }
    if(req.method==="POST"&&url.pathname==="/api/auth/login"){
@@ -30,12 +30,12 @@ export function createServer({pool=createPool(),sessionSecret=process.env.SESSIO
      if(!login||!password||password.length>128)return sendJson(res,400,{error:"E-posta/oyuncu adı ve şifre gerekli."});
      const result=await pool.query("SELECT id,username,email,password_hash FROM players WHERE email_normalized=$1 OR username_normalized=$1 LIMIT 1",[login]);
      const player=result.rows[0];if(!player||!await verifyPassword(password,player.password_hash))return sendJson(res,401,{error:"Giriş bilgileri hatalı."});
-     const token=createSessionToken(player.id,sessionSecret);return sendJson(res,200,{player:{id:player.id,username:player.username,email:player.email},token,tokenType:"Bearer"});
+     const token=createSessionToken(player.id,sessionSecret),session=verifySessionToken(token,sessionSecret);await pool.query("INSERT INTO player_sessions(player_id,token_hash,expires_at) VALUES($1,$2,to_timestamp($3))",[player.id,sessionTokenHash(token),session.expiresAt]);return sendJson(res,200,{player:{id:player.id,username:player.username,email:player.email},token,tokenType:"Bearer"});
     }catch(error){return sendJson(res,error.status||500,{error:error.status?error.message:"Giriş işlemi tamamlanamadı."});}
    }
    if(req.method==="GET"&&url.pathname==="/api/auth/me"){
     const session=verifySessionToken(bearerToken(req),sessionSecret);if(!session)return sendJson(res,401,{error:"Oturum geçersiz veya süresi dolmuş."});
-    try{const result=await pool.query("SELECT id,username,email,created_at FROM players WHERE id=$1",[session.id]);if(!result.rowCount)return sendJson(res,401,{error:"Oyuncu bulunamadı."});return sendJson(res,200,{player:result.rows[0]});}
+    try{const result=await pool.query("SELECT p.id,p.username,p.email,p.created_at FROM players p JOIN player_sessions s ON s.player_id=p.id WHERE p.id=$1 AND s.token_hash=$2 AND s.expires_at>NOW()",[session.id,sessionTokenHash(bearerToken(req))]);if(!result.rowCount)return sendJson(res,401,{error:"Oyuncu bulunamadı."});return sendJson(res,200,{player:result.rows[0]});}
     catch{return sendJson(res,500,{error:"Oyuncu bilgisi alınamadı."});}
    }
    if(!["GET","POST"].includes(req.method)){res.setHeader("allow","GET, POST");return sendJson(res,405,{error:"Yöntem desteklenmiyor."});}
