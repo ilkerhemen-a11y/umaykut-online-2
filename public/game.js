@@ -217,10 +217,16 @@ function renderUnits(units){
     const count=document.createElement("p");count.className="unit-count";count.textContent="Ordudaki mevcut: "+Number(unit.quantity).toLocaleString("tr-TR");
     const stats=document.createElement("dl");stats.className="unit-stats";
     [["⚔️","Saldırı",unit.stats.attack],["🛡️","Piyadelere karşı savunma",unit.stats.infantryDefense],["🟣","Atlılara karşı savunma",unit.stats.cavalryDefense],["🏃","Hareket hızı",unit.stats.movementSpeed],["💰","Yağma taşıma kapasitesi",unit.stats.carryCapacity]].forEach(([icon,label,value])=>{const row=document.createElement("div");const dt=document.createElement("dt");dt.textContent=icon+" "+label;const dd=document.createElement("dd");dd.textContent=String(value);row.append(dt,dd);stats.append(row);});
+    const costBox=document.createElement("div");costBox.className="unit-training-cost";
+    const costTitle=document.createElement("b");costTitle.textContent="EĞİTİM MALİYETİ · 1 ASKER";costBox.append(costTitle);
+    const resourceNames={wood:"🪵 Odun",stone:"🪨 Taş",iron:"⛏️ Demir",food:"🌾 Tahıl",gold:"🪙 Altın",horses:"🐎 At"};
+    Object.entries(unit.trainingCost||{}).filter(([,amount])=>Number(amount)>0).forEach(([key,amount])=>{const line=document.createElement("span");line.dataset.resource=key;line.dataset.unitCost=String(amount);line.textContent=resourceNames[key]+" "+Number(amount).toLocaleString("tr-TR");costBox.append(line);});
+
     const quantityLabel=document.createElement("label");quantityLabel.className="training-quantity-label";quantityLabel.textContent="Eğitilecek asker";
     const quantity=document.createElement("input");quantity.type="number";quantity.min="1";quantity.max="100";quantity.value="1";quantity.className="training-quantity";quantity.setAttribute("aria-label",unit.role+" eğitim adedi");
+    quantity.addEventListener("input",()=>{const amount=Math.max(1,Math.min(100,Number(quantity.value)||1));costTitle.textContent="TOPLAM EĞİTİM MALİYETİ · "+amount+" ASKER";costBox.querySelectorAll("[data-resource]").forEach(line=>{const key=line.dataset.resource;line.textContent=resourceNames[key]+" "+(Number(line.dataset.unitCost)*amount).toLocaleString("tr-TR");});});
     const button=document.createElement("button");button.type="button";button.className="train-button";button.textContent="ANINDA EĞİT";button.addEventListener("click",()=>beginTraining(unit.id,quantity.value,button));
-    card.append(art,heading,meta,count,stats,quantityLabel,quantity,button);container.append(card);
+    card.append(art,heading,meta,count,stats,costBox,quantityLabel,quantity,button);container.append(card);
   });
 }
 async function beginTraining(unitId,quantity,button){
@@ -499,7 +505,7 @@ async function loadPlayerData(){
 function renderArmy(army){
   const units=army.units||[];
   const summary=$("#armyCarrySummary");
-  if(summary)summary.textContent="💰 Toplam yağma taşıma kapasitesi: "+Number(army.totalCarryCapacity||0).toLocaleString("tr-TR");
+  if(summary)summary.textContent="⚔️ Ordu gücü: "+Number(army.totalPower||0).toLocaleString("tr-TR")+" · Asker: "+Number(army.totalUnits||0).toLocaleString("tr-TR")+" · Yağma kapasitesi: "+Number(army.totalCarryCapacity||0).toLocaleString("tr-TR");
   const strip=document.querySelector(".army-strip .units");
   strip.replaceChildren();
   const icons=["🪓","🏹","🛡️","⚔️","🐎","🏹","🐎","🎯","💥"];
