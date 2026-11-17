@@ -46,6 +46,7 @@
         <div class="resource"><span>🐎</span><b id="resource-horses">100</b><small>At</small></div>
       </div>
       <div class="realm"><span id="realm-player-name">İLKER'İN YURDU</span><b>SEVİYE 1</b><span class="realm-sub" id="realm-faction">Göktürk diyarı</span></div>
+      <button class="top-settings" id="open-settings" type="button" aria-haspopup="dialog" aria-controls="settings-dialog" aria-label="Ayarları aç">⚙️</button>
     </header>
 
     <section class="village-wrap" aria-label="Köy görünümü">
@@ -165,7 +166,23 @@
       <button type="button"><span>⚔️</span>Ordu</button>
       <button type="button" data-screen="map"><span>🗺️</span>Harita</button>
       <button type="button"><span>🎒</span>Envanter</button>
+      <button type="button" data-action="settings" aria-haspopup="dialog" aria-controls="settings-dialog"><span>⚙️</span>Ayarlar</button>
     </nav>
+    <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+      <div class="settings-head"><div><small>UMAYKUT ONLINE II</small><h2 id="settings-title">Oyun Ayarları</h2></div><button class="settings-close" id="close-settings" type="button" aria-label="Ayarları kapat">×</button></div>
+      <section class="settings-account">
+        <span class="settings-avatar">👤</span><div><small>OTURUM AÇIK</small><strong id="settings-player-name">Oyuncu</strong><span id="settings-player-email">Hesap bilgileri</span></div>
+      </section>
+      <section class="settings-group">
+        <h3>Görünüm</h3>
+        <label class="settings-option"><span><b>Azaltılmış animasyon</b><small>Hareketleri ve geçişleri azaltır.</small></span><input id="setting-reduced-motion" type="checkbox"></label>
+        <label class="settings-option"><span><b>Sıkışık kaynak çubuğu</b><small>Kaynak alanını daha kompakt gösterir.</small></span><input id="setting-compact-resources" type="checkbox"></label>
+        <div class="settings-option settings-static"><span><b>Devlet teması</b><small>Seçtiğin devletin rengi otomatik kullanılır.</small></span><strong id="settings-theme-name">Göktürk</strong></div>
+      </section>
+      <p class="settings-note">Ayarların bu cihazda saklanır. Hesabın ve şehir ilerlemen çıkış yaptığında silinmez.</p>
+      <button class="logout-action" id="logout-button" type="button">↪ Güvenli Çıkış Yap</button>
+      <p id="settings-message" class="settings-message" role="status" aria-live="polite"></p>
+    </dialog>
   </main>
 
   <script type="module" src="/app.js?v=20261117-fixed-building-slots-4"></script>
