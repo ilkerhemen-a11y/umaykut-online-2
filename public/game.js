@@ -241,7 +241,7 @@ const buildSlotPositions=[[28,32],[50,25],[72,32],[81,48],[72,68],[50,77],[28,68
 const userBuildingCells={school:1,barracks:2,market:3,stonemason:4,stable:6,blacksmith:7,mill:8,farm:9};
 function getUserBuildingPreview(type){const index=type==="center"?0:userBuildingCells[type];return index===undefined?null:{src:"/assets/user-buildings-atlas.png",col:index%5,row:Math.floor(index/5)};}
 const buildIcons={school:"",barracks:"",market:"",stonemason:"",stable:"",blacksmith:"",mill:"",farm:""};
-const staticVillageSlotPositions=[{x:36,y:30},{x:64,y:30},{x:76,y:43},{x:81,y:57},{x:63,y:65},{x:50,y:67},{x:34,y:57},{x:20,y:48},{x:23,y:35}];
+const staticVillageSlotPositions=[{x:50,y:28},{x:30,y:37},{x:70,y:37},{x:80,y:53},{x:69,y:70},{x:50,y:81},{x:31,y:70},{x:20,y:53},{x:50,y:91}];
 function currentProjectedSlots(){return staticVillageSlotPositions;}
 function repositionVillageOverlays(){
  const positions=currentProjectedSlots();
@@ -492,12 +492,11 @@ function renderArmy(army){
   if(summary)summary.textContent="💰 Toplam yağma taşıma kapasitesi: "+Number(army.totalCarryCapacity||0).toLocaleString("tr-TR");
   const strip=document.querySelector(".army-strip .units");
   strip.replaceChildren();
-  const icons=["🪓","🏹","🛡️","⚔️","🐎","🏹","🐎"];
+  const icons=["🪓","🏹","🛡️","⚔️","🐎","🏹","🐎","🎯","💥"];
   units.forEach((unit,index)=>{
     const item=document.createElement("div");
     const icon=document.createElement("span");
-    if(siegeImages[unit.id]){const image=document.createElement("img");image.src=siegeImages[unit.id];image.alt=unit.role;image.className="army-unit-image";icon.append(image);}
-    else icon.textContent=icons[index]||"⚔️";
+    icon.textContent=icons[index]||"⚔️";
     const name=document.createElement("small");name.textContent=unit.role;
     const quantity=document.createElement("b");quantity.textContent=Number(unit.quantity).toLocaleString("tr-TR");
     item.append(icon,name,quantity);strip.append(item);
