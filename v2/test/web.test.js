@@ -20,7 +20,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/Altın Hâkimiyet/);
   assert.match(html,/Göklerin Hâkimiyeti/);
   assert.match(html,/founding-gokturk-image/);
-  assert.match(html,/IMG-20261117-WA0073\\.jpg/);
+  assert.ok(html.includes("IMG-20261117-WA0073.jpg"));
   assert.doesNotMatch(html,/İlker.in Yurdu/);
   assert.match(html,/id="settings-dialog"/);
   assert.match(html,/id="open-settings"/);
