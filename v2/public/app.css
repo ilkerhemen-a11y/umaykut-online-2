@@ -34,3 +34,27 @@
 .game-shell.compact-resources .resource{padding:3px 2px}
 .game-shell.compact-resources .resource small{display:none}
 @media(max-width:390px){.top{gap:5px}.top-settings{width:32px;height:32px;font-size:16px}.bottom-nav{padding-left:4px;padding-right:4px;gap:3px}.bottom-nav button{font-size:8px}.bottom-nav button span{font-size:18px}}
+
+
+/* Mandatory first-entry state and village founding flow */
+.founding-dialog{width:min(94vw,520px);max-height:92dvh;overflow:auto;border:1px solid #cda957;border-radius:18px;background:linear-gradient(155deg,#26372b,#101a14 78%);color:#f5e8c6;padding:18px;box-shadow:0 20px 80px #000e}
+.founding-dialog::backdrop{background:#030805df;backdrop-filter:blur(6px)}
+.founding-heading{text-align:center}
+.founding-heading>small{font:8px Arial,sans-serif;letter-spacing:1.5px;color:#dfc078}
+.founding-heading h2{margin:7px 0;font-size:25px;color:#f3d98f}
+.founding-heading p{margin:0 0 14px;font:11px/1.45 Arial,sans-serif;color:#c8bea2}
+#founding-form>label{display:block;margin:10px 0 6px;font:11px Arial,sans-serif;color:#e9d7a6}
+#founding-village-name{width:100%;padding:12px;border:1px solid #8c7445;border-radius:9px;background:#0b140e;color:#fff1ca;font:14px Arial,sans-serif}
+#founding-village-name:focus{outline:2px solid #e4c16e;outline-offset:2px}
+.founding-factions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.founding-faction{min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 5px;border:1px solid #77643f;border-radius:11px;background:linear-gradient(145deg,#1b2a20,#0d1711);color:#f5e8c6;text-align:center;cursor:pointer}
+.founding-faction img,.founding-gokturk{width:100%;height:78px;object-fit:cover;border-radius:7px;border:1px solid #b89a59}
+.founding-gokturk{display:grid;place-items:center;background:linear-gradient(145deg,#245a70,#102d3b);font-size:42px;color:#c6eff5}
+.founding-faction strong{font:bold 13px Arial,sans-serif}
+.founding-faction small{font:9px Arial,sans-serif;color:#e4c16e}
+.founding-faction span:last-child{font:9px/1.35 Arial,sans-serif;color:#c7bea7}
+.founding-faction[aria-pressed="true"]{border-color:#f2d98f;box-shadow:inset 0 0 0 2px #d5b45a55,0 0 14px #d5b45a33;background:linear-gradient(145deg,#4b3a20,#172118)}
+.founding-message{min-height:28px;margin:12px 0;text-align:center;font:10px/1.4 Arial,sans-serif;color:#e5d5ac}
+.founding-submit{width:100%;padding:13px;border:1px solid #f0d58c;border-radius:9px;background:linear-gradient(#a27b35,#5e431e);color:#fff3cf;font:bold 13px Arial,sans-serif}
+.founding-submit:disabled{opacity:.45;filter:saturate(.4)}
+@media(max-width:360px){.founding-dialog{padding:13px}.founding-factions{gap:5px}.founding-faction{padding:6px 3px}.founding-faction img,.founding-gokturk{height:62px}.founding-faction span:last-child{font-size:8px}}
