@@ -36,7 +36,10 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(stageEnd>stageStart);
   const stageHtml=html.slice(stageStart,stageEnd);
   assert.ok(stageHtml.includes('<img class="city-art"') && stageHtml.includes('<div class="building-numbers"'));
-  assert.match(stageHtml,/class="wall-number" id="wall-position-marker"/);\n  assert.match(html,/id="wall-position-toggle"/);\n  assert.match(html,/id="wall-position-confirm"/);\n  assert.match(html,/id="wall-position-status"/);
+  assert.match(stageHtml,/class="wall-number" id="wall-position-marker"/);
+  assert.match(html,/id="wall-position-toggle"/);
+  assert.match(html,/id="wall-position-confirm"/);
+  assert.match(html,/id="wall-position-status"/);
   assert.doesNotMatch(html,/data-faction="gokturk"/);
   assert.match(html,/data-faction-choice="gokturk" aria-pressed="false"/);
   assert.equal((html.match(/class="building-number(?: is-center)?"/g)||[]).length,9);
@@ -66,7 +69,10 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   
   assert.ok(css.includes(".building-numbers{position:absolute;inset:0;pointer-events:none}"));
   assert.match(css,/\.wall-number\{[^}]*left:50%[^}]*top:7%/);
-  assert.ok(css.includes(".building-number{position:absolute;transform:translate(-50%,-50%);"));\n  assert.ok(css.includes(".wall-position-tools{"));\n  assert.ok(css.includes(".wall-number.wall-position-draggable{"));\n  assert.ok(css.includes(".wall-position-editing{cursor:crosshair}"));
+  assert.ok(css.includes(".building-number{position:absolute;transform:translate(-50%,-50%);"));
+  assert.ok(css.includes(".wall-position-tools{"));
+  assert.ok(css.includes(".wall-number.wall-position-draggable{"));
+  assert.ok(css.includes(".wall-position-editing{cursor:crosshair}"));
   assert.ok(css.includes("pointer-events:auto"));
   assert.ok(css.includes(".building-label{position:absolute;"));
   assert.ok(css.includes("font:700 7px/1.2 Arial,sans-serif"));
@@ -87,7 +93,11 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(appScript.includes("function fitVillageImage()"));
   assert.ok(appScript.includes("villageImage.naturalWidth"));
   assert.ok(appScript.includes("new ResizeObserver(fitVillageImage)"));
-  assert.match(appScript,/function renderUpgradeTracker\(\)/);\n  assert.match(appScript,/function setWallPositionEditing\(enabled\)/);\n  assert.match(appScript,/function moveWallMarker\(event\)/);\n  assert.match(appScript,/WALL_POSITION_KEY/);\n  assert.match(appScript,/wallPositionConfirm.addEventListener\("click"/);
+  assert.match(appScript,/function renderUpgradeTracker\(\)/);
+  assert.match(appScript,/function setWallPositionEditing\(enabled\)/);
+  assert.match(appScript,/function moveWallMarker\(event\)/);
+  assert.match(appScript,/WALL_POSITION_KEY/);
+  assert.match(appScript,/wallPositionConfirm.addEventListener\("click"/);
   assert.match(appScript,/setInterval\(updateUpgradeTracking,1000\)/);
   assert.match(appScript,/setServerClock\(state.serverNow\)/);
   assert.match(appScript,/building-upgrade-count/);
