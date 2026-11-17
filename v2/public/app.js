@@ -804,3 +804,96 @@ if(wallPositionMarker&&wallPositionToggle&&wallPositionConfirm&&wallPositionStag
   wallPositionConfirm.disabled=true;
  });
 }
+
+
+// Server-authoritative faction army and sequential troop training.
+const armyDialog=document.querySelector("#army-dialog");
+const armyCatalogNode=document.querySelector("#army-unit-catalog");
+const armyQueueNode=document.querySelector("#army-queue-list");
+const armyMessageNode=document.querySelector("#army-message");
+let armyState=null;
+let armyRefreshTimer=null;
+function armyNumber(value){return new Intl.NumberFormat("tr-TR").format(Number(value)||0);}
+function renderArmySummary(){
+ if(!armyState)return;
+ document.querySelector("#army-total-units").textContent=armyNumber(armyState.totalUnits);
+ document.querySelector("#army-total-power").textContent=armyNumber(armyState.armyPower);
+ document.querySelector("#army-faction-name").textContent=armyState.factionName;
+ const strip=document.querySelector("#army-units");
+ if(strip){
+  strip.replaceChildren();
+  armyState.catalog.slice(0,6).forEach(unit=>{
+   const card=document.createElement("div"),icon=document.createElement("span"),count=document.createElement("b"),name=document.createElement("small");
+   icon.textContent=unit.icon;count.textContent=armyNumber(armyState.troops[unit.id]||0);name.textContent=unit.name;
+   card.append(icon,count,name);strip.append(card);
+  });
+ }
+}
+function renderArmyCatalog(){
+ if(!armyState)return;
+ armyCatalogNode.replaceChildren();
+ armyState.catalog.forEach(unit=>{
+  const card=document.createElement("article");card.className="army-unit-card"+(unit.unlocked?"":" is-locked");
+  const head=document.createElement("div");head.className="army-unit-card-head";
+  const emblem=document.createElement("span");emblem.className="army-unit-emblem";emblem.textContent=unit.icon;
+  const title=document.createElement("div"),name=document.createElement("strong"),owned=document.createElement("small");
+  name.textContent=unit.name;owned.textContent="Mevcut: "+armyNumber(armyState.troops[unit.id]||0);
+  title.append(name,owned);head.append(emblem,title);
+  const stats=document.createElement("p");stats.textContent="Saldırı "+unit.attack+" · Piyade savunması "+unit.infantryDefense+" · Süvari savunması "+unit.cavalryDefense+" · Hız "+unit.speed;
+  const cost=document.createElement("p");cost.className="army-unit-cost";
+  cost.textContent=Object.entries(unit.cost).map(([key,value])=>({wood:"Odun",food:"Yiyecek",iron:"Demir",gold:"Altın"}[key]+" "+armyNumber(value)).join(" · ");
+  const unlock=document.createElement("small");unlock.className="army-unlock";
+  unlock.textContent=unit.unlocked?(unit.building==="barracks"?"Kışla seviyesi "+unit.requiredLevel:"Ahır seviyesi "+unit.requiredLevel):((unit.building==="barracks"?"Kışla":"Ahır")+" seviye "+unit.requiredLevel+" gerekli");
+  const controls=document.createElement("div");controls.className="army-recruit-controls";
+  const amount=document.createElement("input");amount.type="number";amount.min="1";amount.max="100";amount.value="1";amount.inputMode="numeric";amount.setAttribute("aria-label",unit.name+" asker sayısı");
+  const button=document.createElement("button");button.type="button";button.textContent=unit.unlocked?"Yetiştir":"Kilitli";button.disabled=!unit.unlocked;button.dataset.recruitUnit=unit.id;button.dataset.amountInput="army-amount-"+unit.id;amount.id="army-amount-"+unit.id;
+  controls.append(amount,button);card.append(head,stats,cost,unlock,controls);armyCatalogNode.append(card);
+ });
+}
+function renderArmyQueue(){
+ if(!armyState)return;
+ armyQueueNode.replaceChildren();
+ if(!armyState.trainingQueue.length){const p=document.createElement("p");p.textContent="Aktif eğitim bulunmuyor.";armyQueueNode.append(p);return;}
+ armyState.trainingQueue.forEach(job=>{
+  const item=document.createElement("div");item.className="army-queue-item";
+  const title=document.createElement("strong");title.textContent=job.name+" × "+armyNumber(job.amount);
+  const time=document.createElement("small");const remaining=Math.max(0,Date.parse(job.completesAt)-Date.now());
+  const seconds=Math.ceil(remaining/1000),minutes=Math.floor(seconds/60),rest=seconds%60;
+  time.textContent=remaining<=0?"Tamamlanıyor…":(minutes?minutes+" dk ":"")+rest+" sn kaldı";
+  item.append(title,time);armyQueueNode.append(item);
+ });
+}
+async function loadArmyState(){
+ if(!authToken)return;
+ try{
+  armyState=await authRequest("/api/game/army",{token:authToken});
+  if(armyState.resources){gameResources={...gameResources,...armyState.resources};renderResourceBalances();}
+  renderArmySummary();renderArmyCatalog();renderArmyQueue();
+ }catch(error){
+  if(armyMessageNode)armyMessageNode.textContent=error.message||"Ordu bilgileri yüklenemedi.";
+ }
+}
+async function openArmyDialog(){
+ if(!authToken)return;
+ armyMessageNode.textContent="Ordu bilgileri yükleniyor…";
+ armyDialog.showModal();
+ await loadArmyState();
+ if(armyRefreshTimer)clearInterval(armyRefreshTimer);
+ armyRefreshTimer=setInterval(()=>{if(armyDialog.open&&armyState)renderArmyQueue();},1000);
+}
+document.querySelector('[data-action="army"]').addEventListener("click",openArmyDialog);
+document.querySelector("#army-close").addEventListener("click",()=>{armyDialog.close();if(armyRefreshTimer)clearInterval(armyRefreshTimer);});
+armyDialog.addEventListener("click",event=>{if(event.target===armyDialog)armyDialog.close();});
+armyCatalogNode.addEventListener("click",async event=>{
+ const button=event.target.closest("[data-recruit-unit]");
+ if(!button)return;
+ const amount=Number(document.querySelector("#"+button.dataset.amountInput).value);
+ if(!Number.isSafeInteger(amount)||amount<1||amount>100){armyMessageNode.textContent="Bir seferde 1 ile 100 arasında asker seçebilirsin.";return;}
+ button.disabled=true;armyMessageNode.textContent="Asker eğitimi kuyruğa ekleniyor…";
+ try{
+  const result=await authRequest("/api/game/army/recruit",{method:"POST",token:authToken,body:{unitId:button.dataset.recruitUnit,amount}});
+  armyState=result;gameResources={...gameResources,...result.resources};renderResourceBalances();
+  renderArmySummary();renderArmyCatalog();renderArmyQueue();
+  armyMessageNode.textContent=amount+" asker eğitim kuyruğuna eklendi. Kaynaklar hesabından düşüldü.";
+ }catch(error){armyMessageNode.textContent=error.message||"Asker yetiştirme başlatılamadı.";button.disabled=false;}
+});
