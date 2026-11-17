@@ -36,7 +36,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(stageEnd>stageStart);
   const stageHtml=html.slice(stageStart,stageEnd);
   assert.ok(stageHtml.includes('<img class="city-art"') && stageHtml.includes('<div class="building-numbers"'));
-  assert.match(stageHtml,/class="wall-number" id="wall-position-marker"/);
+  assert.match(stageHtml,/class="wall-number" id="wall-position-marker"/);\n  assert.match(stageHtml,/left:50\.3%;top:75\.3%/);\n  assert.match(stageHtml,/Sur \/ Sığınak/);\n  assert.match(html,/id="wall-dialog"/);\n  assert.match(html,/id="wall-defense"/);\n  assert.match(html,/id="wall-shelter"/);
   assert.match(html,/id="wall-position-toggle"/);
   assert.match(html,/id="wall-position-confirm"/);
   assert.match(html,/id="wall-position-status"/);
