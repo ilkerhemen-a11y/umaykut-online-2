@@ -169,8 +169,8 @@ export function resolveScoutClash({ attackerScouts, defenderScouts }) {
   const defenders = validNonNegativeInteger(defenderScouts, "Savunan casus sayısı");
   const attackerSurvivors = Math.max(0, attackers - defenders);
   const defenderSurvivors = Math.max(0, defenders - attackers);
-  const attackerLosses = attackers - attackerSurvivors;
-  const defenderLosses = defenders - defenderSurvivors;
+  const attackerLosses = attackers > defenders ? 0 : attackers;
+  const defenderLosses = defenders > attackers ? attackers : defenders;
   const informationGathered = attackers > defenders;
   return {
     attackerScouts: attackers,
