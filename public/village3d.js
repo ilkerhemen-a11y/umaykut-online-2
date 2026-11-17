@@ -171,16 +171,43 @@ if(canvas){
   }
   function imageSprite(index,type,x,z,height,group,baseY=.36){
     if(!atlasTexture)return null;
+    const footprintRadius=type==="center"?2.55:Math.max(.72,Math.min(1.08,height*.27));
+    const shadow=new THREE.Mesh(
+      new THREE.CircleGeometry(footprintRadius*1.55,40),
+      new THREE.MeshBasicMaterial({color:0x241d13,transparent:true,opacity:.2,depthWrite:false})
+    );
+    shadow.rotation.x=-Math.PI/2;
+    shadow.position.set(x,baseY+.018,z);
+    shadow.renderOrder=2;
+    group.add(shadow);
+    if(type!=="center"){
+      const footing=new THREE.Mesh(
+        new THREE.CylinderGeometry(footprintRadius*.94,footprintRadius,0.14,40),
+        new THREE.MeshStandardMaterial({color:0xa99572,roughness:.94})
+      );
+      footing.position.set(x,baseY+.07,z);
+      footing.castShadow=true;footing.receiveShadow=true;
+      group.add(footing);
+      const trim=new THREE.Mesh(
+        new THREE.TorusGeometry(footprintRadius*.9,.045,8,40),
+        new THREE.MeshStandardMaterial({color:0xc8a75e,roughness:.55,metalness:.16})
+      );
+      trim.rotation.x=Math.PI/2;
+      trim.position.set(x,baseY+.145,z);
+      group.add(trim);
+    }
     const texture=cellTexture(index);
     const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,alphaTest:.025,depthWrite:false}));
     sprite.scale.set(height*(assetAspect[type]||1.2),height,1);
-    sprite.position.set(x,baseY+height/2,z);sprite.renderOrder=3;sprite.userData.buildingType=type;
+    sprite.position.set(x,baseY+height/2+(type==="center"?0:.13),z);
+    sprite.renderOrder=3;sprite.userData.buildingType=type;
     group.add(sprite);return sprite;
   }
   function renderBuildings(){
     while(buildingsGroup.children.length){
       const child=buildingsGroup.children[0];
       buildingsGroup.remove(child);
+      if(child.geometry)child.geometry.dispose();
       if(child.material?.map)child.material.map.dispose();
       if(child.material)child.material.dispose();
     }
