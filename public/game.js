@@ -148,7 +148,6 @@ function renderFactionCards(){
     card.dataset.factionId=faction.id;
     card.style.setProperty("--faction-accent",faction.colors[0]);
     const emblem=document.createElement("span");emblem.className="faction-emblem";emblem.textContent=faction.emblem;
-    if(faction.image){const image=document.createElement("img");image.className="faction-image";image.src=faction.image;image.alt=faction.name+" görseli";image.loading="eager";emblem.replaceChildren(image);emblem.setAttribute("aria-label",faction.name+" görseli");}
     const name=document.createElement("strong");name.textContent=faction.name;
     const style=document.createElement("span");style.className="faction-style";style.textContent=faction.style;
     const desc=document.createElement("span");desc.className="faction-description";desc.textContent=faction.description;
