@@ -490,16 +490,22 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           await pool.query("ALTER TABLE umaykut_v2.players ADD COLUMN IF NOT EXISTS village_name VARCHAR(32)");
           const passwordHash = await hashPassword(input.password);
           const result = await pool.query(
-            "INSERT INTO umaykut_v2.players(username, username_normalized, email, email_normalized, password_hash) VALUES($1, $2, $3, $4, $5) RETURNING id, username, email, created_at, village_name",
+            "INSERT INTO umaykut_v2.players(username, username_normalized, email, email_normalized, password_hash, village_name) VALUES($1, $2, $3, $4, $5, NULL) RETURNING id, username, email, created_at, village_name",
             [username, username.toLowerCase(), email, email.toLowerCase(), passwordHash]
           );
           const player = result.rows[0];
           // Give every newly registered account an independent, explicit level-1 village.
           await pool.query(
             `INSERT INTO umaykut_v2.player_game_state
-              (player_id, resources, buildings, worker_assignments, worker_state_initialized)
-             VALUES ($1, $2::jsonb, $3::jsonb, $4::jsonb, TRUE)
-             ON CONFLICT (player_id) DO NOTHING`,
+              (player_id, faction_id, resources, buildings, worker_assignments, worker_state_initialized)
+             VALUES ($1, NULL, $2::jsonb, $3::jsonb, $4::jsonb, TRUE)
+             ON CONFLICT (player_id) DO UPDATE SET
+               faction_id = NULL,
+               resources = EXCLUDED.resources,
+               buildings = EXCLUDED.buildings,
+               worker_assignments = EXCLUDED.worker_assignments,
+               worker_state_initialized = TRUE,
+               updated_at = NOW()`,
             [
               player.id,
               JSON.stringify(INITIAL_RESOURCES),
