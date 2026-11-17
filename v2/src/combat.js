@@ -158,3 +158,32 @@ export function resolveProtectedLoot({ defenderResources, requestedLoot, wallLev
   }
   return { protectedResources, loot, remainingResources, shelterCapacity };
 }
+
+
+/**
+ * Scout-vs-scout resolution. No other troop type, wall, or random roll can
+ * kill scouts: the smaller force is eliminated and the difference survives.
+ */
+export function resolveScoutClash({ attackerScouts, defenderScouts }) {
+  const attackers = validNonNegativeInteger(attackerScouts, "Saldıran casus sayısı");
+  const defenders = validNonNegativeInteger(defenderScouts, "Savunan casus sayısı");
+  const attackerSurvivors = Math.max(0, attackers - defenders);
+  const defenderSurvivors = Math.max(0, defenders - attackers);
+  const attackerLosses = attackers - attackerSurvivors;
+  const defenderLosses = defenders - defenderSurvivors;
+  const informationGathered = attackers > defenders;
+  return {
+    attackerScouts: attackers,
+    defenderScouts: defenders,
+    attackerSurvivors,
+    defenderSurvivors,
+    attackerLosses,
+    defenderLosses,
+    informationGathered,
+    outcome: attackers === defenders
+      ? "mutual_destruction"
+      : attackers > defenders
+        ? "attacker_success"
+        : "defender_success"
+  };
+}
