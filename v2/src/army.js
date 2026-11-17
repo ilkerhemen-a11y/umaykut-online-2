@@ -144,7 +144,7 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
       trainingQueue: queue, catalog,
       totalUnits: Object.values(troops).reduce((sum, count) => sum + Number(count || 0), 0),
       armyPower: armyPower(troops, catalog), resources: finalResources,
-      completedTraining: settled.completed.length, serverNow: new Date().toISOString()
+      serverNow: new Date().toISOString()
     });
     return true;
   } catch (error) {
