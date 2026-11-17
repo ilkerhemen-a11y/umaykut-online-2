@@ -888,6 +888,43 @@ const attackMessage=document.querySelector("#attack-message");
 const attackTargetName=document.querySelector("#attack-target-name");
 const mapWorldCanvas=document.querySelector("#map-world-canvas");
 const mapViewport=document.querySelector(".world-map");
+let mapZoom=0.82;
+const MAP_ZOOM_MIN=0.55,MAP_ZOOM_MAX=1.6,MAP_ZOOM_STEP=0.15;
+function applyMapZoom(nextZoom,preserveCenter=true){
+ if(!mapWorldCanvas||!mapViewport)return;
+ const oldWidth=mapWorldCanvas.clientWidth||1800,oldHeight=mapWorldCanvas.clientHeight||1200;
+ const centerX=mapViewport.scrollLeft+mapViewport.clientWidth/2;
+ const centerY=mapViewport.scrollTop+mapViewport.clientHeight/2;
+ const ratioX=centerX/oldWidth,ratioY=centerY/oldHeight;
+ mapZoom=Math.max(MAP_ZOOM_MIN,Math.min(MAP_ZOOM_MAX,Math.round(nextZoom*100)/100));
+ const mobile=window.matchMedia("(max-width: 420px)").matches;
+ const baseWidth=mobile?1500:1800,baseHeight=mobile?1000:1200;
+ mapWorldCanvas.style.width=Math.round(baseWidth*mapZoom)+"px";
+ mapWorldCanvas.style.height=Math.round(baseHeight*mapZoom)+"px";
+ const label=document.querySelector("#map-zoom-level");
+ if(label)label.textContent=Math.round(mapZoom*100)+"%";
+ if(preserveCenter){
+  requestAnimationFrame(()=>{
+   mapViewport.scrollLeft=Math.max(0,ratioX*mapWorldCanvas.clientWidth-mapViewport.clientWidth/2);
+   mapViewport.scrollTop=Math.max(0,ratioY*mapWorldCanvas.clientHeight-mapViewport.clientHeight/2);
+  });
+ }
+}
+document.querySelector("#map-zoom-in")?.addEventListener("click",()=>applyMapZoom(mapZoom+MAP_ZOOM_STEP));
+document.querySelector("#map-zoom-out")?.addEventListener("click",()=>applyMapZoom(mapZoom-MAP_ZOOM_STEP));
+document.querySelector("#map-zoom-reset")?.addEventListener("click",()=>{
+ applyMapZoom(0.82,false);
+ if(mapViewport&&mapWorldCanvas){
+  const own=mapWorldCanvas.querySelector(".map-own-city");
+  const x=own?parseFloat(own.style.left||"50"):50,y=own?parseFloat(own.style.top||"50"):50;
+  requestAnimationFrame(()=>{
+   mapViewport.scrollLeft=Math.max(0,x/100*mapWorldCanvas.clientWidth-mapViewport.clientWidth/2);
+   mapViewport.scrollTop=Math.max(0,y/100*mapWorldCanvas.clientHeight-mapViewport.clientHeight/2);
+  });
+ }
+});
+window.addEventListener("resize",()=>applyMapZoom(mapZoom,false));
+
 let selectedAttackTarget=null;
 let cachedWorldPlayers=[];
 function renderWorldMap(data){
