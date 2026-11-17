@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { dirname, extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig } from "./config.js";
+import { resolveBattle } from "./combat.js";
 import { createPool } from "./database.js";
 import { handleArmyRequest, getTroopCatalog, settleTrainingQueue } from "./army.js";
 import {
@@ -211,13 +212,76 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         return sendJson(res,200,{players:result.rows});
       }
       if(req.method==="GET" && url.pathname==="/api/game/attacks"){
+        const due=await pool.query(
+          "SELECT id FROM umaykut_v2.player_raids WHERE status='marching' AND arrives_at<=NOW() AND (attacker_id=$1 OR defender_id=$1) ORDER BY arrives_at ASC LIMIT 10",
+          [session.id]);
+        for(const item of due.rows){
+          const client=await pool.connect();let inTx=false;
+          try{
+            await client.query("BEGIN");inTx=true;
+            const raidResult=await client.query("SELECT * FROM umaykut_v2.player_raids WHERE id=$1 FOR UPDATE",[item.id]);
+            const raid=raidResult.rows[0];
+            if(!raid||raid.status!=="marching"||new Date(raid.arrives_at)>new Date()){
+              await client.query("ROLLBACK");inTx=false;continue;
+            }
+            const ids=[raid.attacker_id,raid.defender_id].sort();
+            const states=await client.query(
+              `SELECT p.id,p.village_name,s.faction_id,s.resources,s.buildings,s.troops,s.wall
+               FROM umaykut_v2.players p JOIN umaykut_v2.player_game_state s ON s.player_id=p.id
+               WHERE p.id=ANY($1::uuid[]) ORDER BY p.id FOR UPDATE OF s`,[ids]);
+            if(states.rowCount!==2)throw new Error("Savaş taraflarının köy verisi bulunamadı.");
+            const attacker=states.rows.find(row=>row.id===raid.attacker_id);
+            const defender=states.rows.find(row=>row.id===raid.defender_id);
+            const parse=(value,fallback)=>typeof value==="string"?JSON.parse(value||JSON.stringify(fallback)):(value??fallback);
+            const attackerTroops=parse(raid.troops,{});
+            const defenderTroops=parse(defender.troops,{});
+            const attackerBuildings=parse(attacker.buildings,{});
+            const defenderBuildings=parse(defender.buildings,{});
+            const attackerCatalog=getTroopCatalog(attacker.faction_id,attackerBuildings);
+            const defenderCatalog=getTroopCatalog(defender.faction_id,defenderBuildings);
+            const wall=settleWallUpgrade(defender.wall||{});
+            const outcome=resolveBattle({
+              attackerTroops,defenderTroops,attackerCatalog,defenderCatalog,
+              defenderResources:parse(defender.resources,{}),wallLevel:wall.level
+            });
+            const attackerArmy=parse(attacker.troops,{});
+            for(const [unitId,count] of Object.entries(outcome.attackerSurvivors))
+              attackerArmy[unitId]=Number(attackerArmy[unitId]||0)+count;
+            const defenderArmy=outcome.defenderSurvivors;
+            const attackerResources=parse(attacker.resources,{});
+            for(const [key,count] of Object.entries(outcome.loot))
+              attackerResources[key]=Number(attackerResources[key]||0)+count;
+            const report={
+              resolvedAt:new Date().toISOString(),attackerVillage:raid.attacker_village,defenderVillage:raid.defender_village,
+              attackerPower:outcome.attackPower,defenderPower:outcome.defensePower,
+              wallLevel:wall.level,wallDefensePercent:outcome.wallDefensePercent,
+              damageBeforeWall:outcome.damageBeforeWall,damageAfterWall:outcome.damageAfterWall,
+              damagePreventedByWall:outcome.damagePreventedByWall,
+              attackerLosses:outcome.attackerLosses,attackerLostCount:outcome.attackerLostCount,
+              attackerSurvivors:outcome.attackerSurvivors,
+              defenderLosses:outcome.defenderLosses,defenderLostCount:outcome.defenderLostCount,
+              defenderSurvivors:outcome.defenderSurvivors,
+              shelterProtected:outcome.protectedResources,loot:outcome.loot,carryCapacity:outcome.carryCapacity
+            };
+            await client.query("UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb,resources=$3::jsonb,updated_at=NOW() WHERE player_id=$1",
+              [raid.attacker_id,JSON.stringify(attackerArmy),JSON.stringify(attackerResources)]);
+            await client.query("UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb,resources=$3::jsonb,wall=$4::jsonb,updated_at=NOW() WHERE player_id=$1",
+              [raid.defender_id,JSON.stringify(defenderArmy),JSON.stringify(outcome.defenderRemainingResources),JSON.stringify(wall)]);
+            await client.query("UPDATE umaykut_v2.player_raids SET status='resolved',battle_report=$2::jsonb,loot=$3::jsonb WHERE id=$1",
+              [raid.id,JSON.stringify(report),JSON.stringify(outcome.loot)]);
+            await client.query("COMMIT");inTx=false;
+          }catch(error){
+            if(inTx){try{await client.query("ROLLBACK");}catch{}}
+            console.error("V2 battle resolution failed",{raidId:item.id,message:String(error.message||"").slice(0,180)});
+          }finally{client.release();}
+        }
         const result=await pool.query(
           `SELECT r.id,r.attacker_id,r.defender_id,r.attacker_village,r.defender_village,
-                  r.troops,r.attack_power,r.departed_at,r.arrives_at,r.status,
+                  r.troops,r.attack_power,r.departed_at,r.arrives_at,r.status,r.battle_report,r.loot,
                   CASE WHEN r.attacker_id=$1 THEN 'outgoing' ELSE 'incoming' END AS direction
            FROM umaykut_v2.player_raids r
-           WHERE (r.attacker_id=$1 OR r.defender_id=$1) AND r.status='marching'
-           ORDER BY r.arrives_at ASC LIMIT 50`,[session.id]);
+           WHERE (r.attacker_id=$1 OR r.defender_id=$1) AND r.status IN ('marching','resolved')
+           ORDER BY r.arrives_at DESC LIMIT 50`,[session.id]);
         return sendJson(res,200,{attacks:result.rows,serverNow:new Date().toISOString()});
       }
       if(req.method!=="POST" || url.pathname!=="/api/game/attack"){
