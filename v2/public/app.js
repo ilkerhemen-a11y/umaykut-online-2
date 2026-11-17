@@ -175,8 +175,21 @@ function buildingCostFor(targetLevel){
  return {wood:Math.round(30*multiplier),stone:Math.round(20*multiplier),iron:Math.round(5*multiplier)};
 }
 const BUILDING_UPGRADE_MINUTES={2:2,3:5,4:15,5:30,6:60,7:120,8:240,9:480,10:720};
-function formatUpgradeRemaining(completesAt){
- const totalSeconds=Math.ceil(Math.max(0,Date.parse(completesAt)-Date.now())/1000);
+let serverClockBaseMs=Date.now();
+let serverClockBaseMono=performance.now();
+let upgradeCompletionCheckInFlight=false;
+function setServerClock(serverNow){
+ const parsed=Date.parse(serverNow);
+ if(Number.isFinite(parsed)){
+  serverClockBaseMs=parsed;
+  serverClockBaseMono=performance.now();
+ }
+}
+function getServerNow(){
+ return serverClockBaseMs+(performance.now()-serverClockBaseMono);
+}
+function formatUpgradeRemainingAt(completesAt,now=getServerNow()){
+ const totalSeconds=Math.ceil(Math.max(0,Date.parse(completesAt)-now)/1000);
  const hours=Math.floor(totalSeconds/3600),minutes=Math.floor((totalSeconds%3600)/60),seconds=totalSeconds%60;
  if(hours)return hours+" sa "+minutes+" dk";
  if(minutes)return minutes+" dk "+seconds+" sn";
@@ -186,10 +199,46 @@ function refreshBuildingCountdown(){
  if(!buildingDialog.open)return;
  const building=gameBuildings[String(selectedBuildingSlot)];
  if(!building?.upgrade)return;
- if(Date.parse(building.upgrade.completesAt)<=Date.now()){
+ if(Date.parse(building.upgrade.completesAt)<=getServerNow()){
   buildingMessage.textContent="Yükseltme tamamlandı. Seviye güncelleniyor…";
-  loadGameState().then(()=>updateBuildingDialog());
  }else buildingMessage.textContent="Yükseltme sürüyor: "+formatUpgradeRemaining(building.upgrade.completesAt)+" kaldı.";
+}
+function renderUpgradeTracker(){
+ const tracker=document.querySelector("#building-upgrade-tracker");
+ const list=document.querySelector("#building-upgrade-list");
+ if(!tracker||!list)return;
+ const now=getServerNow();
+ const active=Object.entries(gameBuildings)
+  .filter(([,building])=>building?.upgrade)
+  .sort((a,b)=>Date.parse(a[1].upgrade.completesAt)-Date.parse(b[1].upgrade.completesAt));
+ tracker.hidden=active.length===0;
+ if(!active.length){
+  list.replaceChildren();
+  refreshBuildingCountdown();
+  return;
+ }
+ list.innerHTML=active.map(([slot,building])=>{
+  const definition=BUILDING_TYPES[BUILDING_SLOT_TYPES[slot]]||BUILDING_TYPES.center;
+  const started=Date.parse(building.upgrade.startedAt);
+  const completes=Date.parse(building.upgrade.completesAt);
+  const duration=Math.max(1,completes-started);
+  const progress=Math.min(100,Math.max(0,(now-started)/duration*100));
+  const remaining=formatUpgradeRemainingAt(building.upgrade.completesAt,now);
+  return '<article class="upgrade-card" data-upgrade-slot="'+slot+'">'+
+   '<div class="upgrade-card-top"><div><strong>'+definition.name+'</strong><small>Seviye '+building.level+' → '+building.upgrade.targetLevel+'</small></div>'+
+   '<b class="upgrade-countdown">'+remaining+'</b></div>'+
+   '<div class="upgrade-progress"><span style="width:'+progress.toFixed(2)+'%"></span></div>'+
+   '<small class="upgrade-card-foot">'+(progress>=100?'Tamamlanıyor…':'Yükseltme devam ediyor')+' · Alan '+slot+'</small>'+
+   '</article>';
+ }).join("");
+ if(active.some(([,building])=>Date.parse(building.upgrade.completesAt)<=now)&&!upgradeCompletionCheckInFlight){
+  upgradeCompletionCheckInFlight=true;
+  loadGameState().finally(()=>{upgradeCompletionCheckInFlight=false;});
+ }
+ refreshBuildingCountdown();
+}
+function updateUpgradeTracking(){
+ renderUpgradeTracker();
 }
 function updateBuildingDialog(){
  const slot=String(selectedBuildingSlot);
@@ -236,7 +285,7 @@ document.querySelectorAll("[data-building-slot]").forEach(node=>{
  node.addEventListener("click",()=>openBuildingDialog(node.dataset.buildingSlot));
 });
 buildingClose.addEventListener("click",()=>buildingDialog.close());
-setInterval(refreshBuildingCountdown,1000);
+setInterval(updateUpgradeTracking,1000);
 buildingAction.addEventListener("click",async()=>{
  const slot=String(selectedBuildingSlot);
  const body={action:"upgrade",slot:selectedBuildingSlot};
@@ -244,6 +293,7 @@ buildingAction.addEventListener("click",async()=>{
  buildingMessage.textContent="İşlem gerçekleştiriliyor…";
  try{
   const result=await authRequest("/api/game/buildings",{method:"POST",token:authToken,body});
+  setServerClock(result.serverNow);
   gameResources=result.resources;
   gameBuildings=Object.fromEntries(Object.entries(BUILDING_SLOT_TYPES).map(([buildingSlot,type])=>{
    const saved=result.buildings?.[buildingSlot]||{};
@@ -251,6 +301,7 @@ buildingAction.addEventListener("click",async()=>{
   }));
   renderResourceBalances();
   renderBuildingMarkers();
+  renderUpgradeTracker();
   const definition=BUILDING_TYPES[BUILDING_SLOT_TYPES[slot]]||BUILDING_TYPES.center;
   buildingMessage.textContent=definition.name+" yükseltmesi başladı. "+formatUpgradeRemaining(result.building.upgrade.completesAt)+" sonra seviye "+result.building.upgrade.targetLevel+" olacak.";
   updateBuildingDialog();
@@ -506,6 +557,7 @@ async function loadGameState(){
  gameStateReady=false;
  try{
   const state=await authRequest("/api/game/state",{token:authToken});
+  setServerClock(state.serverNow);
   if(state.factionId) setFaction(state.factionId);
   if(state.resources&&typeof state.resources==="object")gameResources={...DEFAULT_RESOURCES,...state.resources};
   gameBuildings=Object.fromEntries(Object.entries(BUILDING_SLOT_TYPES).map(([slot,type])=>{
@@ -514,6 +566,7 @@ async function loadGameState(){
   }));
   renderResourceBalances();
   renderBuildingMarkers();
+  renderUpgradeTracker();
   if(state.workerStateInitialized){
    ["grain","wood","stone"].forEach(key=>{assigned[key]=Number(state.workerAssignments?.[key]||0);});
    availableWorkers=Math.max(0,Number(state.workerPool||WORKER_POOL)-totalAssigned());
