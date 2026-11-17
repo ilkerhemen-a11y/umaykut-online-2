@@ -219,3 +219,40 @@ test("building upgrades cannot overspend resources", async (t) => {
   assert.equal(state.resources.wood,10);
   assert.equal(state.buildings["4"].level,1);
 });
+
+
+test("new registration creates a fresh level-one village and zero worker assignments", async (t) => {
+  const secret = "test-session-secret-with-at-least-32-characters";
+  const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+  const writes = [];
+  const pool = {
+    query: async (sql, values=[]) => {
+      if (sql.includes("INSERT INTO umaykut_v2.players")) {
+        return { rows:[{id:playerId,username:"YeniOyuncu",email:"new@example.com"}],rowCount:1 };
+      }
+      if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) {
+        writes.push({sql,values});
+        return {rows:[],rowCount:1};
+      }
+      if (sql.includes("INSERT INTO umaykut_v2.player_sessions")) return {rows:[],rowCount:1};
+      throw new Error("Unexpected SQL in new-player initialization test.");
+    }
+  };
+  const server = createServer({pool,sessionSecret:secret});
+  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+  t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const response=await fetch(`http://127.0.0.1:${server.address().port}/api/auth/register`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({username:"YeniOyuncu",email:"new@example.com",password:"guclu-parola-123"})
+  });
+  assert.equal(response.status,201);
+  assert.equal(writes.length,1);
+  const [playerIdArg,resourcesArg,buildingsArg,workersArg]=writes[0].values;
+  assert.equal(playerIdArg,playerId);
+  assert.equal(JSON.parse(resourcesArg).gold,1650);
+  const buildings=JSON.parse(buildingsArg);
+  assert.equal(Object.keys(buildings).length,9);
+  for(const building of Object.values(buildings)) assert.equal(building.level,1);
+  assert.deepEqual(JSON.parse(workersArg),{grain:0,wood:0,stone:0});
+});
