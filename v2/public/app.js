@@ -827,7 +827,7 @@ function renderArmyQueue(){
  armyState.trainingQueue.forEach(job=>{
   const item=document.createElement("div");item.className="army-queue-item";
   const title=document.createElement("strong");title.textContent=job.name+" × "+armyNumber(job.amount);
-  const time=document.createElement("small");time.textContent="Eğitim süresi yok";
+  const time=document.createElement("small");time.textContent="Doğrudan orduya katılır";
   item.append(title,time);armyQueueNode.append(item);
  });
 }
