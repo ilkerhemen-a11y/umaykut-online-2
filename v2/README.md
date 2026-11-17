@@ -43,3 +43,10 @@ The existing production service is not modified by this V2 branch. Never add dat
 - A new building costs 30 wood, 20 stone and 5 iron.
 - The next upgrade costs the base amount multiplied by the target level: level 2 costs 60 wood, 40 stone and 10 iron; level 3 costs 90 wood, 60 stone and 15 iron, continuing through level 10.
 - Resource deductions and building levels are committed together in a database transaction; the server validates balances and prevents concurrent overspending.
+
+## Expanded shared world map
+- Each player has persistent world coordinates in PostgreSQL.
+- The shared map contains 96 persistent randomized mine deposits (iron, stone and gold), each with a yield level from 4 to 9.
+- Other founded player villages are returned with their world coordinates and shown as clickable map markers.
+- The world map is a large two-axis scrollable canvas for mobile and desktop.
+- The reconnaissance troop is displayed to players as Casus; the existing internal unit and mission identifiers remain stable for saved data compatibility.
