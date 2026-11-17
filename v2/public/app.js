@@ -166,7 +166,6 @@ function openBuildingDialog(slot){
 buildingClose.addEventListener("click",()=>buildingDialog.close());
 buildingAction.addEventListener("click",async()=>{
  const slot=String(selectedBuildingSlot);
- const existing=gameBuildings[slot];
  const body={action:"upgrade",slot:selectedBuildingSlot};
  buildingAction.disabled=true;
  buildingMessage.textContent="İşlem gerçekleştiriliyor…";

@@ -217,5 +217,5 @@ test("building upgrades cannot overspend resources", async (t) => {
   assert.equal(response.status,409);
   assert.equal(committed,false);
   assert.equal(state.resources.wood,10);
-  assert.equal(state.buildings["2"],undefined);
+  assert.equal(state.buildings["4"],undefined);
 });
