@@ -506,7 +506,17 @@ function renderArmy(army){
   units.forEach((unit,index)=>{
     const item=document.createElement("div");
     const icon=document.createElement("span");
-    icon.textContent=icons[index]||"⚔️";
+    if(index<7){
+      const factionRow={gokturk:0,selcuk:1,hun:2}[army.factionId]??0;
+      const spriteScale=.6,spriteX=27+index*57,spriteY=53+factionRow*148;
+      icon.className="army-unit-sprite";
+      icon.style.backgroundImage='url("https://i.hizliresim.com/ghjreyzt.png")';
+      icon.style.backgroundPosition=`calc(50% + ${((427-57)/2-spriteX)*spriteScale}px) ${-spriteY*spriteScale}px`;
+      icon.setAttribute("role","img");
+      icon.setAttribute("aria-label",unit.role);
+    }else{
+      icon.textContent=icons[index]||"⚔️";
+    }
     const name=document.createElement("small");name.textContent=unit.role;
     const quantity=document.createElement("b");quantity.textContent=Number(unit.quantity).toLocaleString("tr-TR");
     item.append(icon,name,quantity);strip.append(item);
