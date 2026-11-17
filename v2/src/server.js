@@ -30,6 +30,19 @@ const INITIAL_BUILDINGS = Object.freeze({
   "8": {type:"market",level:1},
   "9": {type:"warehouse",level:1}
 });
+function normalizeBuildings(stored, { reset = false } = {}) {
+  const source = typeof stored === "string" ? JSON.parse(stored || "{}") : (stored || {});
+  const normalized = {};
+  for (const [slot, initial] of Object.entries(INITIAL_BUILDINGS)) {
+    const saved = source[slot];
+    const level = Number(saved?.level);
+    const valid = !reset && saved?.type === initial.type &&
+      Number.isSafeInteger(level) && level >= 1 && level <= 10;
+    normalized[slot] = valid ? { type: initial.type, level } : { ...initial };
+  }
+  return normalized;
+}
+
 const FIXED_BUILDING_TYPES = Object.freeze({
   "1": "center",
   "2": "barracks",
@@ -344,17 +357,34 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             [playerId]
           );
           const state = await pool.query(
-            "SELECT faction_id, worker_pool, worker_assignments, worker_state_initialized, resources, buildings, updated_at FROM umaykut_v2.player_game_state WHERE player_id = $1",
+            `SELECT p.village_name, s.faction_id, s.worker_pool, s.worker_assignments,
+                    s.worker_state_initialized, s.resources, s.buildings, s.updated_at
+             FROM umaykut_v2.players p
+             JOIN umaykut_v2.player_game_state s ON s.player_id = p.id
+             WHERE p.id = $1`,
             [playerId]
           );
           const row = state.rows[0];
+          // A not-yet-founded character always receives a clean level-one village.
+          // For established players, repair missing/invalid slots without lowering valid progress.
+          const buildings = normalizeBuildings(row.buildings, {
+            reset: !row.village_name || !row.faction_id
+          });
+          if (JSON.stringify(buildings) !== JSON.stringify(
+            typeof row.buildings === "string" ? JSON.parse(row.buildings || "{}") : (row.buildings || {})
+          )) {
+            await pool.query(
+              "UPDATE umaykut_v2.player_game_state SET buildings = $2::jsonb, updated_at = NOW() WHERE player_id = $1",
+              [playerId, JSON.stringify(buildings)]
+            );
+          }
           return sendJson(res, 200, {
             factionId: row.faction_id,
             workerPool: Number(row.worker_pool),
             workerAssignments: row.worker_assignments,
             workerStateInitialized: row.worker_state_initialized,
             resources: row.resources,
-            buildings: row.buildings,
+            buildings,
             updatedAt: row.updated_at
           });
         }
