@@ -1,5 +1,6 @@
 import { pool } from "./db.js";
 import { getFactionUnits } from "./units.js";
+import { FACTIONS } from "./factions.js";
 
 export async function getMyArmy(req, res) {
   const playerResult = await pool.query(
@@ -38,13 +39,29 @@ export async function getMyArmy(req, res) {
       quantity: quantities.get(unit.id) ?? 0,
       totalCarryCapacity: unit.stats.carryCapacity * (quantities.get(unit.id) ?? 0)
     }));
-    const totalCarryCapacity = armyUnits.reduce(
-      (total, unit) => total + unit.totalCarryCapacity,
-      0
-    );
+    const totals = armyUnits.reduce((total, unit) => {
+      const count = unit.quantity;
+      total.totalUnits += count;
+      total.baseAttack += unit.stats.attack * count;
+      total.baseInfantryDefense += unit.stats.infantryDefense * count;
+      total.baseCavalryDefense += unit.stats.cavalryDefense * count;
+      total.totalCarryCapacity += unit.totalCarryCapacity;
+      return total;
+    }, { totalUnits: 0, baseAttack: 0, baseInfantryDefense: 0, baseCavalryDefense: 0, totalCarryCapacity: 0 });
+    const bonuses = FACTIONS.find(item => item.id === factionId)?.bonuses || {};
+    const totalAttack = Math.floor(totals.baseAttack * (1 + Number(bonuses.attackPercent || 0) / 100));
+    const totalInfantryDefense = Math.floor(totals.baseInfantryDefense * (1 + Number(bonuses.defensePercent || 0) / 100));
+    const totalCavalryDefense = Math.floor(totals.baseCavalryDefense * (1 + Number(bonuses.defensePercent || 0) / 100));
+    const totalPower = totalAttack + totalInfantryDefense + totalCavalryDefense;
     res.json({
       factionId,
-      totalCarryCapacity,
+      factionBonuses: bonuses,
+      totalUnits: totals.totalUnits,
+      totalAttack,
+      totalInfantryDefense,
+      totalCavalryDefense,
+      totalPower,
+      totalCarryCapacity: totals.totalCarryCapacity,
       units: armyUnits
     });
   } catch (error) {
