@@ -72,6 +72,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(css.includes("font:700 7px/1.2 Arial,sans-serif"));
   assert.ok(!css.includes(".city-frame{max-height:700px}"));
   assert.ok(!css.includes(".city-frame{min-height:360px;max-height:58dvh}"));
+  assert.match(html,/id="building-upgrade-tracker"/);
+  assert.match(html,/id="building-upgrade-list"/);
   assert.match(html,/id="map-view" hidden/);
   assert.match(html,/id="workers-available">1\.800/);
   assert.match(html,/id="workers-assigned-total">0 görevde/);
@@ -85,6 +87,10 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(appScript.includes("function fitVillageImage()"));
   assert.ok(appScript.includes("villageImage.naturalWidth"));
   assert.ok(appScript.includes("new ResizeObserver(fitVillageImage)"));
+  assert.match(appScript,/function renderUpgradeTracker\(\)/);
+  assert.match(appScript,/setInterval\(updateUpgradeTracking,1000\)/);
+  assert.match(appScript,/setServerClock\(state.serverNow\)/);
+  assert.match(appScript,/building-upgrade-count/);
   assert.match(appScript,/BUILDING_SLOT_TYPES/);
   assert.match(appScript,/node\.querySelector\("\.building-label"\)/);
   assert.match(appScript,/node\.querySelector\("\.building-index"\)/);
