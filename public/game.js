@@ -241,7 +241,7 @@ const buildSlotPositions=[[28,32],[50,25],[72,32],[81,48],[72,68],[50,77],[28,68
 const userBuildingCells={school:1,barracks:2,market:3,stonemason:4,stable:6,blacksmith:7,mill:8,farm:9};
 function getUserBuildingPreview(type){const index=type==="center"?0:userBuildingCells[type];return index===undefined?null:{src:"/assets/user-buildings-atlas.png",col:index%5,row:Math.floor(index/5)};}
 const buildIcons={school:"",barracks:"",market:"",stonemason:"",stable:"",blacksmith:"",mill:"",farm:""};
-const staticVillageSlotPositions=[{x:32,y:35},{x:50,y:28},{x:68,y:35},{x:76,y:50},{x:69,y:66},{x:60,y:80},{x:31,y:66},{x:24,y:50},{x:41,y:80}];
+const staticVillageSlotPositions=[{x:36,y:27},{x:64,y:27},{x:76,y:42},{x:81,y:59},{x:63,y:68},{x:50,y:69},{x:34,y:59},{x:20,y:48},{x:23,y:32}];
 function currentProjectedSlots(){return staticVillageSlotPositions;}
 function repositionVillageOverlays(){
  const positions=currentProjectedSlots();
@@ -267,8 +267,7 @@ function renderBuildSlots(buildings){
   button.style.left=x+"%";button.style.top=y+"%";button.dataset.slot=String(slot);
   button.setAttribute("aria-label",(slot+1)+". numaralı boş inşa alanı. Bina seçmek için dokun.");
   const icon=document.createElement("span");icon.textContent=String(slot+1);
-  const label=document.createElement("small");label.textContent="İNŞA";
-  button.append(icon,label);
+  button.append(icon);
   button.addEventListener("click",event=>{event.stopPropagation();openBuildSelection(slot);});
   layer.append(button);
  });
@@ -352,7 +351,7 @@ async function refreshBuildingsAndCity(){
   const projected=slotNumber>=1&&slotNumber<=9?currentProjectedSlots()[slotNumber-1]:null;
   m.dataset.slot=slotNumber>=1&&slotNumber<=9?String(slotNumber):"";
   m.style.left=(v.type==="center"?50:(projected?.x??Number(v.x)))+"%";
-  m.style.top=(v.type==="center"?52:(projected?.y??Number(v.y)))+"%";
+  m.style.top=(v.type==="center"?43:(projected?.y??Number(v.y)))+"%";
   const number=document.createElement("span");number.className="building-number";
   number.textContent=v.type==="center"?"1":String(slotNumber+1);
   number.setAttribute("aria-hidden","true");
