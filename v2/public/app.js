@@ -924,6 +924,7 @@ document.querySelector("#map-zoom-reset")?.addEventListener("click",()=>{
  }
 });
 window.addEventListener("resize",()=>applyMapZoom(mapZoom,false));
+applyMapZoom(mapZoom,false);
 
 let selectedAttackTarget=null;
 let cachedWorldPlayers=[];
