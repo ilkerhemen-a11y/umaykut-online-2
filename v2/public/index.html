@@ -38,12 +38,12 @@
     <header class="top">
       <div class="brand"><span class="brand-mark">✦</span><div><strong>UMAYKUT</strong><small>BOZKIRIN HÂKİMİYETİ</small></div></div>
       <div class="resources" aria-label="Kaynaklar">
-        <div class="resource"><span>🪙</span><b>1.650</b><small>Altın</small></div>
-        <div class="resource"><span>🪵</span><b>6.900</b><small>Odun</small></div>
-        <div class="resource"><span>🌾</span><b>9.350</b><small>Yiyecek</small></div>
-        <div class="resource"><span>🪨</span><b>7.480</b><small>Taş</small></div>
-        <div class="resource"><span>⛏️</span><b>8.040</b><small>Demir</small></div>
-        <div class="resource"><span>🐎</span><b>100</b><small>At</small></div>
+        <div class="resource"><span>🪙</span><b id="resource-gold">1.650</b><small>Altın</small></div>
+        <div class="resource"><span>🪵</span><b id="resource-wood">6.900</b><small>Odun</small></div>
+        <div class="resource"><span>🌾</span><b id="resource-food">9.350</b><small>Yiyecek</small></div>
+        <div class="resource"><span>🪨</span><b id="resource-stone">7.480</b><small>Taş</small></div>
+        <div class="resource"><span>⛏️</span><b id="resource-iron">8.040</b><small>Demir</small></div>
+        <div class="resource"><span>🐎</span><b id="resource-horses">100</b><small>At</small></div>
       </div>
       <div class="realm"><span id="realm-player-name">İLKER'İN YURDU</span><b>SEVİYE 1</b><span class="realm-sub" id="realm-faction">Göktürk diyarı</span></div>
     </header>
@@ -60,18 +60,48 @@
       </section>
       <div class="city-frame" aria-label="Göktürk köyü ve numaralandırılmış binalar">
         <img class="city-art" src="/assets/IMG-20261117-WA0073.jpg" alt="Orman içinde dairesel taş surlarla çevrili, merkez binası ve sekiz çevre binası bulunan Göktürk köyü" fetchpriority="high">
-        <div class="building-numbers" aria-label="Köy binaları">
-          <span class="building-number is-center" style="left:50%;top:45%" aria-label="1 numaralı merkez binası">1</span>
-          <span class="building-number" style="left:39%;top:34%" aria-label="2 numaralı bina">2</span>
-          <span class="building-number" style="left:62%;top:34%" aria-label="3 numaralı bina">3</span>
-          <span class="building-number" style="left:24%;top:42%" aria-label="4 numaralı bina">4</span>
-          <span class="building-number" style="left:76%;top:42%" aria-label="5 numaralı bina">5</span>
-          <span class="building-number" style="left:21%;top:51%" aria-label="6 numaralı bina">6</span>
-          <span class="building-number" style="left:78%;top:51%" aria-label="7 numaralı bina">7</span>
-          <span class="building-number" style="left:38%;top:57%" aria-label="8 numaralı bina">8</span>
-          <span class="building-number" style="left:63%;top:57%" aria-label="9 numaralı bina">9</span>
+        <div class="building-numbers" aria-label="Köy binaları ve inşa alanları">
+          <button class="building-number is-center" type="button" data-building-slot="1" style="left:50%;top:45%" aria-label="1 numaralı merkez binası">1</button>
+          <button class="building-number" type="button" data-building-slot="2" style="left:39%;top:34%" aria-label="2 numaralı inşa alanı">2</button>
+          <button class="building-number" type="button" data-building-slot="3" style="left:62%;top:34%" aria-label="3 numaralı inşa alanı">3</button>
+          <button class="building-number" type="button" data-building-slot="4" style="left:24%;top:42%" aria-label="4 numaralı inşa alanı">4</button>
+          <button class="building-number" type="button" data-building-slot="5" style="left:76%;top:42%" aria-label="5 numaralı inşa alanı">5</button>
+          <button class="building-number" type="button" data-building-slot="6" style="left:21%;top:51%" aria-label="6 numaralı inşa alanı">6</button>
+          <button class="building-number" type="button" data-building-slot="7" style="left:78%;top:51%" aria-label="7 numaralı inşa alanı">7</button>
+          <button class="building-number" type="button" data-building-slot="8" style="left:38%;top:57%" aria-label="8 numaralı inşa alanı">8</button>
+          <button class="building-number" type="button" data-building-slot="9" style="left:63%;top:57%" aria-label="9 numaralı inşa alanı">9</button>
         </div>
       </div>
+      <dialog id="building-dialog" class="building-dialog" aria-labelledby="building-title">
+        <button id="building-close" class="close" type="button" aria-label="Pencereyi kapat">×</button>
+        <div class="dialog-emblem" id="building-emblem">🏰</div>
+        <div class="eyebrow" id="building-eyebrow">KÖY YAPILARI</div>
+        <h2 id="building-title">Merkez Binası</h2>
+        <p class="dialog-copy" id="building-description">Yurdunun kalbi. Diğer yapıların gelişimini yönetir.</p>
+        <div class="level-row"><span>Mevcut seviye</span><strong id="building-level">1 / 10</strong></div>
+        <div class="level-track"><span id="building-level-fill"></span></div>
+        <div id="building-type-field" class="building-type-field" hidden>
+          <label for="building-type">İnşa edilecek bina</label>
+          <select id="building-type">
+            <option value="barracks">Kışla</option>
+            <option value="lumberyard">Oduncu Ocağı</option>
+            <option value="quarry">Taş Ocağı</option>
+            <option value="ironmine">Demir Madeni</option>
+            <option value="farm">Çiftlik</option>
+            <option value="stable">Ahır</option>
+            <option value="market">Pazar</option>
+            <option value="warehouse">Depo</option>
+          </select>
+        </div>
+        <div class="building-cost-title" id="building-cost-title">İnşa maliyeti</div>
+        <div class="building-costs">
+          <span>🪵 Odun <b id="building-cost-wood">30</b></span>
+          <span>🪨 Taş <b id="building-cost-stone">20</b></span>
+          <span>⛏️ Demir <b id="building-cost-iron">5</b></span>
+        </div>
+        <p class="building-message" id="building-message" role="status" aria-live="polite"></p>
+        <button class="primary-action" id="building-action" type="button">İnşa Et</button>
+      </dialog>
       <section class="army-strip">
         <div class="army-title">⚔ ORDU BİRLİKLERİ <span>·</span> <small>İlk birliğini kurmaya hazırlan</small></div>
         <div class="army-units">
@@ -134,11 +164,11 @@
           <div class="worker-control">
             <label for="worker-count">İşçi sayısı</label>
             <div class="worker-actions"><input id="worker-count" type="number" inputmode="numeric" min="1" max="1800" value="1"><button id="assign-workers" type="button">Gönder</button><button id="recall-workers" type="button">Geri çağır</button></div>
-            <small id="worker-status">Atamalar bu cihazda saklanır. Hesaplar arası kayıt daha sonra PostgreSQL ile bağlanacaktır.</small>
+            <small id="worker-status">İşçi dağılımın hesabına kaydedilir ve diğer cihazlarında da kullanılabilir.</small>
           </div>
         </div>
       </section>
-      <p class="map-prototype-note">Harita önizlemesi · İşçi atamaları bu cihazın tarayıcısında saklanır. Sunucu ve hesap senkronizasyonu sonraki aşamada bağlanacaktır.</p>
+      <p class="map-prototype-note">Harita önizlemesi · Devlet seçimin ve işçi dağılımın hesabınla senkronize edilir.</p>
     </section>
 
     <nav class="bottom-nav" aria-label="Ana menü">

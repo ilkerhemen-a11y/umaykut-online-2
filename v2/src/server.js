@@ -93,6 +93,114 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
     }
 
 
+
+    if (url.pathname === "/api/game/buildings") {
+      if (!pool) return sendJson(res, 503, { error: "Oyun kayıt servisi henüz yapılandırılmadı." });
+      if (!sessionSecret || sessionSecret.length < 32) {
+        return sendJson(res, 503, { error: "Oturum güvenlik ayarı eksik." });
+      }
+      if (req.method !== "POST") {
+        res.setHeader("allow", "POST");
+        return sendJson(res, 405, { error: "Yöntem desteklenmiyor." });
+      }
+      const token = bearerToken(req);
+      const session = verifySessionToken(token, sessionSecret);
+      if (!session) return sendJson(res, 401, { error: "Oturum geçersiz veya süresi dolmuş." });
+      try {
+        const playerResult = await pool.query(
+          "SELECT p.id FROM umaykut_v2.players p JOIN umaykut_v2.player_sessions s ON s.player_id = p.id WHERE p.id = $1 AND s.token_hash = $2 AND s.expires_at > NOW()",
+          [session.id, sessionTokenHash(token)]
+        );
+        if (!playerResult.rowCount) return sendJson(res, 401, { error: "Oyuncu oturumu bulunamadı." });
+        const playerId = playerResult.rows[0].id;
+        const input = await readJson(req);
+        const slot = Number(input.slot);
+        const action = input.action;
+        const buildingTypes = new Set(["center","barracks","lumberyard","quarry","ironmine","farm","stable","market","warehouse"]);
+        if (!Number.isSafeInteger(slot) || slot < 1 || slot > 9) {
+          return sendJson(res, 400, { error: "Geçerli bir bina alanı seçmelisin." });
+        }
+        if (!["construct","upgrade"].includes(action)) {
+          return sendJson(res, 400, { error: "Geçersiz bina işlemi." });
+        }
+        if (action === "construct" && (slot === 1 || !buildingTypes.has(input.type) || input.type === "center")) {
+          return sendJson(res, 400, { error: "Bu alana bu bina inşa edilemez." });
+        }
+
+        const client = await pool.connect();
+        let inTransaction = false;
+        try {
+          await client.query("BEGIN");
+          inTransaction = true;
+          await client.query(
+            "INSERT INTO umaykut_v2.player_game_state(player_id) VALUES($1) ON CONFLICT (player_id) DO NOTHING",
+            [playerId]
+          );
+          const currentResult = await client.query(
+            "SELECT resources, buildings FROM umaykut_v2.player_game_state WHERE player_id = $1 FOR UPDATE",
+            [playerId]
+          );
+          const row = currentResult.rows[0];
+          const resources = typeof row.resources === "string" ? JSON.parse(row.resources) : { ...row.resources };
+          const buildings = typeof row.buildings === "string" ? JSON.parse(row.buildings) : { ...row.buildings };
+          const key = String(slot);
+          const current = buildings[key] || null;
+          if (action === "construct" && current) {
+            await client.query("ROLLBACK");
+            inTransaction = false;
+            return sendJson(res, 409, { error: "Bu inşa alanında zaten bir bina var." });
+          }
+          if (action === "upgrade" && !current) {
+            await client.query("ROLLBACK");
+            inTransaction = false;
+            return sendJson(res, 409, { error: "Bu alanda yükseltilecek bir bina bulunmuyor." });
+          }
+          if (action === "upgrade" && current.level >= 10) {
+            await client.query("ROLLBACK");
+            inTransaction = false;
+            return sendJson(res, 409, { error: "Bu bina en yüksek seviye olan 10'a ulaştı." });
+          }
+          const targetLevel = action === "construct" ? 1 : Number(current.level) + 1;
+          const cost = { wood: 30 * targetLevel, stone: 20 * targetLevel, iron: 5 * targetLevel };
+          const missing = Object.fromEntries(Object.entries(cost)
+            .filter(([resource,amount]) => Number(resources[resource] || 0) < amount)
+            .map(([resource,amount]) => [resource, amount - Number(resources[resource] || 0)]));
+          if (Object.keys(missing).length) {
+            await client.query("ROLLBACK");
+            inTransaction = false;
+            return sendJson(res, 409, { error: "Yeterli kaynak yok.", missing, cost });
+          }
+          for (const [resource,amount] of Object.entries(cost)) resources[resource] = Number(resources[resource]) - amount;
+          const building = action === "construct"
+            ? { type: input.type, level: 1 }
+            : { type: current.type, level: targetLevel };
+          buildings[key] = building;
+          await client.query(
+            "UPDATE umaykut_v2.player_game_state SET resources = $2::jsonb, buildings = $3::jsonb, updated_at = NOW() WHERE player_id = $1",
+            [playerId, JSON.stringify(resources), JSON.stringify(buildings)]
+          );
+          await client.query("COMMIT");
+          inTransaction = false;
+          return sendJson(res, 200, { success: true, slot, building, cost, resources, buildings });
+        } catch (error) {
+          if (inTransaction) {
+            try { await client.query("ROLLBACK"); } catch {}
+          }
+          throw error;
+        } finally {
+          client.release();
+        }
+      } catch (error) {
+        console.error("V2 building operation failed", {
+          code: error.code || "UNKNOWN",
+          message: String(error.message || "Unknown building operation error").slice(0, 200)
+        });
+        return sendJson(res, error.status || 500, {
+          error: error.status ? error.message : "Bina işlemi tamamlanamadı."
+        });
+      }
+    }
+
     if (url.pathname === "/api/game/state") {
       if (!pool) return sendJson(res, 503, { error: "Oyun kayıt servisi henüz yapılandırılmadı." });
       if (!sessionSecret || sessionSecret.length < 32) {
@@ -118,7 +226,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             [playerId]
           );
           const state = await pool.query(
-            "SELECT faction_id, worker_pool, worker_assignments, worker_state_initialized, updated_at FROM umaykut_v2.player_game_state WHERE player_id = $1",
+            "SELECT faction_id, worker_pool, worker_assignments, worker_state_initialized, resources, buildings, updated_at FROM umaykut_v2.player_game_state WHERE player_id = $1",
             [playerId]
           );
           const row = state.rows[0];
@@ -127,6 +235,8 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             workerPool: Number(row.worker_pool),
             workerAssignments: row.worker_assignments,
             workerStateInitialized: row.worker_state_initialized,
+            resources: row.resources,
+            buildings: row.buildings,
             updatedAt: row.updated_at
           });
         }
@@ -153,7 +263,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
                  worker_assignments = EXCLUDED.worker_assignments,
                  worker_state_initialized = TRUE,
                  updated_at = NOW()
-           RETURNING faction_id, worker_pool, worker_assignments, worker_state_initialized, updated_at`,
+           RETURNING faction_id, worker_pool, worker_assignments, worker_state_initialized, resources, buildings, updated_at`,
           [playerId, factionId, JSON.stringify(workerAssignments)]
         );
         const row = saved.rows[0];
@@ -163,6 +273,8 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           workerPool: Number(row.worker_pool),
           workerAssignments: row.worker_assignments,
           workerStateInitialized: row.worker_state_initialized,
+          resources: row.resources,
+          buildings: row.buildings,
           updatedAt: row.updated_at
         });
       } catch (error) {

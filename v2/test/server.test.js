@@ -116,3 +116,99 @@ test("game state rejects worker assignments above the starting pool", async (t) 
   });
   assert.equal(response.status, 400);
 });
+
+test("building construction spends base resources and upgrades scale costs by target level", async (t) => {
+  const secret = "test-session-secret-with-at-least-32-characters";
+  const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+  const token = createSessionToken(playerId, secret);
+  const state = {
+    resources: { gold:1650, wood:6900, food:9350, stone:7480, iron:8040, horses:100 },
+    buildings: { "1": { type:"center", level:1 } }
+  };
+  const pool = {
+    query: async sql => sql.includes("SELECT p.id FROM umaykut_v2.players")
+      ? { rows:[{id:playerId}], rowCount:1 }
+      : { rows:[], rowCount:0 },
+    connect: async () => ({
+      query: async (sql, values=[]) => {
+        if (sql === "BEGIN" || sql === "COMMIT" || sql === "ROLLBACK") return { rows:[] };
+        if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) return { rows:[] };
+        if (sql.includes("SELECT resources, buildings")) return { rows:[{
+          resources:state.resources, buildings:state.buildings
+        }] };
+        if (sql.includes("UPDATE umaykut_v2.player_game_state SET resources")) {
+          state.resources=JSON.parse(values[1]);
+          state.buildings=JSON.parse(values[2]);
+          return { rows:[] };
+        }
+        throw new Error("Unexpected SQL in building test: "+sql);
+      },
+      release: () => {}
+    })
+  };
+  const server = createServer({ pool, sessionSecret:secret });
+  await new Promise(resolve => server.listen(0,"127.0.0.1",resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const url = `http://127.0.0.1:${server.address().port}/api/game/buildings`;
+  const build = await fetch(url,{
+    method:"POST",
+    headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},
+    body:JSON.stringify({action:"construct",slot:2,type:"lumberyard"})
+  });
+  assert.equal(build.status,200);
+  const built = await build.json();
+  assert.deepEqual(built.cost,{wood:30,stone:20,iron:5});
+  assert.deepEqual(state.buildings["2"],{type:"lumberyard",level:1});
+  assert.equal(state.resources.wood,6870);
+  assert.equal(state.resources.stone,7460);
+  assert.equal(state.resources.iron,8035);
+
+  const upgrade = await fetch(url,{
+    method:"POST",
+    headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},
+    body:JSON.stringify({action:"upgrade",slot:2})
+  });
+  assert.equal(upgrade.status,200);
+  const upgraded = await upgrade.json();
+  assert.deepEqual(upgraded.cost,{wood:60,stone:40,iron:10});
+  assert.deepEqual(state.buildings["2"],{type:"lumberyard",level:2});
+  assert.equal(state.resources.wood,6810);
+  assert.equal(state.resources.stone,7420);
+  assert.equal(state.resources.iron,8025);
+});
+
+test("building construction cannot overspend resources", async (t) => {
+  const secret = "test-session-secret-with-at-least-32-characters";
+  const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+  const token = createSessionToken(playerId, secret);
+  const state = {
+    resources:{gold:0,wood:10,food:0,stone:10,iron:1,horses:0},
+    buildings:{"1":{type:"center",level:1}}
+  };
+  let committed=false;
+  const pool = {
+    query: async sql => sql.includes("SELECT p.id FROM umaykut_v2.players")
+      ? {rows:[{id:playerId}],rowCount:1}:{rows:[],rowCount:0},
+    connect: async () => ({
+      query: async sql => {
+        if(sql==="BEGIN"||sql==="ROLLBACK"||sql==="COMMIT"){if(sql==="COMMIT")committed=true;return {rows:[]};}
+        if(sql.includes("INSERT INTO umaykut_v2.player_game_state"))return {rows:[]};
+        if(sql.includes("SELECT resources, buildings"))return {rows:[state]};
+        throw new Error("Unexpected SQL in insufficient-resource test.");
+      },
+      release:()=>{}
+    })
+  };
+  const server=createServer({pool,sessionSecret:secret});
+  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+  t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const response=await fetch(`http://127.0.0.1:${server.address().port}/api/game/buildings`,{
+    method:"POST",
+    headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},
+    body:JSON.stringify({action:"construct",slot:2,type:"barracks"})
+  });
+  assert.equal(response.status,409);
+  assert.equal(committed,false);
+  assert.equal(state.resources.wood,10);
+  assert.equal(state.buildings["2"],undefined);
+});

@@ -28,6 +28,135 @@ let savedFaction="gokturk";
 try{savedFaction=localStorage.getItem("umaykut-faction-v2")||"gokturk";}catch{}
 setFaction(savedFaction);
 
+const DEFAULT_RESOURCES={gold:1650,wood:6900,food:9350,stone:7480,iron:8040,horses:100};
+const BUILDING_TYPES={
+ center:{name:"Merkez Binası",icon:"🏰",description:"Yurdunun kalbi. Diğer yapıların gelişimini yönetir."},
+ barracks:{name:"Kışla",icon:"⚔️",description:"Piyade ve savunma birliklerinin yetiştirileceği yapı."},
+ lumberyard:{name:"Oduncu Ocağı",icon:"🪵",description:"Odun üretimini geliştirecek yapı."},
+ quarry:{name:"Taş Ocağı",icon:"🪨",description:"Taş üretimini geliştirecek yapı."},
+ ironmine:{name:"Demir Madeni",icon:"⛏️",description:"Demir üretimini geliştirecek yapı."},
+ farm:{name:"Çiftlik",icon:"🌾",description:"Yiyecek üretimini geliştirecek yapı."},
+ stable:{name:"Ahır",icon:"🐎",description:"Atlı birlikler için gerekli altyapı."},
+ market:{name:"Pazar",icon:"🏪",description:"Kaynak ve ticaret işlemlerinin merkezi."},
+ warehouse:{name:"Depo",icon:"📦",description:"Kaynaklarını saklamak için kullanılan yapı."}
+};
+const BUILDING_BASE_COST={wood:30,stone:20,iron:5};
+const MAX_BUILDING_LEVEL=10;
+let gameResources={...DEFAULT_RESOURCES};
+let gameBuildings={"1":{type:"center",level:1}};
+function renderResourceBalances(){
+ for(const key of Object.keys(DEFAULT_RESOURCES)){
+  const node=document.querySelector("#resource-"+key);
+  if(node)node.textContent=formatNumber(Number(gameResources[key]??0));
+ }
+}
+function renderBuildingMarkers(){
+ document.querySelectorAll("[data-building-slot]").forEach(node=>{
+  const slot=node.dataset.buildingSlot;
+  const building=gameBuildings[slot];
+  node.classList.toggle("is-built",Boolean(building));
+  if(building){
+   const definition=BUILDING_TYPES[building.type]||BUILDING_TYPES.center;
+   node.setAttribute("aria-label",slot+" numaralı "+definition.name+" seviye "+building.level);
+   node.dataset.level=String(building.level);
+  }else{
+   node.setAttribute("aria-label",slot+" numaralı boş inşa alanı");
+   delete node.dataset.level;
+  }
+ });
+}
+const buildingDialog=document.querySelector("#building-dialog");
+const buildingClose=document.querySelector("#building-close");
+const buildingTitle=document.querySelector("#building-title");
+const buildingDescription=document.querySelector("#building-description");
+const buildingEmblem=document.querySelector("#building-emblem");
+const buildingEyebrow=document.querySelector("#building-eyebrow");
+const buildingLevel=document.querySelector("#building-level");
+const buildingLevelFill=document.querySelector("#building-level-fill");
+const buildingTypeField=document.querySelector("#building-type-field");
+const buildingTypeSelect=document.querySelector("#building-type");
+const buildingCostTitle=document.querySelector("#building-cost-title");
+const buildingCostWood=document.querySelector("#building-cost-wood");
+const buildingCostStone=document.querySelector("#building-cost-stone");
+const buildingCostIron=document.querySelector("#building-cost-iron");
+const buildingMessage=document.querySelector("#building-message");
+const buildingAction=document.querySelector("#building-action");
+let selectedBuildingSlot=1;
+function buildingCostFor(targetLevel){
+ return Object.fromEntries(Object.entries(BUILDING_BASE_COST).map(([key,value])=>[key,value*targetLevel]));
+}
+function updateBuildingDialog(){
+ const slot=String(selectedBuildingSlot);
+ const building=gameBuildings[slot]||null;
+ const definition=building?BUILDING_TYPES[building.type]:null;
+ const targetLevel=building?building.level+1:1;
+ const atMaximum=Boolean(building&&building.level>=MAX_BUILDING_LEVEL);
+ const selectedType=building?building.type:buildingTypeSelect.value;
+ const selectedDefinition=BUILDING_TYPES[selectedType]||BUILDING_TYPES.barracks;
+ const cost=buildingCostFor(targetLevel);
+ buildingEmblem.textContent=(definition||selectedDefinition).icon;
+ buildingEyebrow.textContent="İNŞA ALANI "+slot;
+ buildingTitle.textContent=definition?definition.name:(slot==="1"?"Merkez Binası":"Yeni Bina İnşa Et");
+ buildingDescription.textContent=definition?definition.description:(slot==="1"?"Merkez binası oyun başlangıcında hazırdır.":"Bu alana yerleşecek yapıyı seç.");
+ buildingLevel.textContent=building?building.level+" / "+MAX_BUILDING_LEVEL:"Boş alan";
+ buildingLevelFill.style.width=(building?building.level/MAX_BUILDING_LEVEL*100:0)+"%";
+ buildingTypeField.hidden=Boolean(building)||slot==="1";
+ buildingCostTitle.textContent=atMaximum?"En yüksek seviyeye ulaşıldı":(building?"Seviye "+targetLevel+" yükseltme maliyeti":"İnşa maliyeti");
+ buildingCostWood.textContent=formatNumber(cost.wood);
+ buildingCostStone.textContent=formatNumber(cost.stone);
+ buildingCostIron.textContent=formatNumber(cost.iron);
+ const enough=Object.entries(cost).every(([key,value])=>Number(gameResources[key]||0)>=value);
+ if(atMaximum){
+  buildingMessage.textContent="Bu bina en yüksek seviye olan 10'a ulaştı.";
+ }else if(!enough){
+  const missing=Object.entries(cost).filter(([key,value])=>Number(gameResources[key]||0)<value).map(([key,value])=>{
+   const labels={wood:"odun",stone:"taş",iron:"demir"};
+   return labels[key]+" "+formatNumber(value-Number(gameResources[key]||0));
+  });
+  buildingMessage.textContent="Eksik kaynak: "+missing.join(", ");
+ }else{
+  buildingMessage.textContent=building?"Bir sonraki seviye için gerekli kaynaklar hazır.":"Bu yapıyı inşa etmek için gerekli kaynaklar hazır.";
+ }
+ buildingAction.textContent=atMaximum?"Maksimum Seviye":(building?"Seviye "+targetLevel+" Yükselt":"İnşa Et");
+ buildingAction.disabled=atMaximum||!enough||!authToken;
+}
+function openBuildingDialog(slot){
+ selectedBuildingSlot=Number(slot);
+ buildingMessage.textContent="";
+ updateBuildingDialog();
+ if(typeof buildingDialog.showModal==="function")buildingDialog.showModal();
+ else buildingDialog.setAttribute("open","");
+}
+document.querySelectorAll("[data-building-slot]").forEach(node=>{
+ node.addEventListener("click",()=>openBuildingDialog(node.dataset.buildingSlot));
+});
+buildingClose.addEventListener("click",()=>buildingDialog.close());
+buildingTypeSelect.addEventListener("change",updateBuildingDialog);
+buildingAction.addEventListener("click",async()=>{
+ const slot=String(selectedBuildingSlot);
+ const existing=gameBuildings[slot];
+ const body={action:existing?"upgrade":"construct",slot:selectedBuildingSlot};
+ if(!existing)body.type=buildingTypeSelect.value;
+ buildingAction.disabled=true;
+ buildingMessage.textContent="İşlem gerçekleştiriliyor…";
+ try{
+  const result=await authRequest("/api/game/buildings",{method:"POST",token:authToken,body});
+  gameResources=result.resources;
+  gameBuildings=result.buildings;
+  renderResourceBalances();
+  renderBuildingMarkers();
+  const definition=BUILDING_TYPES[result.building.type]||BUILDING_TYPES.center;
+  buildingMessage.textContent=definition.name+" "+result.building.level+". seviyeye ulaştı. Kaynakların hesabına kaydedildi.";
+  updateBuildingDialog();
+ }catch(error){
+  buildingMessage.textContent=error.message;
+  updateBuildingDialog();
+ }
+});
+renderResourceBalances();
+renderBuildingMarkers();
+
+
 const villageView=document.querySelector(".village-wrap");
 const mapView=document.querySelector("#map-view");
 const navButtons=document.querySelectorAll(".bottom-nav button");
@@ -234,6 +363,10 @@ async function loadGameState(){
   const state=await authRequest("/api/game/state",{token:authToken});
   if(state.factionId) setFaction(state.factionId);
   else setFaction(savedFaction);
+  if(state.resources&&typeof state.resources==="object")gameResources={...DEFAULT_RESOURCES,...state.resources};
+  if(state.buildings&&typeof state.buildings==="object")gameBuildings=state.buildings;
+  renderResourceBalances();
+  renderBuildingMarkers();
   if(state.workerStateInitialized){
    ["grain","wood","stone"].forEach(key=>{assigned[key]=Number(state.workerAssignments?.[key]||0);});
    availableWorkers=Math.max(0,Number(state.workerPool||WORKER_POOL)-totalAssigned());
