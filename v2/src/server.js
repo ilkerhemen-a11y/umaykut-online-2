@@ -250,7 +250,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             [playerId, JSON.stringify(resources), JSON.stringify(buildings)]
           );
           await client.query("COMMIT"); inTransaction = false;
-          return sendJson(res, 200, { success: true, slot, building, cost, durationMs: BUILDING_UPGRADE_DURATIONS_MS[targetLevel], resources, buildings });
+          return sendJson(res, 200, { success: true, slot, building, cost, durationMs: BUILDING_UPGRADE_DURATIONS_MS[targetLevel], resources, buildings, serverNow: new Date().toISOString() });
         } catch (error) {
           if (inTransaction) {
             try { await client.query("ROLLBACK"); } catch {}
@@ -424,7 +424,8 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             workerStateInitialized: row.worker_state_initialized,
             resources: row.resources,
             buildings,
-            updatedAt: row.updated_at
+            updatedAt: row.updated_at,
+            serverNow: new Date().toISOString()
           });
         }
         const input = await readJson(req);
