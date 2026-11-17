@@ -227,6 +227,7 @@ test("new registration creates a fresh level-one village and zero worker assignm
   const writes = [];
   const pool = {
     query: async (sql, values=[]) => {
+      if (sql.startsWith("ALTER TABLE")) return {rows:[],rowCount:0};
       if (sql.includes("INSERT INTO umaykut_v2.players")) {
         return { rows:[{id:playerId,username:"YeniOyuncu",email:"new@example.com"}],rowCount:1 };
       }
