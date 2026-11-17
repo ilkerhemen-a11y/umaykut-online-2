@@ -1075,3 +1075,18 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
  #village .village-buildings-layer>.placed-building:not(.placed-center) .building-art{height:clamp(60px,17vw,76px)!important}
  #village .building-slot{width:clamp(43px,12vw,52px)!important;height:clamp(43px,12vw,52px)!important}
 }
+
+/* Three.js city: 2D village remains visible until the atlas and WebGL scene are ready. */
+#village #village3dCanvas{position:absolute;inset:0;width:100%;height:100%;display:block!important;z-index:1;opacity:0;touch-action:none;transition:opacity .22s ease}
+#village.has-3d-village #village3dCanvas{opacity:1}
+#village #village2dCanvas{display:block!important;z-index:0}
+#village.has-3d-village #village2dCanvas{display:none!important}
+#village.has-3d-village .village-buildings-layer>.placed-building.placed-center .keep-art{display:none!important}
+#village.has-3d-village .village-buildings-layer>.placed-building:not(.placed-center) .building-art{opacity:0!important}
+#village .village-buildings-layer{z-index:7!important}
+#village .village-building-slots{z-index:9!important}
+#village .village-map-controls{z-index:14!important}
+#village .village-buildings-layer>.placed-building.placed-center{z-index:12!important}
+
+#village #village3dCanvas{pointer-events:none}
+#village.has-3d-village #village3dCanvas{pointer-events:auto}

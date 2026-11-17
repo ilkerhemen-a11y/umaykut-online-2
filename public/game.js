@@ -51,9 +51,9 @@ function setupVillageCamera(){
  const end=e=>{if(!villageCameraPointer||e.pointerId!==villageCameraPointer.id)return;villageCameraPointer=null;viewport.classList.remove("dragging");if(villageCameraMoved){viewport.classList.add("suppress-village-click");setTimeout(()=>viewport.classList.remove("suppress-village-click"),180);}};
  viewport.addEventListener("pointerup",end);viewport.addEventListener("pointercancel",end);
  viewport.addEventListener("wheel",e=>{e.preventDefault();villageCameraScale=clamp(villageCameraScale+(e.deltaY<0?.06:-.06),1,1.55);applyVillageCamera();},{passive:false});
- $("#villageZoomIn")?.addEventListener("click",()=>{villageCameraScale=clamp(villageCameraScale+.1,1,1.55);applyVillageCamera();});
- $("#villageZoomOut")?.addEventListener("click",()=>{villageCameraScale=clamp(villageCameraScale-.1,1,1.55);applyVillageCamera();});
- $("#villageRecenter")?.addEventListener("click",()=>{villageCameraScale=1.12;villageCameraX=0;villageCameraY=0;applyVillageCamera();});
+ $("#villageZoomIn")?.addEventListener("click",()=>{if(window.umaykut3d?.zoomIn){window.umaykut3d.zoomIn();return;}villageCameraScale=clamp(villageCameraScale+.1,1,1.55);applyVillageCamera();});
+ $("#villageZoomOut")?.addEventListener("click",()=>{if(window.umaykut3d?.zoomOut){window.umaykut3d.zoomOut();return;}villageCameraScale=clamp(villageCameraScale-.1,1,1.55);applyVillageCamera();});
+ $("#villageRecenter")?.addEventListener("click",()=>{villageCameraScale=1.12;villageCameraX=0;villageCameraY=0;applyVillageCamera();window.umaykut3d?.resetCamera?.();});
  applyVillageCamera();
 }
 
@@ -241,13 +241,19 @@ const buildSlotPositions=[[28,32],[50,25],[72,32],[81,48],[72,68],[50,77],[28,68
 const userBuildingCells={school:1,barracks:2,market:3,stonemason:4,stable:6,blacksmith:7,mill:8,farm:9};
 function getUserBuildingPreview(type){const index=type==="center"?0:userBuildingCells[type];return index===undefined?null:{src:"/assets/user-buildings-atlas.png",col:index%5,row:Math.floor(index/5)};}
 const buildIcons={school:"",barracks:"",market:"",stonemason:"",stable:"",blacksmith:"",mill:"",farm:""};
-function currentProjectedSlots(){return buildSlotPositions.map(([x,y])=>({x,y}));}
+function currentProjectedSlots(){const ready=$("#village")?.classList.contains("has-3d-village");const projected=ready?window.umaykut3d?.getSlotPositions?.():null;return Array.isArray(projected)&&projected.length===9?projected:buildSlotPositions.map(([x,y])=>({x,y}));}
 function repositionVillageOverlays(){
  const positions=currentProjectedSlots();
  document.querySelectorAll("#villageBuildingSlots .building-slot,#villageBuildingsLayer .placed-building[data-slot]").forEach(element=>{
   const slot=Number(element.dataset.slot),point=positions[slot-1];
   if(point){element.style.left=point.x+"%";element.style.top=point.y+"%";}
  });
+ const center=document.querySelector("#villageBuildingsLayer .placed-building.placed-center");
+ const centerPoint=$("#village")?.classList.contains("has-3d-village")?window.umaykut3d?.getCenterPosition?.():null;
+ if(center&&centerPoint){
+  center.style.setProperty("left",centerPoint.x+"%","important");
+  center.style.setProperty("top",centerPoint.y+"%","important");
+ }
 }
 function renderBuildSlots(buildings){
  const layer=$("#villageBuildingSlots");if(!layer)return;
@@ -356,6 +362,7 @@ async function refreshBuildingsAndCity(){
   m.addEventListener("click",e=>{e.stopPropagation();openBuildingUpgrade(v);});
   layer.append(m);
  });
+ if(window.umaykut3d?.setBuildings)window.umaykut3d.setBuildings(data.buildings||[]);
  repositionVillageOverlays();
  if(selectedUpgradeBuilding){
   const latest=data.buildings.find(v=>v.type===selectedUpgradeBuilding.type);
@@ -381,6 +388,8 @@ $("#speedUpBuilding").addEventListener("click",async()=>{
  }catch(e){$("#modalText").textContent=e.message;button.disabled=false;}
 });
 window.addEventListener("umaykut2dready",()=>loadVillageBuildings());
+window.addEventListener("umaykut3dready",()=>loadVillageBuildings());
+window.addEventListener("umaykut3dcamera",repositionVillageOverlays);
 function openWorkerAssignment(node){
   const field=$("#modalWorkerField"),input=$("#workerAmount");
   $("#modalTitle").textContent=node.icon+" "+node.name+" kaynağı";
