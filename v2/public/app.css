@@ -81,18 +81,6 @@
 @media(max-width:390px){.building-upgrade-tracker{padding:9px}.upgrade-card{padding:8px}.upgrade-card-top strong{font-size:11px}.upgrade-countdown{font-size:11px}}
 
 
-/* Player-controlled wall marker placement */
-.wall-position-tools{display:grid;grid-template-columns:1fr auto;gap:7px;align-items:center;padding:9px 10px;border:1px solid #80683e;border-radius:10px;background:linear-gradient(145deg,#1a2a20,#0d1711)}
-.wall-position-tools p{grid-column:1/-1;margin:0;font:11px/1.45 Arial,sans-serif;color:#e5d4a7}
-.wall-position-tools button{min-height:36px;padding:7px 10px;border:1px solid #b89550;border-radius:8px;background:linear-gradient(145deg,#6d542d,#2c2417);color:#fff0c5;font:700 11px Arial,sans-serif}
-.wall-position-tools button:disabled{opacity:.45}
-.wall-number{position:absolute;left:50%;top:7%;display:grid;place-items:center;width:30px;height:30px;padding:0;border:1px solid #f4dc98;border-radius:50%;background:radial-gradient(circle at 35% 25%,#f9e6a3,#c28b31 60%,#69491d);color:#fff8dc;text-shadow:0 1px 2px #54320c;font:bold 12px Georgia,serif;box-shadow:0 2px 6px #000b,0 0 0 1px #4d391b88;z-index:5;transform:translate(-50%,-50%);cursor:default;touch-action:none}
-.wall-number small{position:absolute;top:calc(100% + 2px);left:50%;transform:translateX(-50%);padding:1px 4px;border-radius:4px;background:#172319d9;color:#fff2c7;font:600 9px Arial,sans-serif;white-space:nowrap}
-.wall-number.wall-position-draggable{cursor:grab;outline:2px dashed #fff0a7;outline-offset:5px;box-shadow:0 0 0 5px #e6bd5a55,0 0 18px #ffe49b;z-index:20}
-.wall-position-editing{cursor:crosshair}
-.wall-position-editing .wall-number{pointer-events:auto}
-@media(max-width:390px){.wall-position-tools{grid-template-columns:1fr}.wall-position-tools p{grid-column:auto}.wall-position-tools button{width:100%}}
-
 .wall-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}.wall-stat-grid>div{display:grid;gap:5px;padding:13px;border:1px solid #9a7946;border-radius:10px;background:#1b281e}.wall-stat-grid b{font:700 22px Georgia,serif;color:#f4d78d}.wall-stat-grid small{font:11px/1.4 Arial,sans-serif;color:#d8c9a7}.wall-dialog .building-costs{grid-template-columns:1fr 1fr}.wall-number small{min-width:max-content}
 
 .wall-shelter-breakdown{margin:0 0 12px;padding:9px 10px;border:1px solid #6e6747;border-radius:8px;background:#151f18;color:#e6d5a7;font:11px/1.6 Arial,sans-serif;text-align:center}
