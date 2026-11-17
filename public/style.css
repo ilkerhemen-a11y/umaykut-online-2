@@ -1090,3 +1090,18 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
 
 #village #village3dCanvas{pointer-events:none}
 #village.has-3d-village #village3dCanvas{pointer-events:auto}
+
+
+/* Mobile village framing: keep the complete circular settlement visible above the army panel. */
+@media(max-width:699px){
+ #village .village-scene{height:clamp(520px,60dvh,680px)!important;min-height:520px!important}
+ #village .village-title{top:64px}
+ #village .village-player-card{transform:scale(.82);transform-origin:top left}
+ #village .village-next-level{transform:scale(.82);transform-origin:top right}
+ #village .village-map-viewport{inset:0 0 0 0}
+ #village .village-buildings-layer>.placed-building.placed-center{width:clamp(116px,34vw,142px)!important}
+ #village .village-buildings-layer>.placed-building.placed-center .keep-art{height:clamp(142px,42vw,168px)!important}
+ #village .village-buildings-layer>.placed-building:not(.placed-center){width:clamp(48px,13vw,64px)!important}
+ #village .village-buildings-layer>.placed-building:not(.placed-center) .building-art{height:clamp(48px,13vw,64px)!important}
+ #village .building-slot{width:clamp(38px,10vw,46px)!important;height:clamp(38px,10vw,46px)!important}
+}
