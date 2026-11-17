@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "../src/server.js";
 
-test("V2 serves the uploaded village image without numbered overlays", async (t) => {
+test("V2 serves the Göktürk village image with nine compact building numbers", async (t) => {
   const server=createServer({ pool: null });
   await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
   t.after(()=>new Promise(resolve=>server.close(resolve)));
@@ -13,11 +13,11 @@ test("V2 serves the uploaded village image without numbered overlays", async (t)
   const html=await page.text();
   assert.match(html,/İlker'in Yurdu/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.doesNotMatch(html,/building-points|building-point|map-hint/);
+  assert.match(html,/data-faction="gokturk"/);\n  assert.match(html,/data-faction-choice="gokturk" aria-pressed="true"/);\n  assert.equal((html.match(/class="building-number(?: is-center)?"/g)||[]).length,9);\n  assert.match(html,/1 numaralı merkez binası/);
 
   const script=await fetch(base+"/app.js");
   assert.equal(script.status,200);
-  assert.match(await script.text(),/data-faction-choice/);
+  const appScript=await script.text();\n  assert.match(appScript,/data-faction-choice/);\n  assert.match(appScript,/umaykut-faction-v2/);\n  assert.match(appScript,/gokturk/);
 
   const asset=await fetch(base+"/assets/IMG-20261117-WA0073.jpg");
   assert.equal(asset.status,200);
