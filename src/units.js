@@ -32,12 +32,29 @@ const raw = {
 };
 
 const factionNames = { selcuk: "Selçuk Devleti", hun: "Hun Devleti", gokturk: "Göktürk Devleti" };
+const trainingCosts = {
+  barracks_1: { wood: 12, food: 18, iron: 4, stone: 0, gold: 0, horses: 0 },
+  archer: { wood: 16, food: 18, iron: 7, stone: 0, gold: 1, horses: 0 },
+  barracks_5: { wood: 28, food: 25, iron: 16, stone: 8, gold: 3, horses: 0 },
+  barracks_10: { wood: 48, food: 38, iron: 30, stone: 18, gold: 8, horses: 0 },
+  stable_1: { wood: 24, food: 25, iron: 8, stone: 0, gold: 3, horses: 1 },
+  stable_5: { wood: 38, food: 34, iron: 18, stone: 8, gold: 6, horses: 2 },
+  stable_10: { wood: 58, food: 48, iron: 32, stone: 16, gold: 12, horses: 3 },
+  mancinik: { wood: 100, food: 30, iron: 55, stone: 90, gold: 20, horses: 0 },
+  topcu: { wood: 130, food: 40, iron: 75, stone: 110, gold: 30, horses: 0 }
+};
+export function getUnitTrainingCost(unitId, quantity = 1) {
+  const base = trainingCosts[unitId];
+  if (!base) return null;
+  return Object.fromEntries(Object.entries(base).map(([resource, amount]) => [resource, amount * quantity]));
+}
 
 export function getFactionUnits(factionId) {
   const values = raw[factionId];
   if (!values) return null;
   return values.map((stats, index) => ({
     ...columns[index],
+    trainingCost: { ...trainingCosts[columns[index].id] },
     stats: {
       attack: stats[0],
       infantryDefense: stats[1],
@@ -55,6 +72,7 @@ export function getUnitCatalog(_req, res) {
       id: columns[index].id,
       factionId,
       factionName: factionNames[factionId],
+      trainingCost: { ...trainingCosts[columns[index].id] },
       stats: {
         attack: stats[0],
         infantryDefense: stats[1],
