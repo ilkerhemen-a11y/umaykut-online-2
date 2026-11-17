@@ -202,6 +202,12 @@ test("fixed building slots reject construction and only allow level upgrades", a
   assert.equal(state.resources.wood,6840);
   assert.equal(state.resources.stone,7440);
   assert.equal(state.resources.iron,8030);
+  const duplicate = await fetch(url,{
+    method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},
+    body:JSON.stringify({action:"upgrade",slot:6})
+  });
+  assert.equal(duplicate.status,409);
+  assert.equal(state.resources.wood,6840,"a duplicate request must not charge resources twice");
 });
 
 test("building upgrades cannot overspend resources", async (t) => {
