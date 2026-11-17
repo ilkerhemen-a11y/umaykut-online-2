@@ -30,15 +30,15 @@ setFaction(savedFaction);
 
 const DEFAULT_RESOURCES={gold:1650,wood:6900,food:9350,stone:7480,iron:8040,horses:100};
 const BUILDING_TYPES={
- center:{name:"Merkez Binası",icon:"🏰",description:"Yurdunun kalbi. Diğer yapıların gelişimini yönetir."},
- barracks:{name:"Kışla",icon:"⚔️",description:"Piyade ve savunma birliklerinin yetiştirileceği yapı."},
- lumberyard:{name:"Oduncu Ocağı",icon:"🪵",description:"Odun üretimini geliştirecek yapı."},
- quarry:{name:"Taş Ocağı",icon:"🪨",description:"Taş üretimini geliştirecek yapı."},
- ironmine:{name:"Demir Madeni",icon:"⛏️",description:"Demir üretimini geliştirecek yapı."},
- farm:{name:"Çiftlik",icon:"🌾",description:"Yiyecek üretimini geliştirecek yapı."},
- stable:{name:"Ahır",icon:"🐎",description:"Atlı birlikler için gerekli altyapı."},
- market:{name:"Pazar",icon:"🏪",description:"Kaynak ve ticaret işlemlerinin merkezi."},
- warehouse:{name:"Depo",icon:"📦",description:"Kaynaklarını saklamak için kullanılan yapı."}
+ center:{name:"Merkez Binası",shortName:"Merkez",icon:"🏰",description:"Yurdunun kalbi. Diğer yapıların gelişimini yönetir."},
+ barracks:{name:"Kışla",shortName:"Kışla",icon:"⚔️",description:"Piyade ve savunma birliklerinin yetiştirileceği yapı."},
+ lumberyard:{name:"Oduncu Ocağı",shortName:"Oduncu Ocağı",icon:"🪵",description:"Odun üretimini geliştirecek yapı."},
+ quarry:{name:"Taş Ocağı",shortName:"Taş Ocağı",icon:"🪨",description:"Taş üretimini geliştirecek yapı."},
+ ironmine:{name:"Demir Madeni",shortName:"Demir Madeni",icon:"⛏️",description:"Demir üretimini geliştirecek yapı."},
+ farm:{name:"Çiftlik",shortName:"Çiftlik",icon:"🌾",description:"Yiyecek üretimini geliştirecek yapı."},
+ stable:{name:"Ahır",shortName:"Ahır",icon:"🐎",description:"Atlı birlikler için gerekli altyapı."},
+ market:{name:"Pazar",shortName:"Pazar",icon:"🏪",description:"Kaynak ve ticaret işlemlerinin merkezi."},
+ warehouse:{name:"Depo",shortName:"Depo",icon:"📦",description:"Kaynaklarını saklamak için kullanılan yapı."}
 };
 const BUILDING_SLOT_TYPES={
  "1":"center","2":"barracks","3":"stable","4":"lumberyard",
