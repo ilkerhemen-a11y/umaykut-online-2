@@ -1185,3 +1185,32 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
 #village .village-building-slots>.building-slot small{display:none!important}
 #village .village-map-controls{z-index:12!important}
 @media(max-width:699px){#village .village-scene{height:clamp(480px,60dvh,640px)!important;min-height:480px!important}#village .village-buildings-layer>.placed-building{width:38px!important;height:38px!important}#village .village-buildings-layer>.placed-building .building-number,#village .village-building-slots>.building-slot{width:33px!important;height:33px!important;font-size:15px!important}}
+
+/* Mobile village repair: restore the local map artwork and remove the duplicate 3D layer. */
+#village .village-static-map-art{
+  background-image:url("/assets/seljuk-city-map.webp")!important;
+  background-size:100% 100%!important;
+  background-position:center center!important;
+  background-repeat:no-repeat!important;
+  background-color:#31482c!important;
+}
+#village .village-map-camera{background:transparent!important}
+#village .village-map-camera canvas,
+#village #village3dCanvas,
+#village #village2dCanvas{display:none!important;visibility:hidden!important}
+#village .village-buildings-layer>.placed-building .keep-art,
+#village .village-buildings-layer>.placed-building .building-art,
+#village .village-buildings-layer>.placed-building>b,
+#village .village-buildings-layer>.placed-building>small{display:none!important}
+#village .village-buildings-layer>.placed-building.placed-center{
+  left:50%!important;top:52%!important;width:38px!important;height:38px!important;
+}
+#village .village-buildings-layer>.placed-building .building-number{
+  top:0!important;left:0!important;inset:0!important;width:36px!important;height:36px!important;
+}
+#village .village-scene{background:#31482c!important}
+#village .village-scene:before{display:none!important}
+@media(max-width:699px){
+  #village .village-scene{height:clamp(500px,62dvh,660px)!important;min-height:500px!important}
+  #village .village-static-map-art{background-size:100% 100%!important}
+}
