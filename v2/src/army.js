@@ -52,7 +52,9 @@ export function getTroopCatalog(factionId, buildings = {}) {
   return Object.entries(UNIT_BASE).map(([id, base]) => {
     const unique = FACTION_UNITS[faction][id] || {};
     const unit = { ...base, ...unique };
-    const level = Number(buildings[base.building]?.level || 1);
+    // V2 persists buildings by fixed numeric slot; also accept type-keyed data for compatibility.
+    const buildingState = buildings[base.building] || Object.values(buildings).find(item => item?.type === base.building);
+    const level = Number(buildingState?.level || 1);
     const attack = Math.round(unit.attack * (faction === "gokturk" && id.includes("archer") ? 1.10 : 1));
     const infantryDefense = Math.round(unit.infantryDefense * (faction === "seljuk" ? 1.10 : 1));
     const speed = Math.round(unit.speed * (faction === "hun" && base.building === "stable" ? 1.15 : 1));
