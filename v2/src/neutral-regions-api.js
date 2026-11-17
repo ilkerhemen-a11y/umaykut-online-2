@@ -172,7 +172,7 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
     if(battle.canCapture){
       await client.query(
         `UPDATE umaykut_v2.world_neutral_regions SET owner_player_id=$2,owner_faction_id=$3,
-          claimed_by_player_id=NULL,claimed_at=NULL,claim_expires_at=NULL,
+          claimed_by_player_id=NULL,claimed_faction_id=NULL,claimed_at=NULL,claim_expires_at=NULL,
           garrison_troops=$4::jsonb,garrison_count=$5,guard_troops=$6::jsonb,updated_at=NOW() WHERE id=$1`,
         [regionId,session.id,factionId,JSON.stringify(attackerAfter),countTroops(attackerAfter),JSON.stringify(guardsAfter)]
       );
