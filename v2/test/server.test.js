@@ -400,6 +400,46 @@ test("unfounded characters are repaired to nine level-one buildings on state loa
   assert.deepEqual(persisted,state.buildings);
 });
 
+test("game state preserves valid in-progress building upgrades across reloads", async (t) => {
+  const secret = "test-session-secret-with-at-least-32-characters";
+  const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+  const token = createSessionToken(playerId, secret);
+  const upgrade = {
+    targetLevel: 2,
+    startedAt: new Date(Date.now()-1000).toISOString(),
+    completesAt: new Date(Date.now()+119000).toISOString()
+  };
+  let persisted = null;
+  const pool = {
+    query: async (sql, values=[]) => {
+      if(sql.includes("SELECT p.id FROM umaykut_v2.players")) return {rows:[{id:playerId}],rowCount:1};
+      if(sql.includes("INSERT INTO umaykut_v2.player_game_state")) return {rows:[],rowCount:1};
+      if(sql.includes("SELECT p.village_name, s.faction_id, s.worker_pool")) return {rows:[{
+        village_name:"Bozkır",faction_id:"gokturk",worker_pool:1800,
+        worker_assignments:{grain:0,wood:0,stone:0},worker_state_initialized:true,
+        resources:{wood:6840,stone:7440,iron:8030},
+        buildings:{"1":{type:"center",level:1,upgrade}},
+        updated_at:new Date().toISOString()
+      }],rowCount:1};
+      if(sql.includes("UPDATE umaykut_v2.player_game_state SET buildings")){
+        persisted=JSON.parse(values[1]);return {rows:[],rowCount:1};
+      }
+      throw new Error("Unexpected SQL in pending-upgrade persistence test: "+sql);
+    }
+  };
+  const server=createServer({pool,sessionSecret:secret});
+  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+  t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const response=await fetch(`http://127.0.0.1:${server.address().port}/api/game/state`,{
+    headers:{Authorization:"Bearer "+token}
+  });
+  assert.equal(response.status,200);
+  const state=await response.json();
+  assert.deepEqual(state.buildings["1"].upgrade,upgrade);
+  assert.equal(state.buildings["1"].level,1);
+  assert.equal(persisted,null,"an active timer should not be rewritten or discarded");
+});
+
 test("established characters keep valid building levels while missing slots are repaired", async (t) => {
   const secret = "test-session-secret-with-at-least-32-characters";
   const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
