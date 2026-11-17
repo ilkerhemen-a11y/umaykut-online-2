@@ -688,3 +688,73 @@ document.querySelector("#logout-button").addEventListener("click",()=>{
 });
 setAuthMode("login");
 restoreAccountSession();
+
+
+// Interactive wall marker positioning: the player chooses the exact point on the village image.
+const wallPositionMarker=document.querySelector("#wall-position-marker");
+const wallPositionToggle=document.querySelector("#wall-position-toggle");
+const wallPositionConfirm=document.querySelector("#wall-position-confirm");
+const wallPositionStatus=document.querySelector("#wall-position-status");
+const wallPositionStage=document.querySelector(".city-stage");
+let wallPositionEditing=false;
+let wallPositionDraft=null;
+const WALL_POSITION_KEY="umaykut-wall-position-draft-v2";
+function readWallPosition(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(WALL_POSITION_KEY)||"null");
+  if(saved&&Number.isFinite(saved.x)&&Number.isFinite(saved.y)){
+   wallPositionMarker.style.left=saved.x+"%";
+   wallPositionMarker.style.top=saved.y+"%";
+   return saved;
+  }
+ }catch{}
+ const style=getComputedStyle(wallPositionMarker);
+ return {x:parseFloat(style.left)/wallPositionStage.clientWidth*100||50,y:parseFloat(style.top)/wallPositionStage.clientHeight*100||7};
+}
+function updateWallPositionStatus(prefix=""){
+ const p=wallPositionDraft||readWallPosition();
+ wallPositionStatus.textContent=prefix+"Sur işareti konumu: X "+p.x.toFixed(1)+"% · Y "+p.y.toFixed(1)+"%. "+(wallPositionEditing?"İşareti görsel üzerinde istediğin noktaya sürükle.":"");
+}
+function setWallPositionEditing(enabled){
+ wallPositionEditing=enabled;
+ wallPositionStage.classList.toggle("wall-position-editing",enabled);
+ wallPositionMarker.classList.toggle("wall-position-draggable",enabled);
+ wallPositionToggle.textContent=enabled?"✋ Konum ayarını bitir":"📍 Sur konumunu belirle";
+ wallPositionConfirm.disabled=enabled||!wallPositionDraft;
+ updateWallPositionStatus(enabled?"Konum ayarı açık. ":"");
+}
+function moveWallMarker(event){
+ if(!wallPositionEditing||!wallPositionStage)return;
+ const rect=wallPositionStage.getBoundingClientRect();
+ const x=Math.max(1,Math.min(99,(event.clientX-rect.left)/rect.width*100));
+ const y=Math.max(1,Math.min(99,(event.clientY-rect.top)/rect.height*100));
+ wallPositionDraft={x:Number(x.toFixed(1)),y:Number(y.toFixed(1))};
+ wallPositionMarker.style.left=wallPositionDraft.x+"%";
+ wallPositionMarker.style.top=wallPositionDraft.y+"%";
+ updateWallPositionStatus();
+}
+if(wallPositionMarker&&wallPositionToggle&&wallPositionConfirm&&wallPositionStage){
+ wallPositionDraft=readWallPosition();
+ updateWallPositionStatus();
+ wallPositionToggle.addEventListener("click",()=>setWallPositionEditing(!wallPositionEditing));
+ wallPositionMarker.addEventListener("pointerdown",event=>{
+  if(!wallPositionEditing)return;
+  event.preventDefault();
+  wallPositionMarker.setPointerCapture(event.pointerId);
+  moveWallMarker(event);
+ });
+ wallPositionMarker.addEventListener("pointermove",event=>{if(wallPositionEditing&&wallPositionMarker.hasPointerCapture(event.pointerId))moveWallMarker(event);});
+ wallPositionMarker.addEventListener("pointerup",event=>{
+  if(!wallPositionEditing)return;
+  if(wallPositionMarker.hasPointerCapture(event.pointerId))wallPositionMarker.releasePointerCapture(event.pointerId);
+ });
+ wallPositionStage.addEventListener("pointerdown",event=>{
+  if(wallPositionEditing&&event.target!==wallPositionMarker)moveWallMarker(event);
+ });
+ wallPositionConfirm.addEventListener("click",()=>{
+  if(!wallPositionDraft)return;
+  try{localStorage.setItem(WALL_POSITION_KEY,JSON.stringify(wallPositionDraft));}catch{}
+  wallPositionStatus.textContent="Konum taslağın kaydedildi: X "+wallPositionDraft.x.toFixed(1)+"% · Y "+wallPositionDraft.y.toFixed(1)+"%. Bu koordinatları bana gönder; kalıcı oyun konumuna ondan sonra aktaralım.";
+  wallPositionConfirm.disabled=true;
+ });
+}
