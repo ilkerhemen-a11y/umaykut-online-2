@@ -25,12 +25,19 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
     assert.ok(html.slice(markerStart,markerEnd).includes('class="building-label">'+name+'</span>'));
   }
 
+  const expectedPositions=[["1",50,45],["2",39,34],["3",62,34],["4",24,42],["5",76,42],["6",21,51],["7",78,51],["8",38,57],["9",63,57]];
+  for(const [slot,x,y] of expectedPositions){
+    const markerStart=html.indexOf('data-building-slot="'+slot+'"');
+    const markerEnd=html.indexOf("</button>",markerStart);
+    assert.ok(html.slice(markerStart,markerEnd).includes('style="left:'+x+'%;top:'+y+'%"'));
+  }
+
   // Building markers must overlay the image itself, not flow after it.
   const styles=await fetch(base+"/app.css");
   assert.equal(styles.status,200);
   const css=await styles.text();
-  assert.ok(css.includes(".city-frame{position:relative;width:100%;height:auto;aspect-ratio:auto;max-height:none;min-height:0;"));
-  assert.ok(css.includes(".city-art{position:relative;display:block;width:100%;height:auto;"));
+  assert.ok(css.includes(".city-frame{position:relative;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
+  assert.ok(css.includes(".city-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;"));
   assert.ok(css.includes(".building-numbers{position:absolute;inset:0;pointer-events:none}"));
   assert.ok(css.includes(".building-number{position:absolute;transform:translate(-50%,-50%);"));
   assert.ok(css.includes("pointer-events:auto"));
