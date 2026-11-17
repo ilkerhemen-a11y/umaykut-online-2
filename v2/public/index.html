@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101a13">
+  <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
+  <title>Umaykut Online 2 · V2</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <main class="game-shell">
+    <header class="top">
+      <div class="brand"><span class="brand-mark">✦</span><div><strong>UMAYKUT</strong><small>BOZKIRIN HÂKİMİYETİ</small></div></div>
+      <div class="resources" aria-label="Kaynaklar">
+        <div class="resource"><span>🪙</span><b>1.650</b><small>Altın</small></div>
+        <div class="resource"><span>🪵</span><b>6.900</b><small>Odun</small></div>
+        <div class="resource"><span>🌾</span><b>9.350</b><small>Yiyecek</small></div>
+        <div class="resource"><span>🪨</span><b>7.480</b><small>Taş</small></div>
+        <div class="resource"><span>⛏️</span><b>8.040</b><small>Demir</small></div>
+        <div class="resource"><span>🐎</span><b>100</b><small>At</small></div>
+      </div>
+      <div class="realm"><span>İLKER'İN YURDU</span><b>SEVİYE 1</b><span class="realm-sub">Selçuklu diyarı</span></div>
+    </header>
+
+    <section class="village-wrap" aria-label="Köy görünümü">
+      <div class="village-heading"><div><small>HOŞ GELDİN, BEYİM</small><h1>İlker'in Yurdu</h1></div><div class="player-level">✦ <span>Oyuncu Bey<br><small>Seviye 1 · İlk adım</small></span></div></div>
+      <div class="city-frame">
+        <img class="city-art" src="/assets/seljuk-city-map.webp" alt="Dairesel surlarla çevrili Selçuklu şehri" fetchpriority="high">
+        <div class="city-shade"></div>
+        <div class="building-points" id="building-points" aria-label="Şehir binaları"></div>
+        <div class="map-hint">Bir binaya dokunarak ayrıntılarını görüntüle</div>
+      </div>
+      <section class="army-strip">
+        <div class="army-title">⚔ ORDU BİRLİKLERİ <span>·</span> <small>İlk birliğini kurmaya hazırlan</small></div>
+        <div class="army-units">
+          <div><span>🪓</span><b>303</b><small>Piyade</small></div>
+          <div><span>🏹</span><b>101</b><small>Okçu</small></div>
+          <div><span>🛡️</span><b>0</b><small>Kalkanlı</small></div>
+          <div><span>⚔️</span><b>0</b><small>Muhafız</small></div>
+          <div><span>🐎</span><b>100</b><small>Süvari</small></div>
+          <div><span>🎯</span><b>0</b><small>Atlı okçu</small></div>
+        </div>
+      </section>
+    </section>
+
+    <nav class="bottom-nav" aria-label="Ana menü">
+      <button class="active" type="button"><span>🏰</span>Köy</button>
+      <button type="button"><span>⚔️</span>Ordu</button>
+      <button type="button"><span>🗺️</span>Harita</button>
+      <button type="button"><span>🎒</span>Envanter</button>
+    </nav>
+  </main>
+
+  <dialog id="building-dialog" class="building-dialog">
+    <form method="dialog"><button class="close" aria-label="Kapat">×</button></form>
+    <div class="dialog-emblem" id="dialog-emblem">🏛️</div>
+    <p class="eyebrow" id="dialog-number">BİNA 1</p>
+    <h2 id="dialog-title">Merkez Binası</h2>
+    <p class="dialog-copy" id="dialog-description"></p>
+    <div class="level-row"><span>Mevcut seviye</span><strong id="dialog-level">1 / 10</strong></div>
+    <div class="level-track"><span id="dialog-progress"></span></div>
+    <p class="prototype-note">Bu ekran V2 tasarım prototipidir. Yükseltme ve kaynak işlemleri sonraki geliştirme aşamasında sunucuya bağlanacaktır.</p>
+    <button class="primary-action" id="upgrade-preview" type="button">Yükseltme önizlemesi</button>
+  </dialog>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
