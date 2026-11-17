@@ -1087,3 +1087,6 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
 #village .village-building-slots{z-index:9!important}
 #village .village-map-controls{z-index:14!important}
 #village .village-buildings-layer>.placed-building.placed-center{z-index:12!important}
+
+#village #village3dCanvas{pointer-events:none}
+#village.has-3d-village #village3dCanvas{pointer-events:auto}
