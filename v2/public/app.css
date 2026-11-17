@@ -143,3 +143,36 @@
 .army-unit-detail h4{margin:13px 0 6px;font-size:12px;color:#e8ce8d}
 .army-detail-controls{margin-top:12px}
 @media(max-width:380px){.army-units{grid-template-columns:repeat(3,minmax(0,1fr))}.army-detail-heading h3{font-size:16px}}
+
+/* Compact horizontal troop strip and compact instant-recruit detail */
+.army-units{display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 8px;scroll-snap-type:x mandatory;scrollbar-width:thin;overscroll-behavior-x:contain}
+.army-strip-unit{flex:0 0 66px;min-width:66px;max-width:66px;scroll-snap-align:start;padding:4px 2px}
+.army-strip-unit span{font-size:16px}.army-strip-unit b{font-size:10px}.army-strip-unit small{font-size:8px}
+.army-dialog{width:min(92vw,470px);max-height:84dvh;padding:11px}
+.army-dialog-head h2{font-size:18px;margin-bottom:8px}
+.army-summary{gap:5px;margin-bottom:8px}
+.army-summary>div{padding:6px 3px}
+.army-summary strong{font-size:16px}
+.army-training-queue{padding:7px 9px;margin-bottom:8px}
+.army-training-queue h3,.army-recruit-section h3{font-size:12px;margin:0 0 5px}
+.army-unit-catalog{display:flex;gap:6px;overflow-x:auto;padding:2px 1px 7px;scroll-snap-type:x mandatory}
+.army-unit-card{flex:0 0 132px;scroll-snap-align:start;padding:7px}
+.army-unit-card-head{min-height:32px;gap:6px}
+.army-unit-emblem{width:30px;height:30px;flex-basis:30px;font-size:18px}
+.army-unit-card-head strong{font-size:10px}
+.army-unit-card-meta{font-size:8px}
+.army-unit-detail{margin-top:7px;padding:8px}
+.army-unit-back{padding:5px 8px;font-size:10px}
+.army-detail-heading{gap:8px;margin:8px 0 5px}
+.army-detail-emblem{width:40px;height:40px;flex-basis:40px;font-size:24px}
+.army-detail-heading h3{font-size:15px}
+.army-detail-heading p,.army-detail-description{font-size:9px}
+.army-detail-description{margin:5px 0}
+.army-detail-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.army-detail-stats>div{padding:5px;gap:2px}
+.army-detail-stats strong{font-size:13px}
+.army-detail-stats small{font-size:8px}
+.army-unit-detail h4{font-size:10px;margin:7px 0 3px}
+.army-unit-cost,.army-unlock{font-size:9px;margin:3px 0}
+.army-detail-controls{margin-top:7px}
+.army-recruit-controls input,.army-recruit-controls button{min-height:34px;padding:6px;font-size:11px}
