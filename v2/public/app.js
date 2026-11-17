@@ -6,7 +6,7 @@ const factions={
 const shell=document.querySelector(".game-shell");
 const factionLabel=document.querySelector("#realm-faction");
 function setFaction(key){
- const faction=factions[key] ? key : "seljuk";
+ const faction=factions[key] ? key : "gokturk";
  shell.dataset.faction=faction;
  factionLabel.textContent=factions[faction].name;
  document.querySelector('meta[name="theme-color"]').content=factions[faction].themeColor;
