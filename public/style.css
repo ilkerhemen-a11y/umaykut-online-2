@@ -1169,3 +1169,19 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
  #village .village-map-controls{top:122px;bottom:auto;right:8px}
  #village .village-map-controls button{width:34px;height:34px}
 }
+
+
+/* Single-image village: the uploaded city artwork is the entire village scene. */
+#village .village-scene{height:clamp(500px,64dvh,700px)!important;min-height:500px!important;background:#20301f!important;overflow:hidden!important}
+#village .village-map-viewport{inset:0!important;overflow:hidden!important}
+#village .village-map-camera{width:100%!important;height:100%!important;background:transparent!important;overflow:hidden!important}
+#village .village-static-map-art{position:absolute!important;inset:0!important;background-image:url("https://i.hizliresim.com/xhshbqvo.jpg")!important;background-size:100% auto!important;background-position:center!important;background-repeat:no-repeat!important;pointer-events:none!important}
+#village .village-buildings-layer,#village .village-building-slots{position:absolute!important;inset:0!important;pointer-events:none!important}
+#village .village-buildings-layer>.placed-building{position:absolute!important;display:block!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;padding:0!important;overflow:visible!important;transform:translate(-50%,-50%)!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;filter:none!important;pointer-events:auto!important}
+#village .village-buildings-layer>.placed-building .building-number{position:absolute!important;inset:0!important;display:grid!important;place-items:center!important;width:36px!important;height:36px!important;border:2px solid #ffe08a!important;border-radius:50%!important;background:linear-gradient(145deg,#e5bd55,#82591e)!important;color:#fff!important;font-size:17px!important;font-weight:900!important;box-shadow:0 2px 8px #000b,0 0 0 2px #4c351b!important}
+#village .village-buildings-layer>.placed-building .building-art,#village .village-buildings-layer>.placed-building .keep-art,#village .village-buildings-layer>.placed-building b,#village .village-buildings-layer>.placed-building small{display:none!important}
+#village .village-building-slots>.building-slot{position:absolute!important;display:grid!important;place-items:center!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;padding:0!important;transform:translate(-50%,-50%)!important;border:2px solid #ffe08a!important;border-radius:50%!important;background:linear-gradient(145deg,#e5bd55,#82591e)!important;color:#fff!important;font-size:17px!important;font-weight:900!important;box-shadow:0 2px 8px #000b,0 0 0 2px #4c351b!important;pointer-events:auto!important}
+#village .village-building-slots>.building-slot span{font-size:17px!important}
+#village .village-building-slots>.building-slot small{display:none!important}
+#village .village-map-controls{z-index:12!important}
+@media(max-width:699px){#village .village-scene{height:clamp(480px,60dvh,640px)!important;min-height:480px!important}#village .village-buildings-layer>.placed-building{width:38px!important;height:38px!important}#village .village-buildings-layer>.placed-building .building-number,#village .village-building-slots>.building-slot{width:33px!important;height:33px!important;font-size:15px!important}}
