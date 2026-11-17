@@ -864,7 +864,7 @@ document.querySelector("#army-units").addEventListener("click",event=>{
  if(!armyDialog.open)armyDialog.showModal();
  loadArmyState().then(()=>renderArmyUnitDetail(button.dataset.openUnit));
 });
-armyCatalogNode.closest("#army-unit-list-section").addEventListener("click",async event=>{
+document.querySelector("#army-unit-detail").addEventListener("click",async event=>{
  const button=event.target.closest("[data-recruit-unit]");
  if(!button)return;
  const amount=Number(document.querySelector("#"+button.dataset.amountInput).value);
