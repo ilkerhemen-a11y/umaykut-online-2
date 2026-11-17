@@ -62,7 +62,7 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
     );
     return json(res,200,{regions:result.rows,capacity:MAX_NEUTRAL_GARRISON,serverNow:new Date().toISOString()}),true;
   }
-  if(req.method!=='POST'||!['/api/game/neutral-regions/garrison','/api/game/neutral-regions/attack'].includes(path)){
+  if(req.method!=='POST'||!['/api/game/neutral-regions/garrison','/api/game/neutral-regions/attack','/api/game/neutral-regions/challenge'].includes(path)){
     res.setHeader('allow','GET, POST');
     return json(res,405,{error:'Yöntem desteklenmiyor.'}),true;
   }
@@ -112,6 +112,41 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
       await client.query('UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb,updated_at=NOW() WHERE player_id=$1',[session.id,JSON.stringify(nextOwn)]);
       await client.query('COMMIT');tx=false;
       return json(res,200,{success:true,message:claim?'İlk garnizon kuruldu; dört saatlik hâkimiyet süresi başladı.':'Garnizona asker takviyesi yapıldı.',claimExpiresAt:claim?.expiresAt||region.claim_expires_at,garrisonCount:capacity.total,remainingCapacity:capacity.remainingCapacity}),true;
+    }
+
+    if(path.endsWith('/challenge')){
+      if(region.claimed_by_player_id!==session.id||expireNeutralClaim({claimExpiresAt:region.claim_expires_at})){
+        await client.query('ROLLBACK');tx=false;
+        return json(res,409,{error:'Bu bölgenin aktif geçici hâkimiyeti sana ait değil veya süresi dolmuş.'}),true;
+      }
+      const garrison=parse(region.garrison_troops);
+      if(countTroops(garrison)<1){
+        await client.query('ROLLBACK');tx=false;
+        return json(res,409,{error:'Savaş için garnizonda asker bulunmuyor.'}),true;
+      }
+      const battle=resolveNeutralBattle({
+        attackingTroops:garrison,defendingTroops:{},guardTroops:parse(region.guard_troops),
+        claimExpiresAt:region.claim_expires_at
+      });
+      const attackerAfter=applyLosses(garrison,battle.attackerLosses);
+      const guardsAfter=applyLosses(parse(region.guard_troops),battle.defenderLosses);
+      if(battle.canCapture){
+        await client.query(
+          `UPDATE umaykut_v2.world_neutral_regions SET owner_player_id=$2,owner_faction_id=$3,
+            claimed_by_player_id=NULL,claimed_at=NULL,claim_expires_at=NULL,
+            garrison_troops=$4::jsonb,garrison_count=$5,guard_troops=$6::jsonb,updated_at=NOW()
+           WHERE id=$1`,
+          [regionId,session.id,factionId,JSON.stringify(attackerAfter),countTroops(attackerAfter),JSON.stringify(guardsAfter)]
+        );
+        await client.query('COMMIT');tx=false;
+        return json(res,200,{success:true,victory:true,captured:true,ownerFactionId:factionId,attackerSurvivors:battle.attackerSurvivors,attackerLosses:battle.attackerLosses,defenderLosses:battle.defenderLosses,message:'Muhafızlar yenildi; bölge fethedildi ve devletinin rengine boyandı.'}),true;
+      }
+      await client.query(
+        'UPDATE umaykut_v2.world_neutral_regions SET garrison_troops=$2::jsonb,garrison_count=$3,guard_troops=$4::jsonb,updated_at=NOW() WHERE id=$1',
+        [regionId,JSON.stringify(attackerAfter),countTroops(attackerAfter),JSON.stringify(guardsAfter)]
+      );
+      await client.query('COMMIT');tx=false;
+      return json(res,200,{success:true,victory:false,captured:false,attackerSurvivors:battle.attackerSurvivors,attackerLosses:battle.attackerLosses,defenderLosses:battle.defenderLosses,message:'Muhafızlar henüz yenilmedi. Garnizonu güçlendirip yeniden saldırabilirsin.'}),true;
     }
 
     if(!region.claimed_by_player_id||expireNeutralClaim({claimExpiresAt:region.claim_expires_at})){
