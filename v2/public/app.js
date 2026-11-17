@@ -953,6 +953,58 @@ mapWorldCanvas?.addEventListener("click",async event=>{
  try{if(!armyState)await loadArmyState();openAttackDialog(target);}
  catch(error){window.alert(error.message||"Oyuncu bilgisi alınamadı.");}
 });
+
+function renderMarchingArmies(playersData,raidsData){
+ if(!mapWorldCanvas)return;
+ const overlay=mapWorldCanvas.querySelector(".map-geography-overlay");
+ if(!overlay)return;
+ overlay.querySelectorAll(".live-army-route").forEach(route=>route.remove());
+ mapWorldCanvas.querySelectorAll(".map-army-marker").forEach(marker=>marker.remove());
+ const own=playersData.world||{world_x:50,world_y:50};
+ const ownX=Math.max(0,Math.min(100,Number(own.world_x)||50));
+ const ownY=Math.max(0,Math.min(100,Number(own.world_y)||50));
+ const players=Array.isArray(playersData.players)?playersData.players:[];
+ const now=Date.parse(raidsData.serverNow)||Date.now();
+ (raidsData.attacks||[]).filter(raid=>raid.status==="marching").forEach(raid=>{
+  const outgoing=raid.direction==="outgoing";
+  const targetId=outgoing?raid.defender_id:raid.attacker_id;
+  const target=players.find(player=>player.id===targetId);
+  if(!target)return;
+  const targetX=Math.max(0,Math.min(100,Number(target.world_x)||50));
+  const targetY=Math.max(0,Math.min(100,Number(target.world_y)||50));
+  const startX=outgoing?ownX:targetX,startY=outgoing?ownY:targetY;
+  const endX=outgoing?targetX:ownX,endY=outgoing?targetY:ownY;
+  const x1=startX*18,y1=startY*12,x2=endX*18,y2=endY*12;
+  const dx=x2-x1,dy=y2-y1;
+  const cx=dx/2-dy*.12,cy=dy/2+dx*.12;
+  const path=document.createElementNS("http://www.w3.org/2000/svg","path");
+  path.setAttribute("d","M "+x1+" "+y1+" Q "+(x1+cx)+" "+(y1+cy)+" "+x2+" "+y2);
+  path.setAttribute("class","live-army-route "+(outgoing?"outgoing":"incoming"));
+  overlay.append(path);
+  const marker=document.createElement("div");
+  marker.className="map-army-marker";
+  marker.textContent="⚔️";
+  marker.title=(outgoing?"Giden ordu: ":"Gelen ordu: ")+(target.village_name||"Rakip yurdu");
+  marker.setAttribute("aria-label",marker.title);
+  const departed=Date.parse(raid.departed_at),arrives=Date.parse(raid.arrives_at);
+  const total=Math.max(1000,arrives-departed);
+  const elapsed=Math.max(0,Math.min(total,now-departed));
+  const duration=total/1000;
+  marker.style.animationDuration=duration+"s";
+  marker.style.animationDelay=(-elapsed/1000)+"s";
+  if(typeof CSS!=="undefined"&&CSS.supports("offset-path",'path("M 0 0 L 1 1")')){
+   marker.style.left=startX+"%";marker.style.top=startY+"%";
+   marker.style.offsetPath='path("M 0px 0px Q '+cx+'px '+cy+'px '+dx+'px '+dy+'px")';
+   marker.style.offsetRotate="auto";
+  }else{
+   const progress=elapsed/total;
+   marker.style.left=(startX+(endX-startX)*progress)+"%";
+   marker.style.top=(startY+(endY-startY)*progress)+"%";
+  }
+  mapWorldCanvas.append(marker);
+ });
+}
+
 async function loadWorldPlayers(){
  if(!authToken||!worldPlayerList)return;
  worldPlayerList.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Köyler aranıyor…"}));
@@ -964,6 +1016,7 @@ async function loadWorldPlayers(){
   ]);
   window.__umaykutWorldNodes=playersData.resourceNodes||[];
   renderWorldMap(playersData);
+  renderMarchingArmies(playersData,raidsData);
   worldPlayerList.replaceChildren();
   if(!playersData.players.length)worldPlayerList.append(Object.assign(document.createElement("p"),{textContent:"Henüz başka bir oyuncu köy kurmamış."}));
   playersData.players.forEach(player=>{
