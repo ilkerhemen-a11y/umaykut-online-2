@@ -147,6 +147,7 @@ function renderBuildingMarkers(){
   const label=node.querySelector(".building-label");
   if(label)label.textContent=definition.shortName||definition.name;
   node.classList.add("is-built");
+  node.classList.toggle("is-upgrading",Boolean(building.upgrade));
   node.setAttribute("aria-label",slot+" numaralı "+definition.name+" seviye "+building.level);
   node.dataset.level=String(building.level);
  });
@@ -167,7 +168,25 @@ const buildingMessage=document.querySelector("#building-message");
 const buildingAction=document.querySelector("#building-action");
 let selectedBuildingSlot=1;
 function buildingCostFor(targetLevel){
- return Object.fromEntries(Object.entries(BUILDING_BASE_COST).map(([key,value])=>[key,value*targetLevel]));
+ const multiplier=2*Math.pow(1.7,targetLevel-2);
+ return {wood:Math.round(30*multiplier),stone:Math.round(20*multiplier),iron:Math.round(5*multiplier)};
+}
+const BUILDING_UPGRADE_MINUTES={2:2,3:5,4:15,5:30,6:60,7:120,8:240,9:480,10:720};
+function formatUpgradeRemaining(completesAt){
+ const totalSeconds=Math.ceil(Math.max(0,Date.parse(completesAt)-Date.now())/1000);
+ const hours=Math.floor(totalSeconds/3600),minutes=Math.floor((totalSeconds%3600)/60),seconds=totalSeconds%60;
+ if(hours)return hours+" sa "+minutes+" dk";
+ if(minutes)return minutes+" dk "+seconds+" sn";
+ return seconds+" sn";
+}
+function refreshBuildingCountdown(){
+ if(!buildingDialog.open)return;
+ const building=gameBuildings[String(selectedBuildingSlot)];
+ if(!building?.upgrade)return;
+ if(Date.parse(building.upgrade.completesAt)<=Date.now()){
+  buildingMessage.textContent="Yükseltme tamamlandı. Seviye güncelleniyor…";
+  loadGameState().then(()=>updateBuildingDialog());
+ }else buildingMessage.textContent="Yükseltme sürüyor: "+formatUpgradeRemaining(building.upgrade.completesAt)+" kaldı.";
 }
 function updateBuildingDialog(){
  const slot=String(selectedBuildingSlot);
@@ -176,19 +195,22 @@ function updateBuildingDialog(){
  const currentLevel=Math.max(1,Number(building.level)||1);
  const targetLevel=currentLevel+1;
  const atMaximum=currentLevel>=MAX_BUILDING_LEVEL;
+ const upgrading=Boolean(building.upgrade);
  const cost=buildingCostFor(targetLevel);
  buildingEmblem.textContent=definition.icon;
  buildingEyebrow.textContent="İNŞA ALANI "+slot;
  buildingTitle.textContent=definition.name;
  buildingDescription.textContent=definition.description;
- buildingLevel.textContent=currentLevel+" / "+MAX_BUILDING_LEVEL;
+ buildingLevel.textContent=currentLevel+" / "+MAX_BUILDING_LEVEL+(upgrading?" · Yükseltiliyor":"");
  buildingLevelFill.style.width=(currentLevel/MAX_BUILDING_LEVEL*100)+"%";
  buildingCostTitle.textContent=atMaximum?"En yüksek seviyeye ulaşıldı":"Seviye "+targetLevel+" yükseltme maliyeti";
  buildingCostWood.textContent=formatNumber(cost.wood);
  buildingCostStone.textContent=formatNumber(cost.stone);
  buildingCostIron.textContent=formatNumber(cost.iron);
  const enough=Object.entries(cost).every(([key,value])=>Number(gameResources[key]||0)>=value);
- if(atMaximum){
+ if(upgrading){
+  buildingMessage.textContent="Yükseltme sürüyor: "+formatUpgradeRemaining(building.upgrade.completesAt)+" kaldı. Tamamlanınca seviye otomatik artacak.";
+ }else if(atMaximum){
   buildingMessage.textContent="Bu bina en yüksek seviye olan 10'a ulaştı.";
  }else if(!enough){
   const missing=Object.entries(cost).filter(([key,value])=>Number(gameResources[key]||0)<value).map(([key,value])=>{
@@ -196,11 +218,9 @@ function updateBuildingDialog(){
    return labels[key]+" "+formatNumber(value-Number(gameResources[key]||0));
   });
   buildingMessage.textContent="Eksik kaynak: "+missing.join(", ");
- }else{
-  buildingMessage.textContent="Bir sonraki seviye için gerekli kaynaklar hazır.";
- }
- buildingAction.textContent=atMaximum?"Maksimum Seviye":"Seviye "+targetLevel+" Yükselt";
- buildingAction.disabled=atMaximum||!enough||!authToken;
+ }else buildingMessage.textContent="Gerekli kaynaklar hazır. İnşaat süresi: "+BUILDING_UPGRADE_MINUTES[targetLevel]+" dakika.";
+ buildingAction.textContent=upgrading?"Yükseltiliyor":atMaximum?"Maksimum Seviye":"Seviye "+targetLevel+" Yükselt";
+ buildingAction.disabled=upgrading||atMaximum||!enough||!authToken;
 }
 function openBuildingDialog(slot){
  selectedBuildingSlot=Number(slot);
@@ -210,6 +230,7 @@ function openBuildingDialog(slot){
  else buildingDialog.setAttribute("open","");
 }
 buildingClose.addEventListener("click",()=>buildingDialog.close());
+setInterval(refreshBuildingCountdown,1000);
 buildingAction.addEventListener("click",async()=>{
  const slot=String(selectedBuildingSlot);
  const body={action:"upgrade",slot:selectedBuildingSlot};
@@ -218,11 +239,14 @@ buildingAction.addEventListener("click",async()=>{
  try{
   const result=await authRequest("/api/game/buildings",{method:"POST",token:authToken,body});
   gameResources=result.resources;
-  gameBuildings=result.buildings;
+  gameBuildings=Object.fromEntries(Object.entries(BUILDING_SLOT_TYPES).map(([buildingSlot,type])=>{
+   const saved=result.buildings?.[buildingSlot]||{};
+   return [buildingSlot,{type,level:Math.max(1,Number(saved.level)||1),upgrade:saved.upgrade||null}];
+  }));
   renderResourceBalances();
   renderBuildingMarkers();
   const definition=BUILDING_TYPES[BUILDING_SLOT_TYPES[slot]]||BUILDING_TYPES.center;
-  buildingMessage.textContent=definition.name+" "+result.building.level+". seviyeye ulaştı. Kaynakların hesabına kaydedildi.";
+  buildingMessage.textContent=definition.name+" yükseltmesi başladı. "+formatUpgradeRemaining(result.building.upgrade.completesAt)+" sonra seviye "+result.building.upgrade.targetLevel+" olacak.";
   updateBuildingDialog();
  }catch(error){
   buildingMessage.textContent=error.message;
@@ -478,9 +502,10 @@ async function loadGameState(){
   const state=await authRequest("/api/game/state",{token:authToken});
   if(state.factionId) setFaction(state.factionId);
   if(state.resources&&typeof state.resources==="object")gameResources={...DEFAULT_RESOURCES,...state.resources};
-  gameBuildings=Object.fromEntries(Object.entries(BUILDING_SLOT_TYPES).map(([slot,type])=>[
-   slot,{type,level:Math.max(1,Number(state.buildings?.[slot]?.level)||1)}
-  ]));
+  gameBuildings=Object.fromEntries(Object.entries(BUILDING_SLOT_TYPES).map(([slot,type])=>{
+   const saved=state.buildings?.[slot]||{};
+   return [slot,{type,level:Math.max(1,Number(saved.level)||1),upgrade:saved.upgrade||null}];
+  }));
   renderResourceBalances();
   renderBuildingMarkers();
   if(state.workerStateInitialized){
