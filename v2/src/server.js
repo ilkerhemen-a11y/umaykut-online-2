@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { dirname, extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig } from "./config.js";
-import { resolveBattle } from "./combat.js";
+import { resolveBattle, resolveScoutClash } from "./combat.js";
 import { createPool } from "./database.js";
 import { handleArmyRequest, getTroopCatalog, settleTrainingQueue } from "./army.js";
 import {
@@ -204,7 +204,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
       if(!valid.rowCount)return sendJson(res,401,{error:"Oyuncu oturumu bulunamadı."});
       if(url.pathname==="/api/game/scouting"){
         if(req.method==="GET"){
-          const due=await pool.query("SELECT id FROM umaykut_v2.player_scout_missions WHERE status='marching' AND arrives_at<=NOW() AND attacker_id=$1 ORDER BY arrives_at ASC LIMIT 20",[session.id]);
+          const due=await pool.query("SELECT id FROM umaykut_v2.player_scout_missions WHERE status='marching' AND arrives_at<=NOW() AND (attacker_id=$1 OR defender_id=$1) ORDER BY arrives_at ASC LIMIT 20",[session.id]);
           for(const item of due.rows){
             const client=await pool.connect();let tx=false;
             try{
@@ -212,18 +212,45 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
               const missionResult=await client.query("SELECT * FROM umaykut_v2.player_scout_missions WHERE id=$1 FOR UPDATE",[item.id]);
               const mission=missionResult.rows[0];
               if(!mission||mission.status!=="marching"){await client.query("ROLLBACK");tx=false;continue;}
-              const target=await client.query("SELECT s.resources,s.troops FROM umaykut_v2.player_game_state s WHERE s.player_id=$1 FOR UPDATE",[mission.defender_id]);
-              if(!target.rowCount)throw new Error("Keşif hedefinin köy verisi bulunamadı.");
+              const ids=[mission.attacker_id,mission.defender_id].sort();
+              const states=await client.query("SELECT player_id,resources,troops FROM umaykut_v2.player_game_state WHERE player_id=ANY($1::uuid[]) ORDER BY player_id FOR UPDATE",[ids]);
+              if(states.rowCount!==2)throw new Error("Keşif görevinin köy verileri bulunamadı.");
               const parse=(value,fallback)=>typeof value==="string"?JSON.parse(value||JSON.stringify(fallback)):(value??fallback);
-              const targetTroops=parse(target.rows[0].troops,{});
-              const targetResources=parse(target.rows[0].resources,{});
-              const report={scoutedAt:new Date().toISOString(),village:mission.defender_village,
+              const attackerState=states.rows.find(row=>row.player_id===mission.attacker_id);
+              const defenderState=states.rows.find(row=>row.player_id===mission.defender_id);
+              const attackerTroops=parse(attackerState.troops,{});
+              const defenderTroops=parse(defenderState.troops,{});
+              const clash=resolveScoutClash({attackerScouts:Number(mission.scout_count),defenderScouts:Number(defenderTroops.scout||0)});
+              if(clash.defenderLosses>0){
+                defenderTroops.scout=clash.defenderSurvivors;
+                await client.query("UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb,updated_at=NOW() WHERE player_id=$1",[mission.defender_id,JSON.stringify(defenderTroops)]);
+              }
+              const targetResources=parse(defenderState.resources,{});
+              const intelligence=clash.informationGathered?{
+                scoutedAt:new Date().toISOString(),village:mission.defender_village,
                 resources:Object.fromEntries(["gold","wood","food","stone","iron"].map(key=>[key,Number(targetResources[key]||0)])),
-                troops:Object.fromEntries(Object.entries(targetTroops).map(([key,value])=>[key,Number(value||0)])),
-                scoutCount:mission.scout_count};
-              await client.query("UPDATE umaykut_v2.player_scout_missions SET status='resolved',scout_report=$2::jsonb,return_at=NOW()+(arrives_at-departed_at) WHERE id=$1",[mission.id,JSON.stringify(report)]);
+                troops:Object.fromEntries(Object.entries(defenderTroops).map(([key,value])=>[key,Number(value||0)]))
+              }:null;
+              const attackerReport={
+                ...(intelligence||{}),scoutCount:Number(mission.scout_count),
+                attackerSurvivors:clash.attackerSurvivors,
+                attackerLosses:clash.attackerLosses,
+                defenderLosses:clash.defenderLosses,
+                informationGathered:clash.informationGathered,
+                outcome:clash.outcome
+              };
+              const defenderReport={
+                detected:true,detectedAt:new Date().toISOString(),
+                attackerVillage:mission.attacker_village,
+                incomingScouts:Number(mission.scout_count),
+                ownScoutsBefore:clash.defenderScouts,
+                ownScoutsLost:clash.defenderLosses,
+                ownScoutsRemaining:clash.defenderSurvivors,
+                outcome:clash.outcome
+              };
+              await client.query("UPDATE umaykut_v2.player_scout_missions SET status='resolved',scout_report=$2::jsonb,defender_report=$3::jsonb,return_at=NOW()+(arrives_at-departed_at) WHERE id=$1",[mission.id,JSON.stringify(attackerReport),JSON.stringify(defenderReport)]);
               await client.query("COMMIT");tx=false;
-            }catch(error){if(tx){try{await client.query("ROLLBACK");}catch{}}console.error("V2 scout report failed",{missionId:item.id,message:String(error.message||"").slice(0,160)});}
+            }catch(error){if(tx){try{await client.query("ROLLBACK");}catch{}}console.error("V2 scout counter-intelligence failed",{missionId:item.id,message:String(error.message||"").slice(0,160)});}
             finally{client.release();}
           }
           const returning=await pool.query("SELECT id FROM umaykut_v2.player_scout_missions WHERE status='resolved' AND return_at<=NOW() AND attacker_id=$1 ORDER BY return_at ASC LIMIT 20",[session.id]);
@@ -231,20 +258,20 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             const client=await pool.connect();let tx=false;
             try{
               await client.query("BEGIN");tx=true;
-              const missionResult=await client.query("SELECT id,scout_count,status FROM umaykut_v2.player_scout_missions WHERE id=$1 FOR UPDATE",[item.id]);
+              const missionResult=await client.query("SELECT id,scout_count,scout_report,status FROM umaykut_v2.player_scout_missions WHERE id=$1 FOR UPDATE",[item.id]);
               const mission=missionResult.rows[0];
               if(!mission||mission.status!=="resolved"){await client.query("ROLLBACK");tx=false;continue;}
               const state=await client.query("SELECT troops FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",[session.id]);
               if(!state.rowCount)throw new Error("Keşif birliğinin köy verisi bulunamadı.");
               const troops=typeof state.rows[0].troops==="string"?JSON.parse(state.rows[0].troops||"{}"):(state.rows[0].troops||{});
-              troops.scout=Number(troops.scout||0)+Number(mission.scout_count||0);
+              const report=typeof mission.scout_report==="string"?JSON.parse(mission.scout_report):(mission.scout_report||{});\n              troops.scout=Number(troops.scout||0)+Number(report.attackerSurvivors||0);
               await client.query("UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb,updated_at=NOW() WHERE player_id=$1",[session.id,JSON.stringify(troops)]);
               await client.query("UPDATE umaykut_v2.player_scout_missions SET status='returned' WHERE id=$1",[mission.id]);
               await client.query("COMMIT");tx=false;
             }catch(error){if(tx){try{await client.query("ROLLBACK");}catch{}}console.error("V2 scout return failed",{missionId:item.id,message:String(error.message||"").slice(0,160)});}
             finally{client.release();}
           }
-          const reports=await pool.query("SELECT id,attacker_village,defender_village,scout_count,departed_at,arrives_at,return_at,status,scout_report FROM umaykut_v2.player_scout_missions WHERE attacker_id=$1 OR defender_id=$1 ORDER BY departed_at DESC LIMIT 30",[session.id]);
+          const reports=await pool.query("SELECT id,attacker_id,defender_id,attacker_village,defender_village,scout_count,departed_at,arrives_at,return_at,status,scout_report,defender_report FROM umaykut_v2.player_scout_missions WHERE attacker_id=$1 OR defender_id=$1 ORDER BY departed_at DESC LIMIT 30",[session.id]);
           return sendJson(res,200,{missions:reports.rows,serverNow:new Date().toISOString()});
         }
         if(req.method!=="POST"){res.setHeader("allow","GET, POST");return sendJson(res,405,{error:"Yöntem desteklenmiyor."});}
