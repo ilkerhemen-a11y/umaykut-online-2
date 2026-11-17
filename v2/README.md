@@ -17,3 +17,8 @@
 - `/ready` performs a real database query and returns 503 until the database is reachable.
 
 The existing production service is not modified by this V2 branch. Never add database credentials to GitHub.
+
+## Village image status
+- The village screen displays the uploaded photo at `../public/assets/IMG-20261117-WA0073.jpg`, served at `/assets/IMG-20261117-WA0073.jpg`.
+- The image is shown as a single complete picture; the old numbered building markers and building-detail prototype are removed from this view.
+- Hun, Seljuk and Göktürk choices currently switch the interface accent palette and persist the selected faction. They still share the uploaded village image until separate faction artwork is added.
