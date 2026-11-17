@@ -980,13 +980,16 @@ function renderNeutralRegionDialog(region){
   :mine?"Geçici hâkimiyet sende · Muhafızları yenerek kalıcı fetih yap."
   :rival?"Geçici hâkimiyet: başka bir oyuncuda · Rakip devletler saldırabilir."
   :"Tarafsız toprak · İlk garnizon dört saatlik mücadeleyi başlatır.";
- neutralRegionMode=owned?"owned":mine?"challenge":rival?"attack":"garrison";
- neutralRegionTroopSection.hidden=owned||mine;
+ neutralRegionMode=owned?"owned":mine?"reinforce":rival?"attack":"garrison";
+ neutralRegionTroopSection.hidden=owned;
  fillNeutralTroopChoices();
  neutralRegionAction.hidden=owned;
  neutralRegionAction.disabled=false;
- neutralRegionAction.textContent=mine?"⚔️ Muhafızlara saldır ve fethet":rival?"⚔️ Rakip garnizona saldır":"🏕️ İlk garnizonu kur · 4 saat başlat";
- neutralRegionMessage.textContent=owned?"Bu bölge şu anda fethedilmiş durumda.":mine?"Garnizondaki tüm askerler muhafızlara karşı savaşa katılacak.":rival?"Göndereceğin ordu, muhafızlar ve mevcut garnizona karşı savaşacak.":"İlk gönderdiğin birlikler garnizon olur. Dört saat içinde muhafızları yenmelisin.";
+ neutralRegionAction.textContent=mine?"➕ Garnizona asker takviyesi":rival?"⚔️ Rakip garnizona saldır":"🏕️ İlk garnizonu kur · 4 saat başlat";
+ const challengeButton=document.querySelector("#neutral-region-challenge");
+ challengeButton.hidden=!mine;
+ challengeButton.disabled=false;
+ neutralRegionMessage.textContent=owned?"Bu bölge şu anda fethedilmiş durumda.":mine?"Garnizonuna yeni asker gönderebilir veya mevcut garnizonla muhafızlara saldırabilirsin.":rival?"Göndereceğin ordu, muhafızlar ve mevcut garnizona karşı savaşacak.":"İlk gönderdiğin birlikler garnizon olur. Dört saat içinde muhafızları yenmelisin.";
  renderNeutralRegionCountdown();
 }
 async function openNeutralRegionDialog(region){
@@ -1262,19 +1265,19 @@ document.querySelector("#neutral-region-close").addEventListener("click",()=>{
  if(neutralRegionTimer)clearInterval(neutralRegionTimer);
  neutralRegionDialog.close();
 });
-neutralRegionAction.addEventListener("click",async()=>{
+async function submitNeutralRegionAction(endpoint){
  if(!selectedNeutralRegion||neutralRegionMode==="owned")return;
  let troops={};
- if(neutralRegionMode!=="challenge"){
+ if(endpoint!=="challenge"){
   neutralRegionUnitList.querySelectorAll("[data-neutral-unit]").forEach(input=>{
    const amount=Number(input.value);
    if(Number.isSafeInteger(amount)&&amount>0)troops[input.dataset.neutralUnit]=amount;
   });
   if(!Object.keys(troops).length){neutralRegionMessage.textContent="En az bir asker seçmelisin.";return;}
  }
- const endpoint=neutralRegionMode==="garrison"?"garrison":neutralRegionMode==="challenge"?"challenge":"attack";
- neutralRegionAction.disabled=true;
- neutralRegionMessage.textContent=endpoint==="garrison"?"İlk garnizon kuruluyor…":endpoint==="challenge"?"Muhafızlarla savaş başlıyor…":"Rakip garnizona saldırı gönderiliyor…";
+ const button=endpoint==="challenge"?document.querySelector("#neutral-region-challenge"):neutralRegionAction;
+ button.disabled=true;
+ neutralRegionMessage.textContent=endpoint==="garrison"?"Garnizona asker gönderiliyor…":endpoint==="challenge"?"Muhafızlarla savaş başlıyor…":"Rakip garnizona saldırı gönderiliyor…";
  try{
   const result=await authRequest("/api/game/neutral-regions/"+endpoint,{
    method:"POST",token:authToken,body:{regionId:selectedNeutralRegion.id,troops}
@@ -1288,9 +1291,11 @@ neutralRegionAction.addEventListener("click",async()=>{
  }catch(error){
   neutralRegionMessage.textContent=error.message||"Bölge işlemi tamamlanamadı.";
  }finally{
-  neutralRegionAction.disabled=false;
+  button.disabled=false;
  }
-});
+}
+neutralRegionAction.addEventListener("click",()=>submitNeutralRegionAction(neutralRegionMode==="attack"?"attack":"garrison"));
+document.querySelector("#neutral-region-challenge").addEventListener("click",()=>submitNeutralRegionAction("challenge"));
 
 document.querySelector("#attack-close").addEventListener("click",()=>attackDialog.close());
 document.querySelector("#send-attack").addEventListener("click",async()=>{
