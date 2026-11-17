@@ -1223,3 +1223,5 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
 #village .village-buildings-layer>.placed-building.placed-center::after{content:none!important;display:none!important}
 #village .village-map-camera>canvas,
 #village .village-map-viewport canvas{display:none!important}
+
+.unit-training-cost{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:8px 0;padding:8px;background:#17140f;border:1px solid #70572b;border-radius:7px}.unit-training-cost b{flex-basis:100%;color:#f0d17c;font-size:10px}.unit-training-cost span{padding:3px 5px;background:#302719;border-radius:4px;color:#f4e4bd;font-size:10px}
