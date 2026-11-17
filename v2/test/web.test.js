@@ -13,6 +13,13 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   const html=await page.text();
   assert.match(html,/İlker'in Yurdu/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
+  assert.match(html,/href="\/app\.css\?v=20261117-village-stage-2"/);
+  assert.match(html,/src="\/app\.js\?v=20261117-village-stage-2"/);
+  const stageStart=html.indexOf('<div class="city-stage">');
+  const stageEnd=html.indexOf('\n        </div>\n      </div>\n      <dialog id="building-dialog"',stageStart);
+  assert.ok(stageEnd>stageStart);
+  const stageHtml=html.slice(stageStart,stageEnd);
+  assert.ok(stageHtml.includes('<img class="city-art"') && stageHtml.includes('<div class="building-numbers"'));
   assert.match(html,/data-faction="gokturk"/);
   assert.match(html,/data-faction-choice="gokturk" aria-pressed="true"/);
   assert.equal((html.match(/class="building-number(?: is-center)?"/g)||[]).length,9);
@@ -33,11 +40,13 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
 
   // Building markers must overlay the image itself, not flow after it.
-  const styles=await fetch(base+"/app.css");
+  const styles=await fetch(base+"/app.css?v=20261117-village-stage-2");
   assert.equal(styles.status,200);
   const css=await styles.text();
-  assert.ok(css.includes(".city-frame{position:relative;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
-  assert.ok(css.includes(".city-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;"));
+  assert.ok(css.includes(".city-frame{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
+  assert.ok(css.includes(".city-stage{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:100%;height:100%;"));
+  assert.ok(css.includes(".city-art{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:fill;"));
+  
   assert.ok(css.includes(".building-numbers{position:absolute;inset:0;pointer-events:none}"));
   assert.ok(css.includes(".building-number{position:absolute;transform:translate(-50%,-50%);"));
   assert.ok(css.includes("pointer-events:auto"));
@@ -51,10 +60,13 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,3);
 
-  const script=await fetch(base+"/app.js");
+  const script=await fetch(base+"/app.js?v=20261117-village-stage-2");
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.match(appScript,/data-faction-choice/);
+  assert.ok(appScript.includes("function fitVillageImage()"));
+  assert.ok(appScript.includes("villageImage.naturalWidth"));
+  assert.ok(appScript.includes("new ResizeObserver(fitVillageImage)"));
   assert.match(appScript,/BUILDING_SLOT_TYPES/);
   assert.match(appScript,/node\.querySelector\("\.building-label"\)/);
   assert.match(appScript,/"9":"warehouse"/);
