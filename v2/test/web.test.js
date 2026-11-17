@@ -1,0 +1,20 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { createServer } from "../src/server.js";
+
+test("V2 serves the village prototype and static assets", async (t) => {
+  const server=createServer();
+  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+  t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const base=`http://127.0.0.1:${server.address().port}`;
+  const page=await fetch(base+"/");
+  assert.equal(page.status,200);
+  assert.match(await page.text(),/İlker'in Yurdu/);
+  const script=await fetch(base+"/app.js");
+  assert.equal(script.status,200);
+  assert.match(await script.text(),/Merkez Binası/);
+  const asset=await fetch(base+"/assets/seljuk-city-map.webp");
+  assert.equal(asset.status,200);
+  assert.match(asset.headers.get("content-type"),/image\/webp/);
+  assert.ok(Number(asset.headers.get("content-length"))>1000);
+});
