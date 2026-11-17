@@ -29,8 +29,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261117-wall-shelter-3"/);
-  assert.ok(html.includes('src="/app.js?v=20261117-wall-shelter-3"'));
+  assert.match(html,/href="\/app\.css\?v=20261117-army-unit-pages-1"/);
+  assert.ok(html.includes('src="/app.js?v=20261117-army-unit-pages-1"'));
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n      <section id="building-upgrade-tracker"',stageStart);
   assert.ok(stageEnd>stageStart);
@@ -42,9 +42,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="wall-dialog"/);
   assert.match(html,/id="wall-defense"/);
   assert.match(html,/id="wall-shelter"/);
-  assert.match(html,/id="wall-position-toggle"/);
-  assert.match(html,/id="wall-position-confirm"/);
-  assert.match(html,/id="wall-position-status"/);
+  assert.doesNotMatch(html,/wall-position-(?:toggle|confirm|status)|wall-position-tools/);
   assert.doesNotMatch(html,/data-faction="gokturk"/);
   assert.match(html,/data-faction-choice="gokturk" aria-pressed="false"/);
   assert.equal((html.match(/class="building-number(?: is-center)?"/g)||[]).length,9);
@@ -65,7 +63,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
 
   // Building markers must overlay the image itself, not flow after it.
-  const styles=await fetch(base+"/app.css?v=20261117-wall-shelter-3");
+  const styles=await fetch(base+"/app.css?v=20261117-army-unit-pages-1");
   assert.equal(styles.status,200);
   const css=await styles.text();
   assert.ok(css.includes(".city-frame{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
@@ -75,10 +73,9 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(css.includes(".building-numbers{position:absolute;inset:0;pointer-events:none}"));
   assert.match(css,/\.wall-number\{[^}]*left:50%[^}]*top:7%/);
   assert.ok(css.includes(".building-number{position:absolute;transform:translate(-50%,-50%);"));
-  assert.ok(css.includes(".wall-position-tools{"));
-  assert.ok(css.includes(".wall-number.wall-position-draggable{"));
-  assert.ok(css.includes(".wall-position-editing{cursor:crosshair}"));
-  assert.ok(css.includes("pointer-events:auto"));
+  assert.ok(!css.includes(".wall-position-tools{"));
+  assert.ok(css.includes(".wall-number{pointer-events:auto!important"));
+  assert.ok(!css.includes(".wall-position-editing"));
   assert.ok(css.includes(".building-label{position:absolute;"));
   assert.ok(css.includes("font:700 7px/1.2 Arial,sans-serif"));
   assert.ok(!css.includes(".city-frame{max-height:700px}"));
@@ -91,7 +88,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,3);
 
-  const script=await fetch(base+"/app.js?v=20261117-wall-shelter-3");
+  const script=await fetch(base+"/app.js?v=20261117-army-unit-pages-1");
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.match(appScript,/data-faction-choice/);
@@ -99,12 +96,14 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(appScript.includes("villageImage.naturalWidth"));
   assert.ok(appScript.includes("new ResizeObserver(fitVillageImage)"));
   assert.match(appScript,/function renderUpgradeTracker\(\)/);
-  assert.match(appScript,/function setWallPositionEditing\(enabled\)/);
-  assert.match(appScript,/function moveWallMarker\(event\)/);
-  assert.match(appScript,/WALL_POSITION_KEY/);
-  assert.match(appScript,/wallPositionConfirm.addEventListener\("click"/);
+  assert.doesNotMatch(appScript,/wallPosition|WALL_POSITION_KEY/);
   assert.match(appScript,/setInterval\(\(\)=>\{updateUpgradeTracking\(\);updateWallUpgradeCountdown\(\);\},1000\)/);
   assert.match(appScript,/function updateWallUpgradeCountdown\(\)/);
+  assert.match(html,/id="army-unit-detail"/);
+  assert.match(html,/id="army-unit-back"/);
+  assert.match(appScript,/function renderArmyUnitDetail\(unitId\)/);
+  assert.match(appScript,/data-select-unit/);
+  assert.match(appScript,/data-recruit-unit/);
   assert.match(appScript,/setServerClock\(state.serverNow\)/);
   assert.match(appScript,/building-upgrade-count/);
   assert.match(appScript,/BUILDING_SLOT_TYPES/);
