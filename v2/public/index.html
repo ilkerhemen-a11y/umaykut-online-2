@@ -10,7 +10,31 @@
   <link rel="stylesheet" href="/factions.css">
 </head>
 <body>
-  <main class="game-shell" data-faction="gokturk">
+  <section id="auth-screen" class="auth-screen" aria-label="Umaykut Online II giriş ve kayıt">
+    <div class="auth-card">
+      <div class="auth-emblem" aria-hidden="true">🐺</div>
+      <h1>UMAYKUT ONLINE II</h1>
+      <p>Bozkırın kaderini sen yaz.</p>
+      <div class="auth-tabs" role="tablist" aria-label="Hesap işlemi">
+        <button id="login-tab" class="selected" type="button" role="tab" aria-selected="true" aria-controls="auth-form">Giriş Yap</button>
+        <button id="register-tab" type="button" role="tab" aria-selected="false" aria-controls="auth-form">Kayıt Ol</button>
+      </div>
+      <form id="auth-form">
+        <label id="auth-username-label" for="auth-username">Oyuncu adı veya e-posta</label>
+        <input id="auth-username" name="username" minlength="3" maxlength="24" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="Oyuncu adın veya e-posta">
+        <div id="auth-email-field" hidden>
+          <label for="auth-email">E-posta adresi</label>
+          <input id="auth-email" name="email" type="email" maxlength="254" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="ornek@eposta.com">
+        </div>
+        <label for="auth-password">Şifre</label>
+        <input id="auth-password" name="password" type="password" minlength="10" maxlength="128" autocomplete="current-password" required placeholder="En az 10 karakter">
+        <button id="auth-submit" class="gold-button" type="submit">Oyuna Giriş</button>
+        <p id="auth-message" class="auth-message" role="status" aria-live="polite"></p>
+      </form>
+      <small>Hesap bilgilerini güvenli tut. Şifren en az 10 karakter olmalı.</small>
+    </div>
+  </section>
+  <main id="game-shell" class="game-shell" data-faction="gokturk" inert aria-hidden="true">
     <header class="top">
       <div class="brand"><span class="brand-mark">✦</span><div><strong>UMAYKUT</strong><small>BOZKIRIN HÂKİMİYETİ</small></div></div>
       <div class="resources" aria-label="Kaynaklar">
@@ -21,11 +45,11 @@
         <div class="resource"><span>⛏️</span><b>8.040</b><small>Demir</small></div>
         <div class="resource"><span>🐎</span><b>100</b><small>At</small></div>
       </div>
-      <div class="realm"><span>İLKER'İN YURDU</span><b>SEVİYE 1</b><span class="realm-sub" id="realm-faction">Göktürk diyarı</span></div>
+      <div class="realm"><span id="realm-player-name">İLKER'İN YURDU</span><b>SEVİYE 1</b><span class="realm-sub" id="realm-faction">Göktürk diyarı</span></div>
     </header>
 
     <section class="village-wrap" aria-label="Köy görünümü">
-      <div class="village-heading"><div><small>HOŞ GELDİN, BEYİM</small><h1>İlker'in Yurdu</h1></div><div class="player-level">✦ <span>Oyuncu Bey<br><small>Seviye 1 · İlk adım</small></span></div></div>
+      <div class="village-heading"><div><small>HOŞ GELDİN, BEYİM</small><h1>İlker'in Yurdu</h1></div><div class="player-level">✦ <span><b id="player-display-name">Oyuncu Bey</b><br><small>Seviye 1 · İlk adım</small></span></div></div>
       <section class="faction-panel" aria-label="Devlet seçimi">
         <div class="faction-caption">DEVLETİNİ SEÇ</div>
         <div class="faction-switcher" role="group" aria-label="Devlet görünümünü seç">
