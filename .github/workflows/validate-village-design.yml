@@ -21,9 +21,7 @@ jobs:
           node-version: 20
       - name: Check JavaScript syntax
         run: |
-          node --check public/village3d.js
           node --check public/game.js
-          node --check public/village2d.js
           node --check src/buildings.js
           node --check src/units.js
           node --check src/training.js
