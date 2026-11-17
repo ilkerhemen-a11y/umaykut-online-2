@@ -23,3 +23,10 @@ The existing production service is not modified by this V2 branch. Never add dat
 - The image is shown as a single complete picture with nine compact numbered overlays: 1 for the central building and 2–9 for the surrounding buildings. The labels are positioned proportionally so they remain aligned on mobile screens.
 - Göktürk is the default starting faction and is the faction associated with this uploaded village artwork.
 - Hun, Seljuk and Göktürk choices switch the interface accent palette and persist the selected faction. Separate Hun and Seljuk village artwork can be connected when those image files are added.
+
+## Map interface prototype
+- The bottom navigation switches between the village and a shared 2D world map.
+- The map currently shows the player's city and three selectable resource areas: grain, wood and stone.
+- The initial worker pool is 1,800, with zero workers assigned.
+- Selecting a resource and assigning workers updates a temporary in-browser preview only. It is not persisted and does not change server-side production or the PostgreSQL database yet.
+- Distribution ratios and production rates remain undecided; no suggested 700/600/500 split or production coefficients are treated as approved game rules.
