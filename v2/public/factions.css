@@ -181,3 +181,25 @@
 .live-army-route.incoming{stroke:#ff9b82}
 .map-army-marker{position:absolute;z-index:7;display:grid;place-items:center;width:36px;height:36px;border:2px solid #ffe09a;border-radius:50%;background:linear-gradient(145deg,#674b22,#172018);box-shadow:0 0 0 4px #151e18aa,0 4px 12px #000b;font:20px Arial,sans-serif;pointer-events:none;transform:translate(-50%,-50%);offset-anchor:center;animation-name:map-army-march;animation-timing-function:linear;animation-iteration-count:1;animation-fill-mode:forwards}
 @keyframes map-army-march{from{offset-distance:0%}to{offset-distance:100%}}
+
+
+/* Expanded world view: more visible terrain, compact home-village marker. */
+.world-map{
+ height:clamp(540px,74vh,860px);
+ min-height:540px;
+ max-height:none;
+}
+.map-own-city img{
+ width:38px;
+ height:38px;
+ object-fit:cover;
+ border:1.5px solid var(--faction-light);
+ border-radius:50%;
+ box-shadow:0 0 0 3px #14231888,0 3px 8px #000a;
+}
+.map-own-city b{font-size:8px;padding:2px 4px}
+.map-own-city small{font-size:7px;padding:1px 4px}
+@media(max-width:600px){
+ .world-map{height:70vh;min-height:520px;max-height:760px}
+ .map-own-city img{width:34px;height:34px}
+}
