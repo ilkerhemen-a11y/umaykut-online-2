@@ -103,7 +103,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/function moveWallMarker\(event\)/);
   assert.match(appScript,/WALL_POSITION_KEY/);
   assert.match(appScript,/wallPositionConfirm.addEventListener\("click"/);
-  assert.match(appScript,/setInterval\(\(\)=>\{updateUpgradeTracking\(\);updateWallUpgradeCountdown\(\);\},1000\)/);\n  assert.match(appScript,/function updateWallUpgradeCountdown\(\)/);
+  assert.match(appScript,/setInterval\(\(\)=>\{updateUpgradeTracking\(\);updateWallUpgradeCountdown\(\);\},1000\)/);
+  assert.match(appScript,/function updateWallUpgradeCountdown\(\)/);
   assert.match(appScript,/setServerClock\(state.serverNow\)/);
   assert.match(appScript,/building-upgrade-count/);
   assert.match(appScript,/BUILDING_SLOT_TYPES/);
