@@ -195,6 +195,9 @@ function formatUpgradeRemainingAt(completesAt,now=getServerNow()){
  if(minutes)return minutes+" dk "+seconds+" sn";
  return seconds+" sn";
 }
+function formatUpgradeRemaining(completesAt){
+ return formatUpgradeRemainingAt(completesAt);
+}
 function refreshBuildingCountdown(){
  if(!buildingDialog.open)return;
  const building=gameBuildings[String(selectedBuildingSlot)];
@@ -212,6 +215,8 @@ function renderUpgradeTracker(){
   .filter(([,building])=>building?.upgrade)
   .sort((a,b)=>Date.parse(a[1].upgrade.completesAt)-Date.parse(b[1].upgrade.completesAt));
  tracker.hidden=active.length===0;
+ const countLabel=document.querySelector("#building-upgrade-count");
+ if(countLabel)countLabel.textContent=active.length+" AKTİF";
  if(!active.length){
   list.replaceChildren();
   refreshBuildingCountdown();
