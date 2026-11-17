@@ -129,6 +129,7 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
       claimExpiresAt:region.claim_expires_at
     });
     const defenderStacks={...parse(region.garrison_troops),...Object.fromEntries(Object.entries(parse(region.guard_troops)).map(([id,n])=>['guard_'+id,n]))};
+    const attackerAfter=applyLosses(troops,battle.attackerLosses);
     const defenderAfter=applyLosses(defenderStacks,battle.defenderLosses);
     const garrisonAfter=Object.fromEntries(Object.entries(defenderAfter).filter(([id])=>!id.startsWith('guard_')));
     const guardsAfter=Object.fromEntries(Object.entries(defenderAfter).filter(([id])=>id.startsWith('guard_')).map(([id,n])=>[id.slice(6),n]));
@@ -138,11 +139,14 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
         `UPDATE umaykut_v2.world_neutral_regions SET owner_player_id=$2,owner_faction_id=$3,
           claimed_by_player_id=NULL,claimed_at=NULL,claim_expires_at=NULL,
           garrison_troops=$4::jsonb,garrison_count=$5,guard_troops=$6::jsonb,updated_at=NOW() WHERE id=$1`,
-        [regionId,session.id,factionId,JSON.stringify({}),battle.attackerSurvivors,JSON.stringify(guardsAfter)]
+        [regionId,session.id,factionId,JSON.stringify(attackerAfter),countTroops(attackerAfter),JSON.stringify(guardsAfter)]
       );
       await client.query('COMMIT');tx=false;
       return json(res,200,{success:true,victory:true,captured:true,ownerFactionId:factionId,attackerSurvivors:battle.attackerSurvivors,attackerLosses:battle.attackerLosses,defenderLosses:battle.defenderLosses,message:'Bölge fethedildi; devletinin rengiyle haritaya işlendi.'}),true;
     }
+    const returnedTroops={...nextOwn};
+    for(const [id,count] of Object.entries(attackerAfter))returnedTroops[id]=Number(returnedTroops[id]||0)+count;
+    await client.query('UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb,updated_at=NOW() WHERE player_id=$1',[session.id,JSON.stringify(returnedTroops)]);
     await client.query(
       'UPDATE umaykut_v2.world_neutral_regions SET garrison_troops=$2::jsonb,garrison_count=$3,guard_troops=$4::jsonb,updated_at=NOW() WHERE id=$1',
       [regionId,JSON.stringify(garrisonAfter),countTroops(garrisonAfter),JSON.stringify(guardsAfter)]
