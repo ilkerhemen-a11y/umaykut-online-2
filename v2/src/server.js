@@ -123,8 +123,14 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           if (error.code === "23505") {
             return sendJson(res, 409, { error: "Bu oyuncu adı veya e-posta zaten kayıtlı." });
           }
+          // Keep diagnostics useful without ever logging passwords, hashes, email addresses, or request bodies.
+          console.error("V2 account registration failed", {
+            code: error.code || "UNKNOWN",
+            constraint: error.constraint || null,
+            message: String(error.message || "Unknown registration error").slice(0, 240)
+          });
           return sendJson(res, error.status || 500, {
-            error: error.status ? error.message : "Kayıt işlemi tamamlanamadı."
+            error: error.status ? error.message : "Kayıt işlemi tamamlanamadı. Sunucu hatası kaydedildi."
           });
         }
       }
