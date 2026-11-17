@@ -555,3 +555,14 @@ test("battle reports identify the winning side and weight defense against the at
   assert.equal(typeof result.outcomeText, "string");
   assert.ok(result.defensePower > 0);
 });
+
+test("reconnaissance unit unlocks at barracks level two and has no carrying capacity", () => {
+  const levelOne = getTroopCatalog("gokturk", { "2": { type: "barracks", level: 1 } });
+  const levelTwo = getTroopCatalog("gokturk", { "2": { type: "barracks", level: 2 } });
+  const scoutOne = levelOne.find(unit => unit.id === "scout");
+  const scoutTwo = levelTwo.find(unit => unit.id === "scout");
+  assert.equal(scoutOne.unlocked, false);
+  assert.equal(scoutTwo.unlocked, true);
+  assert.equal(scoutTwo.carry, 0);
+  assert.ok(scoutTwo.speed > 0);
+});
