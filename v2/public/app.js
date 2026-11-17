@@ -229,6 +229,9 @@ function openBuildingDialog(slot){
  if(typeof buildingDialog.showModal==="function")buildingDialog.showModal();
  else buildingDialog.setAttribute("open","");
 }
+document.querySelectorAll("[data-building-slot]").forEach(node=>{
+ node.addEventListener("click",()=>openBuildingDialog(node.dataset.buildingSlot));
+});
 buildingClose.addEventListener("click",()=>buildingDialog.close());
 setInterval(refreshBuildingCountdown,1000);
 buildingAction.addEventListener("click",async()=>{
