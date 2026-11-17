@@ -158,3 +158,21 @@
 
 /* Faction palette is applied only after the player confirms a state. */
 .game-shell:not([data-faction]){--faction-main:#c6a04d;--faction-dark:#70501f;--faction-light:#f5df9a;--roof-tint:#d8ad48;--faction-shadow:#76511c}
+
+
+/* Large shared world map: native two-axis panning works on touch screens and desktop. */
+.world-map{height:clamp(430px,62vh,620px);min-height:430px;max-height:none;aspect-ratio:auto;overflow:auto;overscroll-behavior:contain;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch;scrollbar-color:#b89550 #172319;scrollbar-width:thin}
+.map-world-canvas{position:relative;flex:0 0 auto;width:1800px;height:1200px;overflow:hidden;background:#6e8b4c}
+.map-world-canvas .map-landscape{width:100%;height:100%}
+.map-world-canvas .map-point{z-index:3}
+.map-world-canvas .map-own-city{z-index:5}
+.map-mine-point>span{border-color:#e4c16e;background:linear-gradient(145deg,#4b4225,#172017)}
+.map-mine-point small{font-weight:700}
+.map-mine-point b{color:#ffe39a}
+.map-player-point>span{width:48px;height:48px;border-color:#9ee0e7;background:linear-gradient(145deg,#245d6b,#12232b);font-size:25px}
+.map-player-point small{max-width:130px;overflow:hidden;text-overflow:ellipsis}
+.map-player-point b{color:#aee5ed}
+.map-world-canvas .map-region-label{font-size:11px;padding:5px 8px}
+.map-world-canvas .map-compass{font-size:16px}
+.world-map:focus-visible{outline:2px solid var(--faction-light);outline-offset:3px}
+@media(max-width:420px){.map-world-canvas{width:1500px;height:1000px}.world-map{height:470px}}
