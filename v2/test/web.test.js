@@ -42,11 +42,6 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="wall-dialog"/);
   assert.match(html,/id="wall-defense"/);
   assert.match(html,/id="wall-shelter"/);
-  assert.match(stageHtml,/left:50\.3%;top:75\.3%/);
-  assert.match(stageHtml,/Sur \/ Sığınak/);
-  assert.match(html,/id="wall-dialog"/);
-  assert.match(html,/id="wall-defense"/);
-  assert.match(html,/id="wall-shelter"/);
   assert.match(html,/id="wall-position-toggle"/);
   assert.match(html,/id="wall-position-confirm"/);
   assert.match(html,/id="wall-position-status"/);
