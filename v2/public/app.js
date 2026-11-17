@@ -145,11 +145,14 @@ function renderBuildingMarkers(){
   const type=BUILDING_SLOT_TYPES[slot];
   const definition=BUILDING_TYPES[type]||BUILDING_TYPES.center;
   const label=node.querySelector(".building-label");
+  const levelBadge=node.querySelector(".building-index");
+  const displayedLevel=Number(building.upgrade?.targetLevel)||Number(building.level)||1;
   if(label)label.textContent=definition.shortName||definition.name;
+  if(levelBadge)levelBadge.textContent=String(displayedLevel);
   node.classList.add("is-built");
   node.classList.toggle("is-upgrading",Boolean(building.upgrade));
-  node.setAttribute("aria-label",slot+" numaralı "+definition.name+" seviye "+building.level);
-  node.dataset.level=String(building.level);
+  node.setAttribute("aria-label",slot+" numaralı "+definition.name+" seviye "+displayedLevel+(building.upgrade?" yükseltiliyor":""));
+  node.dataset.level=String(displayedLevel);
  });
 }
 const buildingDialog=document.querySelector("#building-dialog");
