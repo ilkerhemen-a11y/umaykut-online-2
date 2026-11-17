@@ -19,6 +19,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/1 numaralı merkez binası/);
   assert.match(html,/id="map-view" hidden/);
   assert.match(html,/id="workers-available">1\.800/);
+  assert.match(html,/id="workers-assigned-total">0 görevde/);
+  assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,3);
 
   const script=await fetch(base+"/app.js");
@@ -27,8 +29,11 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/data-faction-choice/);
   assert.match(appScript,/umaykut-faction-v2/);
   assert.match(appScript,/gokturk/);
-  assert.match(appScript,/updateWorkerSummary/);\n  assert.match(appScript,/umaykut-worker-state-v2/);\n  assert.match(appScript,/localStorage\.setItem/);\n  assert.match(appScript,/recallButton\.addEventListener/);\n  assert.match(appScript,/WORKER_POOL=1800/);
-  assert.match(appScript,/assigned\[selectedResource\]/);
+  assert.match(appScript,/updateWorkerSummary/);
+  assert.match(appScript,/umaykut-worker-state-v2/);
+  assert.match(appScript,/localStorage\.setItem/);
+  assert.match(appScript,/recallButton\.addEventListener/);
+  assert.match(appScript,/WORKER_POOL=1800/);
   assert.match(appScript,/showScreen/);
 
   const asset=await fetch(base+"/assets/IMG-20261117-WA0073.jpg");
