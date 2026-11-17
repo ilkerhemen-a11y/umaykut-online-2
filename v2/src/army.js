@@ -145,7 +145,7 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
       const lastCompletion = queue.length ? Math.max(now, ...queue.map(job => Date.parse(job.completesAt))) : now;
       const startedAt = new Date(lastCompletion).toISOString();
       const completesAt = new Date(lastCompletion + unit.secondsPerUnit * amount * 1000).toISOString();
-      queue.push({ id: crypto.randomUUID(), unitId: unit.id, name: unit.name, amount, startedAt, completesAt, secondsPerUnit: unit.secondsPerUnit });
+      queue.push({ id: randomUUID(), unitId: unit.id, name: unit.name, amount, startedAt, completesAt, secondsPerUnit: unit.secondsPerUnit });
       await client.query("UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb, troops=$3::jsonb, training_queue=$4::jsonb, updated_at=NOW() WHERE player_id=$1",
         [session.id, JSON.stringify(resources), JSON.stringify(troops), JSON.stringify(queue)]);
     }
