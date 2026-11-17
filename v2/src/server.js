@@ -264,7 +264,8 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
               const state=await client.query("SELECT troops FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",[session.id]);
               if(!state.rowCount)throw new Error("Keşif birliğinin köy verisi bulunamadı.");
               const troops=typeof state.rows[0].troops==="string"?JSON.parse(state.rows[0].troops||"{}"):(state.rows[0].troops||{});
-              const report=typeof mission.scout_report==="string"?JSON.parse(mission.scout_report):(mission.scout_report||{});\n              troops.scout=Number(troops.scout||0)+Number(report.attackerSurvivors||0);
+              const report=typeof mission.scout_report==="string"?JSON.parse(mission.scout_report):(mission.scout_report||{});
+              troops.scout=Number(troops.scout||0)+Number(report.attackerSurvivors||0);
               await client.query("UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb,updated_at=NOW() WHERE player_id=$1",[session.id,JSON.stringify(troops)]);
               await client.query("UPDATE umaykut_v2.player_scout_missions SET status='returned' WHERE id=$1",[mission.id]);
               await client.query("COMMIT");tx=false;
