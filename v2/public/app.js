@@ -56,7 +56,10 @@ const DEFAULT_RESOURCES={gold:1650,wood:6900,food:9350,stone:7480,iron:8040,hors
 const BUILDING_TYPES={
  center:{name:"Merkez Binası",shortName:"Merkez",icon:"🏰",description:"Yurdunun kalbi. Diğer yapıların gelişimini yönetir."},
  barracks:{name:"Kışla",shortName:"Kışla",icon:"⚔️",description:"Piyade ve savunma birliklerinin yetiştirileceği yapı."},
- lumberyard:{name:"Oduncu Ocağı",shortName:"Oduncu Ocağı",icon:"🪵",description:"Odun üretimini geliştirecek yapı."},
+ lumberyard:{name:"Keresteci",shortName:"Keresteci",icon:"🪵",description:"Ormanlardan elde edilen odun üretimini geliştirir."},
+ blacksmith:{name:"Demirci",shortName:"Demirci",icon:"⚒️",description:"Demir işçiliğini ve silah üretimini geliştirir."},
+ school:{name:"Okul",shortName:"Okul",icon:"📚",description:"Eğitim ve araştırma çalışmalarını geliştirir."},
+ temple:{name:"Tapınak",shortName:"Tapınak",icon:"🛕",description:"İnanç, birlik ve halkın moralini güçlendirir."},
  quarry:{name:"Taş Ocağı",shortName:"Taş Ocağı",icon:"🪨",description:"Taş üretimini geliştirecek yapı."},
  ironmine:{name:"Demir Madeni",shortName:"Demir Madeni",icon:"⛏️",description:"Demir üretimini geliştirecek yapı."},
  farm:{name:"Çiftlik",shortName:"Çiftlik",icon:"🌾",description:"Yiyecek üretimini geliştirecek yapı."},
@@ -65,13 +68,24 @@ const BUILDING_TYPES={
  warehouse:{name:"Depo",shortName:"Depo",icon:"📦",description:"Kaynaklarını saklamak için kullanılan yapı."}
 };
 const BUILDING_SLOT_TYPES={
- "1":"center","2":"barracks","3":"stable","4":"lumberyard",
- "5":"farm","6":"quarry","7":"ironmine","8":"market","9":"warehouse"
+ "1":"center","2":"barracks","3":"stable","4":"blacksmith",
+ "5":"school","6":"lumberyard","7":"temple","8":"market","9":"warehouse"
+};
+const DEFAULT_BUILDINGS={
+ "1":{type:"center",level:1},
+ "2":{type:"barracks",level:1},
+ "3":{type:"stable",level:1},
+ "4":{type:"blacksmith",level:1},
+ "5":{type:"school",level:1},
+ "6":{type:"lumberyard",level:1},
+ "7":{type:"temple",level:1},
+ "8":{type:"market",level:1},
+ "9":{type:"warehouse",level:1}
 };
 const BUILDING_BASE_COST={wood:30,stone:20,iron:5};
 const MAX_BUILDING_LEVEL=10;
 let gameResources={...DEFAULT_RESOURCES};
-let gameBuildings={"1":{type:"center",level:1}};
+let gameBuildings={...DEFAULT_BUILDINGS};
 function renderResourceBalances(){
  for(const key of Object.keys(DEFAULT_RESOURCES)){
   const node=document.querySelector("#resource-"+key);
@@ -81,15 +95,14 @@ function renderResourceBalances(){
 function renderBuildingMarkers(){
  document.querySelectorAll("[data-building-slot]").forEach(node=>{
   const slot=node.dataset.buildingSlot;
-  const building=gameBuildings[slot];
-  const type=building?.type||BUILDING_SLOT_TYPES[slot]||"barracks";
+  const building=gameBuildings[slot]||DEFAULT_BUILDINGS[slot];
+  const type=BUILDING_SLOT_TYPES[slot];
   const definition=BUILDING_TYPES[type]||BUILDING_TYPES.center;
   const label=node.querySelector(".building-label");
   if(label)label.textContent=definition.shortName||definition.name;
-  node.classList.toggle("is-built",Boolean(building));
-  node.setAttribute("aria-label",slot+" numaralı "+definition.name+(building?" seviye "+building.level:" planlanan bina"));
-  if(building)node.dataset.level=String(building.level);
-  else delete node.dataset.level;
+  node.classList.add("is-built");
+  node.setAttribute("aria-label",slot+" numaralı "+definition.name+" seviye "+building.level);
+  node.dataset.level=String(building.level);
  });
 }
 const buildingDialog=document.querySelector("#building-dialog");
@@ -100,8 +113,6 @@ const buildingEmblem=document.querySelector("#building-emblem");
 const buildingEyebrow=document.querySelector("#building-eyebrow");
 const buildingLevel=document.querySelector("#building-level");
 const buildingLevelFill=document.querySelector("#building-level-fill");
-const buildingTypeField=document.querySelector("#building-type-field");
-const buildingTypeSelect=document.querySelector("#building-type");
 const buildingCostTitle=document.querySelector("#building-cost-title");
 const buildingCostWood=document.querySelector("#building-cost-wood");
 const buildingCostStone=document.querySelector("#building-cost-stone");
@@ -114,21 +125,19 @@ function buildingCostFor(targetLevel){
 }
 function updateBuildingDialog(){
  const slot=String(selectedBuildingSlot);
- const building=gameBuildings[slot]||null;
- const definition=building?BUILDING_TYPES[building.type]:null;
- const targetLevel=building?building.level+1:1;
- const atMaximum=Boolean(building&&building.level>=MAX_BUILDING_LEVEL);
- const selectedType=building?building.type:buildingTypeSelect.value;
- const selectedDefinition=BUILDING_TYPES[selectedType]||BUILDING_TYPES.barracks;
+ const building=gameBuildings[slot]||DEFAULT_BUILDINGS[slot];
+ const definition=BUILDING_TYPES[BUILDING_SLOT_TYPES[slot]]||BUILDING_TYPES.center;
+ const currentLevel=Math.max(1,Number(building.level)||1);
+ const targetLevel=currentLevel+1;
+ const atMaximum=currentLevel>=MAX_BUILDING_LEVEL;
  const cost=buildingCostFor(targetLevel);
- buildingEmblem.textContent=(definition||selectedDefinition).icon;
+ buildingEmblem.textContent=definition.icon;
  buildingEyebrow.textContent="İNŞA ALANI "+slot;
- buildingTitle.textContent=definition?definition.name:(slot==="1"?"Merkez Binası":"Yeni Bina İnşa Et");
- buildingDescription.textContent=definition?definition.description:(slot==="1"?"Merkez binası oyun başlangıcında hazırdır.":"Bu alana yerleşecek yapıyı seç.");
- buildingLevel.textContent=building?building.level+" / "+MAX_BUILDING_LEVEL:"Boş alan";
- buildingLevelFill.style.width=(building?building.level/MAX_BUILDING_LEVEL*100:0)+"%";
- buildingTypeField.hidden=Boolean(building)||slot==="1";
- buildingCostTitle.textContent=atMaximum?"En yüksek seviyeye ulaşıldı":(building?"Seviye "+targetLevel+" yükseltme maliyeti":"İnşa maliyeti");
+ buildingTitle.textContent=definition.name;
+ buildingDescription.textContent=definition.description;
+ buildingLevel.textContent=currentLevel+" / "+MAX_BUILDING_LEVEL;
+ buildingLevelFill.style.width=(currentLevel/MAX_BUILDING_LEVEL*100)+"%";
+ buildingCostTitle.textContent=atMaximum?"En yüksek seviyeye ulaşıldı":"Seviye "+targetLevel+" yükseltme maliyeti";
  buildingCostWood.textContent=formatNumber(cost.wood);
  buildingCostStone.textContent=formatNumber(cost.stone);
  buildingCostIron.textContent=formatNumber(cost.iron);
@@ -142,166 +151,23 @@ function updateBuildingDialog(){
   });
   buildingMessage.textContent="Eksik kaynak: "+missing.join(", ");
  }else{
-  buildingMessage.textContent=building?"Bir sonraki seviye için gerekli kaynaklar hazır.":"Bu yapıyı inşa etmek için gerekli kaynaklar hazır.";
+  buildingMessage.textContent="Bir sonraki seviye için gerekli kaynaklar hazır.";
  }
- buildingAction.textContent=atMaximum?"Maksimum Seviye":(building?"Seviye "+targetLevel+" Yükselt":"İnşa Et");
+ buildingAction.textContent=atMaximum?"Maksimum Seviye":"Seviye "+targetLevel+" Yükselt";
  buildingAction.disabled=atMaximum||!enough||!authToken;
 }
 function openBuildingDialog(slot){
  selectedBuildingSlot=Number(slot);
- if(!gameBuildings[String(selectedBuildingSlot)]){
-  buildingTypeSelect.value=BUILDING_SLOT_TYPES[String(selectedBuildingSlot)]||"barracks";
- }
  buildingMessage.textContent="";
  updateBuildingDialog();
  if(typeof buildingDialog.showModal==="function")buildingDialog.showModal();
  else buildingDialog.setAttribute("open","");
 }
-// In-game marker calibration: labels stay attached to their building markers.
-const markerEditToggle=document.querySelector("#marker-edit-toggle");
-const markerReset=document.querySelector("#marker-reset");
-const markerExport=document.querySelector("#marker-export");
-const markerStatus=document.querySelector("#marker-status");
-const markerStorageKey="umaykut-village-marker-positions-v2";
-const markerNodes=[...document.querySelectorAll("[data-building-slot]")];
-const defaultMarkerPositions=Object.fromEntries(markerNodes.map(node=>[
- node.dataset.buildingSlot,{left:node.style.left,top:node.style.top}
-]));
-let markerEditMode=false;
-let activeMarker=null;
-let activeMarkerPointer=null;
-
-function getMarkerPositions(){
- return Object.fromEntries(markerNodes.map(node=>[
-  node.dataset.buildingSlot,
-  {left:Number(parseFloat(node.style.left).toFixed(2)),top:Number(parseFloat(node.style.top).toFixed(2))}
- ]));
-}
-function saveMarkerPositions(){
- const positions=getMarkerPositions();
- try{
-  localStorage.setItem(markerStorageKey,JSON.stringify(positions));
-  return true;
- }catch{
-  return false;
- }
-}
-async function copyMarkerPositions(){
- const serialized=JSON.stringify(getMarkerPositions(),null,2);
- let copied=false;
- try{
-  if(navigator.clipboard?.writeText){
-   await navigator.clipboard.writeText(serialized);
-   copied=true;
-  }
- }catch{}
- if(!copied){
-  const field=document.createElement("textarea");
-  field.value=serialized;
-  field.setAttribute("readonly","");
-  field.style.position="fixed";
-  field.style.left="-9999px";
-  document.body.append(field);
-  field.select();
-  try{copied=document.execCommand("copy");}catch{}
-  field.remove();
- }
- if(markerStatus)markerStatus.textContent=copied
-  ?"Dokuz binanın konumu kopyalandı. Sohbete yapıştırabilirsin."
-  :"Kopyalama başarısız. Tarayıcı izinlerini kontrol et.";
-}
-function restoreMarkerPositions(){
- try{
-  const saved=JSON.parse(localStorage.getItem(markerStorageKey)||"null");
-  if(!saved||typeof saved!=="object")return;
-  markerNodes.forEach(node=>{
-   const position=saved[node.dataset.buildingSlot];
-   const left=Number(position?.left),top=Number(position?.top);
-   if(!Number.isFinite(left)||!Number.isFinite(top))return;
-   node.style.left=Math.max(1,Math.min(99,left))+"%";
-   node.style.top=Math.max(1,Math.min(99,top))+"%";
-  });
- }catch{}
-}
-function setMarkerEditMode(enabled){
- markerEditMode=Boolean(enabled);
- villageFrame?.classList.toggle("marker-editing",markerEditMode);
- if(markerEditToggle){
-  markerEditToggle.setAttribute("aria-pressed",String(markerEditMode));
-  markerEditToggle.textContent=markerEditMode?"Düzenlemeyi Bitir":"Konumları Düzenle";
- }
- if(markerReset)markerReset.hidden=!markerEditMode;
- if(markerExport)markerExport.hidden=!markerEditMode;
- if(markerStatus){
-  markerStatus.textContent=markerEditMode
-   ?"Numarayı basılı tutup doğru binanın üzerine sürükle. Sonra Konumları Kopyala'ya dokun."
-   :"Bina numaralarını hizalamak için Konumları Düzenle'ye dokun.";
- }
-}
-function finishMarkerDrag(node,event){
- if(activeMarker!==node||activeMarkerPointer!==event.pointerId)return;
- node.classList.remove("is-dragging");
- activeMarker=null;
- activeMarkerPointer=null;
- const saved=saveMarkerPositions();
- if(markerStatus)markerStatus.textContent=saved
-  ?"Konum kaydedildi. Diğer numaraları da sürükleyebilirsin."
-  :"Konum değişti ancak bu cihazda kaydedilemedi.";
-}
-restoreMarkerPositions();
-markerNodes.forEach(node=>{
- node.addEventListener("pointerdown",event=>{
-  if(!markerEditMode)return;
-  activeMarker=node;
-  activeMarkerPointer=event.pointerId;
-  node.classList.add("is-dragging");
-  if(typeof node.setPointerCapture==="function")node.setPointerCapture(event.pointerId);
-  event.preventDefault();
- });
- node.addEventListener("pointermove",event=>{
-  if(!markerEditMode||activeMarker!==node||activeMarkerPointer!==event.pointerId)return;
-  const rect=villageStage.getBoundingClientRect();
-  if(!rect.width||!rect.height)return;
-  const left=Math.max(1,Math.min(99,(event.clientX-rect.left)/rect.width*100));
-  const top=Math.max(1,Math.min(99,(event.clientY-rect.top)/rect.height*100));
-  node.style.left=left+"%";
-  node.style.top=top+"%";
-  event.preventDefault();
- });
- node.addEventListener("pointerup",event=>finishMarkerDrag(node,event));
- node.addEventListener("pointercancel",event=>finishMarkerDrag(node,event));
- node.addEventListener("click",event=>{
-  if(markerEditMode){
-   event.preventDefault();
-   event.stopPropagation();
-   return;
-  }
-  openBuildingDialog(node.dataset.buildingSlot);
- });
-});
-markerEditToggle?.addEventListener("click",()=>{
- setMarkerEditMode(!markerEditMode);
-});
-markerExport?.addEventListener("click",()=>{copyMarkerPositions();});
-markerReset?.addEventListener("click",()=>{
- markerNodes.forEach(node=>{
-  const position=defaultMarkerPositions[node.dataset.buildingSlot];
-  if(!position)return;
-  node.style.left=position.left;
-  node.style.top=position.top;
- });
- const saved=saveMarkerPositions();
- if(markerStatus)markerStatus.textContent=saved
-  ?"Dokuz numara başlangıç konumlarına döndürüldü."
-  :"Konumlar sıfırlandı ancak bu cihazda kaydedilemedi.";
-});
 buildingClose.addEventListener("click",()=>buildingDialog.close());
-buildingTypeSelect.addEventListener("change",updateBuildingDialog);
 buildingAction.addEventListener("click",async()=>{
  const slot=String(selectedBuildingSlot);
  const existing=gameBuildings[slot];
- const body={action:existing?"upgrade":"construct",slot:selectedBuildingSlot};
- if(!existing)body.type=buildingTypeSelect.value;
+ const body={action:"upgrade",slot:selectedBuildingSlot};
  buildingAction.disabled=true;
  buildingMessage.textContent="İşlem gerçekleştiriliyor…";
  try{
@@ -310,7 +176,7 @@ buildingAction.addEventListener("click",async()=>{
   gameBuildings=result.buildings;
   renderResourceBalances();
   renderBuildingMarkers();
-  const definition=BUILDING_TYPES[result.building.type]||BUILDING_TYPES.center;
+  const definition=BUILDING_TYPES[BUILDING_SLOT_TYPES[slot]]||BUILDING_TYPES.center;
   buildingMessage.textContent=definition.name+" "+result.building.level+". seviyeye ulaştı. Kaynakların hesabına kaydedildi.";
   updateBuildingDialog();
  }catch(error){
@@ -529,7 +395,9 @@ async function loadGameState(){
   if(state.factionId) setFaction(state.factionId);
   else setFaction(savedFaction);
   if(state.resources&&typeof state.resources==="object")gameResources={...DEFAULT_RESOURCES,...state.resources};
-  if(state.buildings&&typeof state.buildings==="object")gameBuildings=state.buildings;
+  gameBuildings=Object.fromEntries(Object.entries(BUILDING_SLOT_TYPES).map(([slot,type])=>[
+   slot,{type,level:Math.max(1,Number(state.buildings?.[slot]?.level)||1)}
+  ]));
   renderResourceBalances();
   renderBuildingMarkers();
   if(state.workerStateInitialized){

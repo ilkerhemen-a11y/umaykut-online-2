@@ -18,6 +18,17 @@ const config = loadConfig();
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(here, "../public");
 const assetRoot = resolve(here, "../../public/assets");
+const FIXED_BUILDING_TYPES = Object.freeze({
+  "1": "center",
+  "2": "barracks",
+  "3": "stable",
+  "4": "blacksmith",
+  "5": "school",
+  "6": "lumberyard",
+  "7": "temple",
+  "8": "market",
+  "9": "warehouse"
+});
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
@@ -116,16 +127,13 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         const input = await readJson(req);
         const slot = Number(input.slot);
         const action = input.action;
-        const buildingTypes = new Set(["center","barracks","lumberyard","quarry","ironmine","farm","stable","market","warehouse"]);
         if (!Number.isSafeInteger(slot) || slot < 1 || slot > 9) {
           return sendJson(res, 400, { error: "Geçerli bir bina alanı seçmelisin." });
         }
-        if (!["construct","upgrade"].includes(action)) {
-          return sendJson(res, 400, { error: "Geçersiz bina işlemi." });
+        if (action !== "upgrade") {
+          return sendJson(res, 400, { error: "Bina türleri sabittir; yalnızca mevcut binaları yükseltebilirsin." });
         }
-        if (action === "construct" && (slot === 1 || !buildingTypes.has(input.type) || input.type === "center")) {
-          return sendJson(res, 400, { error: "Bu alana bu bina inşa edilemez." });
-        }
+        const fixedType = FIXED_BUILDING_TYPES[String(slot)];
 
         const client = await pool.connect();
         let inTransaction = false;
@@ -145,22 +153,23 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           const buildings = typeof row.buildings === "string" ? JSON.parse(row.buildings) : { ...row.buildings };
           const key = String(slot);
           const current = buildings[key] || null;
-          if (action === "construct" && current) {
+          if (!current) {
             await client.query("ROLLBACK");
             inTransaction = false;
-            return sendJson(res, 409, { error: "Bu inşa alanında zaten bir bina var." });
+            return sendJson(res, 409, { error: "Bu binanın başlangıç seviyesi bulunamadı. Oyunu yenileyip tekrar dene." });
           }
-          if (action === "upgrade" && !current) {
+          const currentLevel = Number(current.level);
+          if (!Number.isSafeInteger(currentLevel) || currentLevel < 1) {
             await client.query("ROLLBACK");
             inTransaction = false;
-            return sendJson(res, 409, { error: "Bu alanda yükseltilecek bir bina bulunmuyor." });
+            return sendJson(res, 409, { error: "Bina seviyesi geçersiz." });
           }
-          if (action === "upgrade" && current.level >= 10) {
+          if (currentLevel >= 10) {
             await client.query("ROLLBACK");
             inTransaction = false;
             return sendJson(res, 409, { error: "Bu bina en yüksek seviye olan 10'a ulaştı." });
           }
-          const targetLevel = action === "construct" ? 1 : Number(current.level) + 1;
+          const targetLevel = currentLevel + 1;
           const cost = { wood: 30 * targetLevel, stone: 20 * targetLevel, iron: 5 * targetLevel };
           const missing = Object.fromEntries(Object.entries(cost)
             .filter(([resource,amount]) => Number(resources[resource] || 0) < amount)
@@ -171,9 +180,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             return sendJson(res, 409, { error: "Yeterli kaynak yok.", missing, cost });
           }
           for (const [resource,amount] of Object.entries(cost)) resources[resource] = Number(resources[resource]) - amount;
-          const building = action === "construct"
-            ? { type: input.type, level: 1 }
-            : { type: current.type, level: targetLevel };
+          const building = { type: fixedType, level: targetLevel };
           buildings[key] = building;
           await client.query(
             "UPDATE umaykut_v2.player_game_state SET resources = $2::jsonb, buildings = $3::jsonb, updated_at = NOW() WHERE player_id = $1",
