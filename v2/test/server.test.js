@@ -539,3 +539,19 @@ test("battle resolution applies wall reduction, shelter protection, casualties a
   assert.equal(result.defenderRemainingResources.wood + result.loot.wood, 6000);
   assert.ok(result.carryCapacity >= Object.values(result.loot).reduce((sum,n)=>sum+n,0));
 });
+
+test("battle reports identify the winning side and weight defense against the attacking formation", () => {
+  const attackerCatalog = getTroopCatalog("gokturk", { "2": { type: "barracks", level: 10 }, "3": { type: "stable", level: 10 } });
+  const defenderCatalog = getTroopCatalog("seljuk", { "2": { type: "barracks", level: 10 }, "3": { type: "stable", level: 10 } });
+  const result = resolveBattle({
+    attackerTroops: { infantry: 20, light_cavalry: 20 },
+    defenderTroops: { shield: 20, heavy_cavalry: 20 },
+    attackerCatalog, defenderCatalog,
+    defenderResources: { gold: 1000, wood: 1000, food: 1000, stone: 1000, iron: 1000 },
+    wallLevel: 2
+  });
+  assert.ok(["attacker", "defender"].includes(result.winner));
+  assert.equal(result.resultCode, result.winner === "attacker" ? "victory" : "defense");
+  assert.equal(typeof result.outcomeText, "string");
+  assert.ok(result.defensePower > 0);
+});
