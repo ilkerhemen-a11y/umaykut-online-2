@@ -76,6 +76,22 @@ function parseJson(value, fallback) {
   if (typeof value === "string") return JSON.parse(value || JSON.stringify(fallback));
   return value ?? fallback;
 }
+export function settleTrainingQueue(troops, queue, now = Date.now()) {
+  const nextTroops = { ...troops };
+  const pending = [];
+  let changed = false;
+  for (const job of queue) {
+    const completesAt = Date.parse(job.completesAt || "");
+    if (!Number.isFinite(completesAt) || completesAt <= now) {
+      const amount = Number(job.amount || 0);
+      if (typeof job.unitId === "string" && Number.isSafeInteger(amount) && amount > 0) {
+        nextTroops[job.unitId] = Number(nextTroops[job.unitId] || 0) + amount;
+      }
+      changed = true;
+    } else pending.push(job);
+  }
+  return { troops: nextTroops, trainingQueue: pending, changed };
+}
 function armyPower(troops, catalog) {
   const byId = Object.fromEntries(catalog.map(unit => [unit.id, unit]));
   return Object.entries(troops).reduce((sum, [id, count]) => sum + Number(count || 0) * Number(byId[id]?.attack || 0), 0);
@@ -107,15 +123,13 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     const resources = parseJson(row.resources, {});
     const buildings = parseJson(row.buildings, {});
     let troops = parseJson(row.troops, {});
-    let queue = [];
-    // Legacy queued training is completed immediately after this rule change.
-    const legacyQueue = parseJson(row.training_queue, []);
-    for (const job of legacyQueue) {
-      troops[job.unitId] = Number(troops[job.unitId] || 0) + Number(job.amount || 0);
-    }
-    if (legacyQueue.length || JSON.stringify(parseJson(row.training_queue, [])) !== "[]") {
-      await client.query("UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb, training_queue='[]'::jsonb WHERE player_id=$1",
-        [session.id, JSON.stringify(troops)]);
+    const storedQueue = parseJson(row.training_queue, []);
+    const settledQueue = settleTrainingQueue(troops, storedQueue);
+    troops = settledQueue.troops;
+    let queue = settledQueue.trainingQueue;
+    if (settledQueue.changed) {
+      await client.query("UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb, training_queue=$3::jsonb WHERE player_id=$1",
+        [session.id, JSON.stringify(troops), JSON.stringify(queue)]);
     }
     const factionId = FACTIONS[row.faction_id] ? row.faction_id : "gokturk";
     const catalog = getTroopCatalog(factionId, buildings);
@@ -133,17 +147,20 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
       const missing = Object.fromEntries(Object.entries(cost).filter(([key, value]) => Number(resources[key] || 0) < value).map(([key, value]) => [key, value - Number(resources[key] || 0)]));
       if (Object.keys(missing).length) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: "Asker yetiştirmek için yeterli kaynak yok.", missing, cost }); return true; }
       for (const [key, value] of Object.entries(cost)) resources[key] = Number(resources[key] || 0) - value;
-      troops[unit.id] = Number(troops[unit.id] || 0) + amount;
-      queue = [];
-      await client.query("UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb, troops=$3::jsonb, training_queue='[]'::jsonb, updated_at=NOW() WHERE player_id=$1",
-        [session.id, JSON.stringify(resources), JSON.stringify(troops)]);
+      const now = Date.now();
+      const lastCompletion = queue.reduce((latest, job) => Math.max(latest, Date.parse(job.completesAt) || now), now);
+      const startedAt = new Date(Math.max(now, lastCompletion));
+      const completesAt = new Date(startedAt.getTime() + unit.secondsPerUnit * amount * 1000);
+      queue.push({ unitId: unit.id, amount, startedAt: startedAt.toISOString(), completesAt: completesAt.toISOString() });
+      await client.query("UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb, training_queue=$3::jsonb, troops=$4::jsonb, updated_at=NOW() WHERE player_id=$1",
+        [session.id, JSON.stringify(resources), JSON.stringify(queue), JSON.stringify(troops)]);
     }
     await client.query("COMMIT"); transaction = false;
     const latest = await pool.query("SELECT resources FROM umaykut_v2.player_game_state WHERE player_id=$1", [session.id]);
     const finalResources = parseJson(latest.rows[0]?.resources, resources);
     sendJson(res, 200, {
       factionId, factionName: FACTIONS[factionId].name, troops,
-      trainingQueue: queue, catalog,
+      trainingQueue: queue.map(job => ({ ...job, name: catalog.find(unit => unit.id === job.unitId)?.name || job.unitId })), catalog,
       totalUnits: Object.values(troops).reduce((sum, count) => sum + Number(count || 0), 0),
       armyPower: armyPower(troops, catalog), resources: finalResources,
       serverNow: new Date().toISOString()
