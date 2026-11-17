@@ -40,7 +40,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/data-faction-choice="gokturk" aria-pressed="false"/);
   assert.equal((html.match(/class="building-number(?: is-center)?"/g)||[]).length,9);
   assert.match(html,/1 numaralı Merkez Binası/);
-  for(const [slot,name] of [["1","Merkez"],["2","Kışla"],["3","Ahır"],["4","Demirci"],["5","Okul"],["6","Keresteci"],["7","Tapınak"],["8","Pazar"],["9","Depo"]]){
+  for(const [slot,name] of [["1","Merkez"],["2","Kışla"],["3","Ahır"],["4","Demirci"],["5","Okul"],["6","Keresteci"],["7","Tapınak"],["8","Pazar"],["9","Okçu"]]){
     const markerStart=html.indexOf('data-building-slot="'+slot+'"');
     assert.notEqual(markerStart,-1);
     const markerEnd=html.indexOf("</button>",markerStart);
