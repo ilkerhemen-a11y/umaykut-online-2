@@ -1006,19 +1006,22 @@ async function loadWorldPlayers(){
   scoutReportsList.replaceChildren();
   if(!scoutData.missions.length)scoutReportsList.append(Object.assign(document.createElement("p"),{textContent:"Henüz casus görevi bulunmuyor."}));
   scoutData.missions.forEach(mission=>{
-   const card=document.createElement("article");card.className="world-raid-card";
+   const card=document.createElement("article");card.className="world-raid-card scout-report-card";
+   const portrait=document.createElement("img");portrait.className="scout-portrait";portrait.src="/assets/IMG-20261117-WA9037.jpg";portrait.alt="Casus";
+   const content=document.createElement("div");content.className="scout-report-content";
    const title=document.createElement("strong"),status=document.createElement("small");
    title.textContent=mission.defender_report?"Köyüne casus geldi: "+mission.attacker_village:"Casus: "+mission.defender_village;
    const arrival=Date.parse(mission.arrives_at)-Date.now(),returning=mission.return_at?Date.parse(mission.return_at)-Date.now():0;
    status.textContent=mission.defender_report?"Savunma bildirimi · Gelen casus: "+mission.defender_report.incomingScouts+" · Kaybedilen casus: "+mission.defender_report.ownScoutsLost+" · Kalan: "+mission.defender_report.ownScoutsRemaining:mission.status==="marching"?"Hedefe varış: "+Math.max(0,Math.ceil(arrival/60000))+" dk":mission.status==="resolved"?"Casus tamamlandı · dönüş: "+Math.max(0,Math.ceil(returning/60000))+" dk":"Casus birliği köye döndü";
-   card.append(title,status);
+   content.append(title,status);
    if(mission.scout_report){
     const report=mission.scout_report,detail=document.createElement("small");
     const resources=Object.entries(report.resources||{}).map(([key,value])=>key+": "+value).join(" · ");
     const troops=Object.entries(report.troops||{}).map(([key,value])=>key+": "+value).join(" · ")||"Asker bulunamadı";
     detail.textContent=report.informationGathered===false?"Casus başarısız. Casusların tamamı kaybedildi.": "Kaynaklar: "+resources+" · Savunma ordusu: "+troops+" · Geri dönecek casus: "+Number(report.attackerSurvivors||0);
-    card.append(detail);
+    content.append(detail);
    }
+   card.append(portrait,content);
    scoutReportsList.append(card);
   });
  }catch(error){worldPlayerList.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Oyuncu köyleri yüklenemedi."}));}
