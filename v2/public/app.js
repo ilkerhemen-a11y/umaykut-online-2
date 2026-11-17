@@ -943,23 +943,20 @@ function renderWorldMap(data){
   gold:{icon:"🪙",name:"Altın Madeni"}
  };
 
- const neutralVillages=[
-  {id:"akpinar",name:"Akpınar Obası",x:16,y:19,guard:1,loot:"Odun ve yiyecek"},
-  {id:"bozkaya",name:"Bozkaya Köyü",x:39,y:13,guard:2,loot:"Taş ve yiyecek"},
-  {id:"yesilirmak",name:"Yeşilırmak Yerleşimi",x:67,y:22,guard:2,loot:"Yiyecek ve altın"},
-  {id:"demirkapi",name:"Demirkapı Obası",x:87,y:48,guard:3,loot:"Demir ve taş"},
-  {id:"karayurt",name:"Karayurt Köyü",x:19,y:79,guard:2,loot:"Odun ve demir"},
-  {id:"gokpinar",name:"Gökpınar Obası",x:61,y:88,guard:3,loot:"Altın ve yiyecek"}
- ];
+ const neutralVillages=Array.isArray(data.neutralRegions)?data.neutralRegions:[];
  neutralVillages.forEach(village=>{
   const marker=document.createElement("button");marker.type="button";
   marker.className="map-point map-neutral-village dynamic-world-marker";
-  marker.dataset.neutralVillage=village.id;
-  marker.style.left=village.x+"%";marker.style.top=village.y+"%";
-  marker.setAttribute("aria-label",village.name+", tarafsız köy");
-  const icon=document.createElement("span");icon.textContent="🏘️";
-  const name=document.createElement("small");name.textContent=village.name;
-  const status=document.createElement("b");status.textContent="Tarafsız · Sv. "+village.guard;
+  marker.dataset.neutralVillage=String(village.id);
+  marker.style.left=Number(village.world_x)+"%";marker.style.top=Number(village.world_y)+"%";
+  const factionColors={gokturk:"#2587b8",hun:"#b94343",seljuk:"#d4a83e"};
+  const color=factionColors[village.owner_faction_id]||"#b99b61";
+  marker.style.borderColor=color;marker.style.boxShadow="0 0 0 2px "+color+"55,0 3px 12px #000b";
+  marker.setAttribute("aria-label",village.region_name+", "+(village.owner_faction_id?"fethedilmiş bölge":"tarafsız köy"));
+  const icon=document.createElement("span");icon.textContent=village.owner_faction_id?"🏰":"🏘️";
+  const name=document.createElement("small");name.textContent=village.region_name;
+  const status=document.createElement("b");
+  status.textContent=village.owner_faction_id?({gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"}[village.owner_faction_id]+" hâkimiyeti"):(village.claimed_by_player_id?"Garnizon kuruldu":"Tarafsız");
   marker.append(icon,name,status);mapWorldCanvas.append(marker);
  });
  (data.resourceNodes||[]).forEach(node=>{
@@ -1007,18 +1004,13 @@ mapWorldCanvas?.addEventListener("click",async event=>{
 
  const neutralMarker=event.target.closest("[data-neutral-village]");
  if(neutralMarker){
-  const villages={
-   akpinar:{name:"Akpınar Obası",guard:1,loot:"Odun ve yiyecek"},
-   bozkaya:{name:"Bozkaya Köyü",guard:2,loot:"Taş ve yiyecek"},
-   yesilirmak:{name:"Yeşilırmak Yerleşimi",guard:2,loot:"Yiyecek ve altın"},
-   demirkapi:{name:"Demirkapı Obası",guard:3,loot:"Demir ve taş"},
-   karayurt:{name:"Karayurt Köyü",guard:2,loot:"Odun ve demir"},
-   gokpinar:{name:"Gökpınar Obası",guard:3,loot:"Altın ve yiyecek"}
-  };
-  const village=villages[neutralMarker.dataset.neutralVillage];
-  if(village){
+  const region=(window.__umaykutNeutralRegions||[]).find(item=>String(item.id)===neutralMarker.dataset.neutralVillage);
+  if(region){
+   const factionNames={gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"};
+   const guardCount=Object.values(region.guard_troops||{}).reduce((sum,n)=>sum+Number(n||0),0);
+   const garrisonCount=Number(region.garrison_count||0);
    mapPrompt.hidden=false;resourcePanel.hidden=true;
-   mapPrompt.textContent=village.name+" · Tarafsız yerleşim · Muhafız seviyesi "+village.guard+" · Bölge kaynakları: "+village.loot+". Fetih ve bölge sahipliği henüz etkinleştirilmedi.";
+   mapPrompt.textContent=region.region_name+" · "+(region.owner_faction_id?(factionNames[region.owner_faction_id]+" hâkimiyetinde"):"Tarafsız bölge")+" · Muhafız: "+guardCount.toLocaleString("tr-TR")+" · Garnizon: "+garrisonCount.toLocaleString("tr-TR")+"/100.000"+(region.claim_expires_at?" · Geçici hâkimiyet bitişi: "+new Date(region.claim_expires_at).toLocaleTimeString("tr-TR"):"");
   }
   return;
  }
@@ -1085,13 +1077,15 @@ async function loadWorldPlayers(){
  if(!authToken||!worldPlayerList)return;
  worldPlayerList.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Köyler aranıyor…"}));
  try{
-  const [playersData,raidsData,scoutData]=await Promise.all([
+  const [playersData,raidsData,scoutData,neutralData]=await Promise.all([
    authRequest("/api/game/players",{token:authToken}),
    authRequest("/api/game/attacks",{token:authToken}),
-   authRequest("/api/game/scouting",{token:authToken})
+   authRequest("/api/game/scouting",{token:authToken}),
+   authRequest("/api/game/neutral-regions",{token:authToken})
   ]);
   window.__umaykutWorldNodes=playersData.resourceNodes||[];
-  renderWorldMap(playersData);
+  window.__umaykutNeutralRegions=neutralData.regions||[];
+  renderWorldMap({...playersData,neutralRegions:window.__umaykutNeutralRegions});
   renderMarchingArmies(playersData,raidsData);
   worldPlayerList.replaceChildren();
   if(!playersData.players.length)worldPlayerList.append(Object.assign(document.createElement("p"),{textContent:"Henüz başka bir oyuncu köy kurmamış."}));
