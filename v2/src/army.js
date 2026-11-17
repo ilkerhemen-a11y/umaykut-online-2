@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   bearerToken, sessionTokenHash, verifySessionToken
 } from "./auth.js";
