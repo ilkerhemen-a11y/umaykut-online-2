@@ -96,3 +96,5 @@
 .worker-control>small{display:block;margin-top:6px;font:8px/1.4 Arial,sans-serif;color:#bdb59b}
 .map-prototype-note{margin:0;text-align:center;font:8px/1.4 Arial,sans-serif;color:#a9a78d}
 @media(min-width:600px){.map-view{padding:16px 20px}.world-map{max-height:680px}.map-point>span{width:44px;height:44px;font-size:23px}.map-point small{font-size:9px}.map-detail{padding:13px}}
+
+.village-wrap[hidden]{display:none!important}
