@@ -27,7 +27,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/data-faction-choice/);
   assert.match(appScript,/umaykut-faction-v2/);
   assert.match(appScript,/gokturk/);
-  assert.match(appScript,/updateWorkerSummary/);
+  assert.match(appScript,/updateWorkerSummary/);\n  assert.match(appScript,/umaykut-worker-state-v2/);\n  assert.match(appScript,/localStorage\.setItem/);\n  assert.match(appScript,/recallButton\.addEventListener/);\n  assert.match(appScript,/WORKER_POOL=1800/);
   assert.match(appScript,/assigned\[selectedResource\]/);
   assert.match(appScript,/showScreen/);
 
