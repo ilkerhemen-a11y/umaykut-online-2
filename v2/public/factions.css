@@ -105,3 +105,6 @@
 .worker-actions button:disabled{opacity:.38;filter:saturate(.3)}
 .worker-actions input{width:100%;box-sizing:border-box}
 @media(max-width:360px){.worker-actions{grid-template-columns:minmax(45px,1fr) auto auto;gap:4px!important}.worker-actions button{padding:0 8px;font-size:10px}}
+
+/* Kullanıcının yüklediği kale görseli: ortak dünya haritası */
+.map-own-city img{display:block;width:58px;height:58px;aspect-ratio:1;object-fit:cover;object-position:center;border:2px solid var(--faction-light);border-radius:11px;background:linear-gradient(145deg,var(--faction-main),var(--faction-dark));box-shadow:0 0 0 4px #14231888,0 4px 10px #000a}
