@@ -194,7 +194,11 @@ test("fixed building slots reject construction and only allow level upgrades", a
   assert.equal(upgrade.status,200);
   const upgraded = await upgrade.json();
   assert.deepEqual(upgraded.cost,{wood:60,stone:40,iron:10});
-  assert.deepEqual(state.buildings["6"],{type:"lumberyard",level:2});
+  assert.equal(upgraded.building.level,1);
+  assert.equal(upgraded.building.upgrade.targetLevel,2);
+  assert.ok(Date.parse(upgraded.building.upgrade.completesAt)>Date.now());
+  assert.equal(state.buildings["6"].level,1);
+  assert.equal(state.buildings["6"].upgrade.targetLevel,2);
   assert.equal(state.resources.wood,6840);
   assert.equal(state.resources.stone,7440);
   assert.equal(state.resources.iron,8030);
