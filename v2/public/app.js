@@ -292,7 +292,7 @@ document.querySelectorAll("[data-building-slot]").forEach(node=>{
  node.addEventListener("click",()=>openBuildingDialog(node.dataset.buildingSlot));
 });
 buildingClose.addEventListener("click",()=>buildingDialog.close());
-setInterval(updateUpgradeTracking,1000);
+setInterval(()=>{updateUpgradeTracking();updateWallUpgradeCountdown();},1000);
 buildingAction.addEventListener("click",async()=>{
  const slot=String(selectedBuildingSlot);
  const body={action:"upgrade",slot:selectedBuildingSlot};
@@ -701,6 +701,14 @@ const wallDialog=document.querySelector("#wall-dialog");
 const wallMarker=document.querySelector("#wall-position-marker");
 const wallAction=document.querySelector("#wall-action");
 const wallMessage=document.querySelector("#wall-message");
+let wallRefreshPending=false;
+function updateWallUpgradeCountdown(){
+ if(!gameWall.upgrade)return;
+ const remaining=Date.parse(gameWall.upgrade.completesAt)-getServerNow();
+ if(remaining<=0){wallMessage.textContent="Sur yükseltmesi tamamlanıyor…";if(!wallRefreshPending){wallRefreshPending=true;loadGameState().finally(()=>{wallRefreshPending=false;renderWallDialog();});}return;}
+ const total=Math.ceil(remaining/1000),hours=Math.floor(total/3600),minutes=Math.floor((total%3600)/60),seconds=total%60;
+ wallMessage.textContent="Seviye "+gameWall.upgrade.targetLevel+" yükseltiliyor · "+(hours?hours+" sa ":"")+(minutes?minutes+" dk ":"")+seconds+" sn kaldı.";
+}
 function renderWallDialog(){
  const level=Number(gameWall.level)||1,effects=wallServerEffects||wallEffectsForLevel(level);
  document.querySelector("#wall-level").textContent=level+" / 10";
