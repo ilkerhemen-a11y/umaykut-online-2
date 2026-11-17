@@ -220,6 +220,59 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
       }
     }
 
+    if (url.pathname === "/api/player/profile") {
+      if (!pool) return sendJson(res, 503, { error: "Oyuncu profili servisi henüz yapılandırılmadı." });
+      if (!sessionSecret || sessionSecret.length < 32) return sendJson(res, 503, { error: "Oturum güvenlik ayarı eksik." });
+      if (!["GET", "PUT"].includes(req.method)) {
+        res.setHeader("allow", "GET, PUT");
+        return sendJson(res, 405, { error: "Yöntem desteklenmiyor." });
+      }
+      const token = bearerToken(req);
+      const session = verifySessionToken(token, sessionSecret);
+      if (!session) return sendJson(res, 401, { error: "Oturum geçersiz veya süresi dolmuş." });
+      try {
+        await pool.query("ALTER TABLE umaykut_v2.players ADD COLUMN IF NOT EXISTS village_name VARCHAR(32)");
+        const validSession = await pool.query(
+          "SELECT p.id FROM umaykut_v2.players p JOIN umaykut_v2.player_sessions s ON s.player_id = p.id WHERE p.id = $1 AND s.token_hash = $2 AND s.expires_at > NOW()",
+          [session.id, sessionTokenHash(token)]
+        );
+        if (!validSession.rowCount) return sendJson(res, 401, { error: "Oyuncu oturumu bulunamadı." });
+        if (req.method === "GET") {
+          const result = await pool.query(
+            "SELECT p.village_name, s.faction_id FROM umaykut_v2.players p LEFT JOIN umaykut_v2.player_game_state s ON s.player_id = p.id WHERE p.id = $1",
+            [session.id]
+          );
+          return sendJson(res, 200, {
+            villageName: result.rows[0]?.village_name || null,
+            factionId: result.rows[0]?.faction_id || null
+          });
+        }
+        const input = await readJson(req);
+        const villageName = typeof input.villageName === "string" ? input.villageName.trim() : "";
+        const factionId = typeof input.factionId === "string" ? input.factionId : "";
+        if (villageName.length < 3 || villageName.length > 32 || !/^[\p{L}\p{N}][\p{L}\p{N} '\u2019-]*$/u.test(villageName)) {
+          return sendJson(res, 400, { error: "Köy adı 3–32 karakter olmalı; harf, rakam ve boşluk kullanabilirsin." });
+        }
+        if (!["hun", "seljuk", "gokturk"].includes(factionId)) {
+          return sendJson(res, 400, { error: "Devletini seçmeden yola çıkamazsın." });
+        }
+        await pool.query("UPDATE umaykut_v2.players SET village_name = $2 WHERE id = $1", [session.id, villageName]);
+        await pool.query(
+          `INSERT INTO umaykut_v2.player_game_state(player_id, faction_id)
+           VALUES($1, $2)
+           ON CONFLICT (player_id) DO UPDATE SET faction_id = EXCLUDED.faction_id, updated_at = NOW()`,
+          [session.id, factionId]
+        );
+        return sendJson(res, 200, { success: true, villageName, factionId });
+      } catch (error) {
+        console.error("V2 player profile request failed", {
+          code: error.code || "UNKNOWN",
+          message: String(error.message || "Unknown profile error").slice(0, 200)
+        });
+        return sendJson(res, 500, { error: "Köy bilgilerin kaydedilemedi. Tekrar dene." });
+      }
+    }
+
     if (url.pathname === "/api/game/state") {
       if (!pool) return sendJson(res, 503, { error: "Oyun kayıt servisi henüz yapılandırılmadı." });
       if (!sessionSecret || sessionSecret.length < 32) {
@@ -319,9 +372,10 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
 
           const username = input.username.trim();
           const email = input.email.trim().toLowerCase();
+          await pool.query("ALTER TABLE umaykut_v2.players ADD COLUMN IF NOT EXISTS village_name VARCHAR(32)");
           const passwordHash = await hashPassword(input.password);
           const result = await pool.query(
-            "INSERT INTO umaykut_v2.players(username, username_normalized, email, email_normalized, password_hash) VALUES($1, $2, $3, $4, $5) RETURNING id, username, email, created_at",
+            "INSERT INTO umaykut_v2.players(username, username_normalized, email, email_normalized, password_hash) VALUES($1, $2, $3, $4, $5) RETURNING id, username, email, created_at, village_name",
             [username, username.toLowerCase(), email, email.toLowerCase(), passwordHash]
           );
           const player = result.rows[0];
@@ -371,7 +425,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           }
 
           const result = await pool.query(
-            "SELECT id, username, email, password_hash FROM umaykut_v2.players WHERE email_normalized = $1 OR username_normalized = $1 LIMIT 1",
+            "SELECT id, username, email, password_hash, village_name FROM umaykut_v2.players WHERE email_normalized = $1 OR username_normalized = $1 LIMIT 1",
             [login]
           );
           const player = result.rows[0];
@@ -386,7 +440,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             [player.id, sessionTokenHash(token), session.expiresAt]
           );
           return sendJson(res, 200, {
-            player: { id: player.id, username: player.username, email: player.email },
+            player: { id: player.id, username: player.username, email: player.email, village_name: player.village_name },
             token,
             tokenType: "Bearer"
           });
@@ -419,8 +473,9 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         if (!session) return sendJson(res, 401, { error: "Oturum geçersiz veya süresi dolmuş." });
 
         try {
+          await pool.query("ALTER TABLE umaykut_v2.players ADD COLUMN IF NOT EXISTS village_name VARCHAR(32)");
           const result = await pool.query(
-            "SELECT p.id, p.username, p.email, p.created_at FROM umaykut_v2.players p JOIN umaykut_v2.player_sessions s ON s.player_id = p.id WHERE p.id = $1 AND s.token_hash = $2 AND s.expires_at > NOW()",
+            "SELECT p.id, p.username, p.email, p.created_at, p.village_name FROM umaykut_v2.players p JOIN umaykut_v2.player_sessions s ON s.player_id = p.id WHERE p.id = $1 AND s.token_hash = $2 AND s.expires_at > NOW()",
             [session.id, sessionTokenHash(token)]
           );
           if (!result.rowCount) return sendJson(res, 401, { error: "Oyuncu bulunamadı." });
