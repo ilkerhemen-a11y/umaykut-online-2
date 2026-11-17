@@ -46,13 +46,16 @@ export function createNeutralClaim({ playerId, factionId, now = new Date(), dura
 export function resolveNeutralBattle({ attackingTroops, defendingTroops, guardTroops = {}, now = new Date(), claimExpiresAt }) {
   const attack = countTroops(attackingTroops);
   const defense = countTroops(defendingTroops) + countTroops(guardTroops);
-  const total = attack + defense;
-  const attackerLosses = total ? Math.min(attack, Math.floor(attack * defense / total * 0.7)) : 0;
-  const defenderLosses = total ? Math.min(defense, Math.floor(defense * attack / total * 0.7)) : 0;
+  const victory = attack > 0 && attack >= Math.max(1, Math.ceil(defense * 1.25));
+  const attackerLosses = victory
+    ? Math.min(Math.max(0, attack - 1), Math.ceil(defense * 0.3))
+    : Math.min(attack, Math.ceil(attack * 0.65));
+  const defenderLosses = victory
+    ? defense
+    : Math.min(defense, Math.ceil(attack * 0.45));
   const attackerSurvivors = attack - attackerLosses;
   const defendersSurvivors = defense - defenderLosses;
-  const victory = attack > 0 && attackerSurvivors > defendersSurvivors && attackerSurvivors > 0;
-  const inWindow = claimExpiresAt && Date.parse(claimExpiresAt) >= now.getTime();
+  const inWindow = Boolean(claimExpiresAt && Date.parse(claimExpiresAt) > now.getTime());
   return {
     winner: victory ? 'attacker' : 'defender',
     victory,
