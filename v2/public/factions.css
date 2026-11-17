@@ -224,3 +224,14 @@
 .map-zoom-controls button:active{transform:scale(.94)}
 .map-zoom-controls button:focus-visible{outline:2px solid #ffe39a;outline-offset:2px}
 .map-zoom-controls span{min-width:38px;text-align:center;color:#f2dfad;font:10px Arial,sans-serif}
+
+
+/* Neutral settlements are exploration targets; ownership remains unassigned until conquest rules are implemented. */
+.map-neutral-village>span{
+ width:34px;height:34px;border-color:#d9c58b;
+ background:linear-gradient(145deg,#66502b,#211b13);
+ font-size:19px;box-shadow:0 2px 8px #000b,0 0 0 2px #392d1b99;
+}
+.map-neutral-village small{border-color:#d9bd78;background:#201b12ed;color:#fff0c6}
+.map-neutral-village b{border-color:#c5a65d;background:#2a2114ed;color:#f6d78e}
+.map-neutral-village:focus-visible>span{outline:2px solid #ffe8a8;outline-offset:3px}
