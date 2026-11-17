@@ -104,6 +104,7 @@ test("game state is returned only to a valid V2 player session", async (t) => {
   assert.deepEqual(state.workerAssignments, { grain: 20, wood: 30, stone: 10 });
   assert.equal(state.buildings["1"].level, 3);
   assert.equal(state.buildings["2"].level, 2);
+  assert.ok(Number.isFinite(Date.parse(state.serverNow)), "state response must include authoritative server time");
   assert.equal(Object.keys(state.buildings).length, 9);
 });
 
@@ -196,6 +197,7 @@ test("fixed building slots reject construction and only allow level upgrades", a
   assert.deepEqual(upgraded.cost,{wood:60,stone:40,iron:10});
   assert.equal(upgraded.building.level,1);
   assert.equal(upgraded.building.upgrade.targetLevel,2);
+  assert.ok(Number.isFinite(Date.parse(upgraded.serverNow)), "upgrade response must include authoritative server time");
   assert.ok(Date.parse(upgraded.building.upgrade.completesAt)>Date.now());
   assert.equal(state.buildings["6"].level,1);
   assert.equal(state.buildings["6"].upgrade.targetLevel,2);
