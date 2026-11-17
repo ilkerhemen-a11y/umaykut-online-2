@@ -18,7 +18,11 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.equal((html.match(/class="building-number(?: is-center)?"/g)||[]).length,9);
   assert.match(html,/1 numaralı Merkez Binası/);
   for(const [slot,name] of [["1","Merkez"],["2","Kışla"],["3","Ahır"],["4","Oduncu Ocağı"],["5","Çiftlik"],["6","Taş Ocağı"],["7","Demir Madeni"],["8","Pazar"],["9","Depo"]]){
-    assert.match(html,new RegExp('data-building-slot="'+slot+'"[^>]*>[\\s\\S]*?building-label">'+name+'<'));
+    const markerStart=html.indexOf('data-building-slot="'+slot+'"');
+    assert.notEqual(markerStart,-1);
+    const markerEnd=html.indexOf("</button>",markerStart);
+    assert.ok(markerEnd>markerStart);
+    assert.ok(html.slice(markerStart,markerEnd).includes('class="building-label">'+name+'</span>'));
   }
 
   // Building markers must overlay the image itself, not flow after it.
