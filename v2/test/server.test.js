@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createServer } from "../src/server.js";
 import { loadConfig } from "../src/config.js";
 import { createSessionToken } from "../src/auth.js";
+import { getWallProtection, resolveVillageDamage, resolveProtectedLoot } from "../src/combat.js";
 
 test("config uses safe defaults", () => {
   const config = loadConfig({});
@@ -484,4 +485,32 @@ test("established characters keep valid building levels while missing slots are 
   assert.equal(Object.keys(state.buildings).length,9);
   assert.equal(state.buildings["9"].level,1);
   assert.deepEqual(persisted,state.buildings);
+});
+
+
+test("wall reduces incoming damage by five percent per level up to fifty percent", () => {
+  assert.deepEqual(resolveVillageDamage({ attackPower: 1000, defensePower: 200, wallLevel: 1 }), {
+    damageBeforeWall: 800, damageAfterWall: 760, damagePreventedByWall: 40, wallDefensePercent: 5
+  });
+  assert.equal(resolveVillageDamage({ attackPower: 1000, defensePower: 200, wallLevel: 10 }).damageAfterWall, 400);
+  assert.equal(resolveVillageDamage({ attackPower: 100, defensePower: 200, wallLevel: 5 }).damageAfterWall, 0);
+});
+
+test("shelter protects each resource type before raid loot is calculated", () => {
+  const result = resolveProtectedLoot({
+    defenderResources: { gold: 2000, wood: 900, food: 700, stone: 5000, iron: 0 },
+    requestedLoot: { gold: 2000, wood: 900, food: 700, stone: 5000, iron: 100 },
+    wallLevel: 2
+  });
+  assert.deepEqual(result.protectedResources, { gold: 1000, wood: 900, food: 700, stone: 1000, iron: 0 });
+  assert.deepEqual(result.loot, { gold: 1000, wood: 0, food: 0, stone: 1000, iron: 0 });
+  assert.deepEqual(result.remainingResources, { gold: 1000, wood: 900, food: 700, stone: 4000, iron: 0 });
+});
+
+test("combat protection rejects invalid levels and negative or fractional values", () => {
+  assert.throws(() => getWallProtection(0), /Sur seviyesi/);
+  assert.throws(() => resolveVillageDamage({ attackPower: -1, wallLevel: 1 }), /tam sayı/);
+  assert.throws(() => resolveProtectedLoot({
+    defenderResources: { gold: 10 }, requestedLoot: { gold: 1.5 }, wallLevel: 1
+  }), /tam sayı/);
 });
