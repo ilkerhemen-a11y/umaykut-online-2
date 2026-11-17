@@ -52,15 +52,32 @@ export function resolveVillageDamage({ attackPower, defensePower = 0, wallLevel 
 function troopTotals(troops) {
   return Object.values(troops || {}).reduce((sum, value) => sum + validNonNegativeInteger(value, "Asker sayısı"), 0);
 }
-function troopPower(troops, catalog, mode) {
+function troopPower(troops, catalog, mode, opposingTroops = {}, opposingCatalog = []) {
   const units = new Map(catalog.map(unit => [unit.id, unit]));
+  if (mode === "attack") {
+    return Object.entries(troops || {}).reduce((sum, [id, count]) => {
+      const unit = units.get(id);
+      return sum + (unit ? validNonNegativeInteger(count, "Asker sayısı") * Number(unit.attack || 0) : 0);
+    }, 0);
+  }
+  const opposingUnits = new Map(opposingCatalog.map(unit => [unit.id, unit]));
+  let infantry = 0, cavalry = 0;
+  for (const [id, count] of Object.entries(opposingTroops || {})) {
+    const unit = opposingUnits.get(id);
+    if (!unit) continue;
+    const amount = validNonNegativeInteger(count, "Saldıran asker sayısı");
+    if (unit.building === "stable") cavalry += amount;
+    else infantry += amount;
+  }
+  const totalOpposing = infantry + cavalry;
+  const infantryShare = totalOpposing ? infantry / totalOpposing : 0.5;
+  const cavalryShare = totalOpposing ? cavalry / totalOpposing : 0.5;
   return Object.entries(troops || {}).reduce((sum, [id, count]) => {
     const unit = units.get(id);
     if (!unit) return sum;
-    const strength = mode === "attack"
-      ? Number(unit.attack || 0)
-      : Math.max(Number(unit.infantryDefense || 0), Number(unit.cavalryDefense || 0));
-    return sum + validNonNegativeInteger(count, "Asker sayısı") * strength;
+    const effectiveDefense = Number(unit.infantryDefense || 0) * infantryShare +
+      Number(unit.cavalryDefense || 0) * cavalryShare;
+    return sum + validNonNegativeInteger(count, "Asker sayısı") * effectiveDefense;
   }, 0);
 }
 function splitLosses(troops, lossCount) {
@@ -89,7 +106,7 @@ function splitLosses(troops, lossCount) {
 }
 export function resolveBattle({ attackerTroops, defenderTroops, attackerCatalog, defenderCatalog, defenderResources, wallLevel = 1 }) {
   const attackPower = troopPower(attackerTroops, attackerCatalog, "attack");
-  const defensePower = troopPower(defenderTroops, defenderCatalog, "defense");
+  const defensePower = troopPower(defenderTroops, defenderCatalog, "defense", attackerTroops, attackerCatalog);
   const wall = resolveVillageDamage({ attackPower, defensePower, wallLevel });
   const attackerCount = troopTotals(attackerTroops);
   const defenderCount = troopTotals(defenderTroops);
@@ -105,7 +122,11 @@ export function resolveBattle({ attackerTroops, defenderTroops, attackerCatalog,
   const perResourceRequest = Math.floor(carryCapacity / RESOURCE_KEYS.length);
   const requestedLoot = Object.fromEntries(RESOURCE_KEYS.map(key => [key, perResourceRequest]));
   const protectedLoot = resolveProtectedLoot({ defenderResources, requestedLoot, wallLevel });
+  const winner = wall.damageAfterWall > 0 && attacker.totalLosses < attackerCount ? "attacker" : "defender";
+  const resultCode = winner === "attacker" ? "victory" : "defense";
   return {
+    winner, resultCode,
+    outcomeText: winner === "attacker" ? "Saldıran taraf kazandı" : "Savunan taraf köyünü korudu",
     attackPower, defensePower, ...wall,
     attackerLosses: attacker.losses, attackerSurvivors: attacker.survivors, attackerLostCount: attacker.totalLosses,
     defenderLosses: defender.losses, defenderSurvivors: defender.survivors, defenderLostCount: defender.totalLosses,
