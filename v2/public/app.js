@@ -216,7 +216,9 @@ function renderUpgradeTracker(){
  const now=getServerNow();
  const active=Object.entries(gameBuildings)
   .filter(([,building])=>building?.upgrade)
-  .sort((a,b)=>Date.parse(a[1].upgrade.completesAt)-Date.parse(b[1].upgrade.completesAt));
+  .map(([slot,building])=>({slot,building,name:(BUILDING_TYPES[BUILDING_SLOT_TYPES[slot]]||BUILDING_TYPES.center).name,level:building.level}))
+  .concat(gameWall?.upgrade?[{slot:"wall",building:gameWall,name:"Sur / Sığınak",level:gameWall.level}]:[])
+  .sort((a,b)=>Date.parse(a.building.upgrade.completesAt)-Date.parse(b.building.upgrade.completesAt));
  tracker.hidden=active.length===0;
  const countLabel=document.querySelector("#building-upgrade-count");
  if(countLabel)countLabel.textContent=active.length+" AKTİF";
@@ -225,21 +227,20 @@ function renderUpgradeTracker(){
   refreshBuildingCountdown();
   return;
  }
- list.innerHTML=active.map(([slot,building])=>{
-  const definition=BUILDING_TYPES[BUILDING_SLOT_TYPES[slot]]||BUILDING_TYPES.center;
+ list.innerHTML=active.map(({slot,building,name,level})=>{
   const started=Date.parse(building.upgrade.startedAt);
   const completes=Date.parse(building.upgrade.completesAt);
   const duration=Math.max(1,completes-started);
   const progress=Math.min(100,Math.max(0,(now-started)/duration*100));
   const remaining=formatUpgradeRemainingAt(building.upgrade.completesAt,now);
   return '<article class="upgrade-card" data-upgrade-slot="'+slot+'">'+
-   '<div class="upgrade-card-top"><div><strong>'+definition.name+'</strong><small>Seviye '+building.level+' → '+building.upgrade.targetLevel+'</small></div>'+
+   '<div class="upgrade-card-top"><div><strong>'+name+'</strong><small>Seviye '+level+' → '+building.upgrade.targetLevel+'</small></div>'+
    '<b class="upgrade-countdown">'+remaining+'</b></div>'+
    '<div class="upgrade-progress"><span style="width:'+progress.toFixed(2)+'%"></span></div>'+
-   '<small class="upgrade-card-foot">'+(progress>=100?'Tamamlanıyor…':'Yükseltme devam ediyor')+' · Alan '+slot+'</small>'+
+   '<small class="upgrade-card-foot">'+(progress>=100?'Tamamlanıyor…':'Yükseltme devam ediyor')+(slot==="wall"?' · Savunma':' · Alan '+slot)+'</small>'+
    '</article>';
  }).join("");
- if(active.some(([,building])=>Date.parse(building.upgrade.completesAt)<=now)&&!upgradeCompletionCheckInFlight){
+ if(active.some(({building})=>Date.parse(building.upgrade.completesAt)<=now)&&!upgradeCompletionCheckInFlight){
   upgradeCompletionCheckInFlight=true;
   loadGameState().finally(()=>{upgradeCompletionCheckInFlight=false;});
  }
@@ -705,9 +706,10 @@ const wallAction=document.querySelector("#wall-action");
 const wallMessage=document.querySelector("#wall-message");
 let wallRefreshPending=false;
 function updateWallUpgradeCountdown(){
- if(!gameWall.upgrade)return;
+ if(!gameWall.upgrade){return;}
  const remaining=Date.parse(gameWall.upgrade.completesAt)-getServerNow();
- if(remaining<=0){wallMessage.textContent="Sur yükseltmesi tamamlanıyor…";if(!wallRefreshPending){wallRefreshPending=true;loadGameState().finally(()=>{wallRefreshPending=false;renderWallDialog();});}return;}
+ renderUpgradeTracker();
+ if(remaining<=0){wallMessage.textContent="Sur yükseltmesi tamamlanıyor…";if(!wallRefreshPending){wallRefreshPending=true;loadGameState().finally(()=>{wallRefreshPending=false;renderWallDialog();renderUpgradeTracker();});}return;}
  const total=Math.ceil(remaining/1000),hours=Math.floor(total/3600),minutes=Math.floor((total%3600)/60),seconds=total%60;
  wallMessage.textContent="Seviye "+gameWall.upgrade.targetLevel+" yükseltiliyor · "+(hours?hours+" sa ":"")+(minutes?minutes+" dk ":"")+seconds+" sn kaldı.";
 }
@@ -735,7 +737,7 @@ wallAction.addEventListener("click",async()=>{
  try{
   const result=await authRequest("/api/game/wall",{method:"POST",token:authToken,body:{action:"upgrade"}});
   gameResources={...gameResources,...result.resources};gameWall=result.wall;wallServerEffects=result.wallEffects;
-  renderResourceBalances();renderWallDialog();wallMessage.textContent="Sur yükseltmesi başladı. Seviye "+result.wall.upgrade.targetLevel+" tamamlandığında savunman artacak.";
+  setServerClock(result.serverNow);renderResourceBalances();renderWallDialog();renderUpgradeTracker();wallMessage.textContent="Sur yükseltmesi başladı. Yükseltme İzleme bölümünden takip edebilirsin.";
  }catch(error){wallMessage.textContent=error.message||"Sur yükseltmesi başlatılamadı.";wallAction.disabled=false;}
 });
 
@@ -802,7 +804,7 @@ function renderArmyUnitDetail(unitId){
  description.textContent=unit.building==="barracks"?"Kışlada yetiştirilen kara birliği.":"Ahırda yetiştirilen atlı birlik.";
  content.append(description);
  const stats=document.createElement("div");stats.className="army-detail-stats";
- [["Saldırı gücü",unit.attack],["Piyade savunması",unit.infantryDefense],["Süvari savunması",unit.cavalryDefense],["Hız",unit.speed],["Taşıma kapasitesi",unit.carry],["Eğitim süresi",unit.secondsPerUnit+" sn / asker"]].forEach(([label,value])=>{
+ [["Saldırı gücü",unit.attack],["Piyade savunması",unit.infantryDefense],["Süvari savunması",unit.cavalryDefense],["Hız",unit.speed],["Taşıma kapasitesi",unit.carry]].forEach(([label,value])=>{
   const item=document.createElement("div"),strong=document.createElement("strong"),small=document.createElement("small");
   strong.textContent=String(value);small.textContent=label;item.append(strong,small);stats.append(item);
  });
@@ -821,13 +823,11 @@ function renderArmyUnitDetail(unitId){
 function renderArmyQueue(){
  if(!armyState)return;
  armyQueueNode.replaceChildren();
- if(!armyState.trainingQueue.length){const p=document.createElement("p");p.textContent="Aktif eğitim bulunmuyor.";armyQueueNode.append(p);return;}
+ if(!armyState.trainingQueue.length){const p=document.createElement("p");p.textContent="Askerler yetiştirildiğinde doğrudan orduna katılır.";armyQueueNode.append(p);return;}
  armyState.trainingQueue.forEach(job=>{
   const item=document.createElement("div");item.className="army-queue-item";
   const title=document.createElement("strong");title.textContent=job.name+" × "+armyNumber(job.amount);
-  const time=document.createElement("small");const remaining=Math.max(0,Date.parse(job.completesAt)-Date.now());
-  const seconds=Math.ceil(remaining/1000),minutes=Math.floor(seconds/60),rest=seconds%60;
-  time.textContent=remaining<=0?"Tamamlanıyor…":(minutes?minutes+" dk ":"")+rest+" sn kaldı";
+  const time=document.createElement("small");time.textContent="Eğitim süresi yok";
   item.append(title,time);armyQueueNode.append(item);
  });
 }
@@ -869,12 +869,12 @@ document.querySelector("#army-unit-detail").addEventListener("click",async event
  if(!button)return;
  const amount=Number(document.querySelector("#"+button.dataset.amountInput).value);
  if(!Number.isSafeInteger(amount)||amount<1||amount>100){armyMessageNode.textContent="Bir seferde 1 ile 100 arasında asker seçebilirsin.";return;}
- button.disabled=true;armyMessageNode.textContent="Asker eğitimi kuyruğa ekleniyor…";
+ button.disabled=true;armyMessageNode.textContent="Askerler orduya katılıyor…";
  try{
   const result=await authRequest("/api/game/army/recruit",{method:"POST",token:authToken,body:{unitId:button.dataset.recruitUnit,amount}});
   armyState=result;gameResources={...gameResources,...result.resources};renderResourceBalances();
   renderArmySummary();renderArmyCatalog();renderArmyQueue();
   if(selectedArmyUnitId)renderArmyUnitDetail(selectedArmyUnitId);
-  armyMessageNode.textContent=amount+" asker eğitim kuyruğuna eklendi. Kaynaklar hesabından düşüldü.";
+  armyMessageNode.textContent=amount+" asker doğrudan orduna eklendi. Kaynaklar hesabından düşüldü.";
  }catch(error){armyMessageNode.textContent=error.message||"Asker yetiştirme başlatılamadı.";button.disabled=false;}
 });
