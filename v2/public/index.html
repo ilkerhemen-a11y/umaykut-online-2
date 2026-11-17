@@ -108,9 +108,9 @@
         <div id="resource-selection" hidden>
           <div class="selected-resource-heading"><small id="resource-type">KAYNAK BÖLGESİ</small><h2 id="resource-name">Tahıl Ovası</h2><p id="resource-description">Tahıl üretimi için işçi görevlendir.</p></div>
           <div class="worker-control">
-            <label for="worker-count">Gönderilecek işçi sayısı</label>
-            <div><input id="worker-count" type="number" inputmode="numeric" min="0" max="1800" value="0"><button id="assign-workers" type="button">Gönder</button></div>
-            <small id="worker-status">Bu aşama arayüz önizlemesidir; dağıtım henüz sunucuya kaydedilmez.</small>
+            <label for="worker-count">İşçi sayısı</label>
+            <div class="worker-actions"><input id="worker-count" type="number" inputmode="numeric" min="1" max="1800" value="1"><button id="assign-workers" type="button">Gönder</button><button id="recall-workers" type="button">Geri çağır</button></div>
+            <small id="worker-status">Atamalar bu cihazda saklanır. Hesaplar arası kayıt daha sonra PostgreSQL ile bağlanacaktır.</small>
           </div>
         </div>
       </section>
