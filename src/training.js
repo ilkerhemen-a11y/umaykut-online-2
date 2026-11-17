@@ -1,5 +1,5 @@
 import { pool } from "./db.js";
-import { getFactionUnits } from "./units.js";
+import { getFactionUnits, getUnitTrainingCost } from "./units.js";
 
 // Eski sürümde sırada bekleyen eğitimleri yeni anlık sisteme geçerken tamamla.
 async function settleLegacyTraining(client, playerId) {
@@ -61,13 +61,47 @@ export async function startTraining(req, res) {
       await client.query("ROLLBACK");
       return res.status(409).json({ error: "Önce bir devlet seçmelisin." });
     }
-    const allowed = getFactionUnits(factionId)?.some(unit => unit.id === unitId);
-    if (!allowed) {
+    const unit = getFactionUnits(factionId)?.find(item => item.id === unitId);
+    if (!unit) {
       await client.query("ROLLBACK");
       return res.status(403).json({ error: "Bu asker seçtiğin devlete ait değil." });
     }
 
     await settleLegacyTraining(client, req.player.sub);
+    const buildingType = unit.unitType === "siege" ? "workshop" : unit.building === "Ahır" ? "stable" : "barracks";
+    const building = await client.query(
+      "SELECT level FROM city_buildings WHERE city_player_id = $1 AND building_type = $2 FOR UPDATE",
+      [req.player.sub, buildingType]
+    );
+    const buildingLevel = Number(building.rows[0]?.level || 0);
+    if (buildingLevel < unit.level) {
+      await client.query("ROLLBACK");
+      return res.status(409).json({ error: unit.building + " binasını en az " + unit.level + ". seviyeye yükseltmelisin." });
+    }
+
+    const cost = getUnitTrainingCost(unitId, quantity);
+    const city = await client.query(
+      "SELECT wood, stone, iron, food, gold, horses FROM player_cities WHERE player_id = $1 FOR UPDATE",
+      [req.player.sub]
+    );
+    if (!city.rows[0]) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Şehir bulunamadı." });
+    }
+    const resources = city.rows[0];
+    const missing = Object.entries(cost).filter(([key, amount]) => Number(resources[key] || 0) < amount);
+    if (missing.length) {
+      await client.query("ROLLBACK");
+      const labels = { wood: "odun", stone: "taş", iron: "demir", food: "tahıl", gold: "altın", horses: "at" };
+      const needed = Object.entries(cost).filter(([, amount]) => amount > 0).map(([key, amount]) => amount.toLocaleString("tr-TR") + " " + labels[key]).join(", ");
+      return res.status(400).json({ error: "Yeterli kaynağın yok. Gerekli: " + needed + "." });
+    }
+    await client.query(
+      `UPDATE player_cities SET wood = wood - $2, stone = stone - $3, iron = iron - $4,
+        food = food - $5, gold = gold - $6, horses = horses - $7, updated_at = NOW()
+       WHERE player_id = $1`,
+      [req.player.sub, cost.wood, cost.stone, cost.iron, cost.food, cost.gold, cost.horses]
+    );
     const result = await client.query(
       `INSERT INTO player_army (player_id, faction_id, unit_id, quantity)
        VALUES ($1, $2, $3, $4)
@@ -82,7 +116,8 @@ export async function startTraining(req, res) {
     res.status(201).json({
       instantTraining: true,
       trained: result.rows[0],
-      message: quantity + " asker anında orduna eklendi."
+      spent: cost,
+      message: quantity + " asker anında orduna eklendi. Kaynakların düşüldü."
     });
   } catch (error) {
     await client.query("ROLLBACK");
