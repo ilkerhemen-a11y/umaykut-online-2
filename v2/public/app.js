@@ -56,8 +56,7 @@ foundingForm.addEventListener("submit",async event=>{
   updateVillageName(profile.villageName);
   setFaction(profile.factionId);
   foundingDialog.close();
-  gameStateReady=true;
-  await persistGameState();
+  await loadGameState();
  }catch(error){
   foundingMessage.textContent=error.message||"Köyün kurulamadı. Tekrar dene.";
   foundingSubmit.disabled=false;
@@ -281,7 +280,7 @@ function saveSettings(){
 function openSettings(){
  settingsPlayerName.textContent=currentPlayer?.username||"Oyuncu";
  settingsPlayerEmail.textContent=currentPlayer?.email||"E-posta bilgisi alınamadı";
- settingsThemeName.textContent=factions[shell.dataset.faction]?.name||"Göktürk diyarı";
+ settingsThemeName.textContent=factions[shell.dataset.faction]?.name||"Devlet seçilmedi";
  settingsMessage.textContent="";
  applySettings();
  if(!settingsDialog.open)settingsDialog.showModal();
