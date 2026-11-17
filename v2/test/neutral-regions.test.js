@@ -43,3 +43,23 @@ test('claim expires at four hours and cannot be captured afterwards', () => {
   });
   assert.equal(result.canCapture,false);
 });
+
+test('guards must be decisively defeated before a region can be captured', () => {
+  const result = resolveNeutralBattle({
+    attackingTroops:{infantry:6000},defendingTroops:{},guardTroops:{infantry:5000},
+    now:new Date('2026-11-18T13:00:00.000Z'),claimExpiresAt:'2026-11-18T16:00:00.000Z'
+  });
+  assert.equal(result.victory,false);
+  assert.equal(result.canCapture,false);
+  assert.ok(result.defendersSurvivors>0);
+});
+
+test('a decisive victory removes the defending guards', () => {
+  const result = resolveNeutralBattle({
+    attackingTroops:{infantry:100000},defendingTroops:{},guardTroops:{infantry:50000},
+    now:new Date('2026-11-18T13:00:00.000Z'),claimExpiresAt:'2026-11-18T16:00:00.000Z'
+  });
+  assert.equal(result.victory,true);
+  assert.equal(result.defendersSurvivors,0);
+  assert.equal(result.canCapture,true);
+});
