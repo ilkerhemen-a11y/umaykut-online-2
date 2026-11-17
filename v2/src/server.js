@@ -256,14 +256,60 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         if (!["hun", "seljuk", "gokturk"].includes(factionId)) {
           return sendJson(res, 400, { error: "Devletini seçmeden yola çıkamazsın." });
         }
-        await pool.query("UPDATE umaykut_v2.players SET village_name = $2 WHERE id = $1", [session.id, villageName]);
-        await pool.query(
-          `INSERT INTO umaykut_v2.player_game_state(player_id, faction_id)
-           VALUES($1, $2)
-           ON CONFLICT (player_id) DO UPDATE SET faction_id = EXCLUDED.faction_id, updated_at = NOW()`,
-          [session.id, factionId]
-        );
-        return sendJson(res, 200, { success: true, villageName, factionId });
+        const client = await pool.connect();
+        let inTransaction = false;
+        let firstSetup = false;
+        try {
+          await client.query("BEGIN");
+          inTransaction = true;
+          const existing = await client.query(
+            "SELECT village_name, faction_id FROM umaykut_v2.players p LEFT JOIN umaykut_v2.player_game_state s ON s.player_id = p.id WHERE p.id = $1 FOR UPDATE OF p",
+            [session.id]
+          );
+          if (!existing.rowCount) {
+            await client.query("ROLLBACK");
+            inTransaction = false;
+            return sendJson(res, 404, { error: "Oyuncu hesabı bulunamadı." });
+          }
+          firstSetup = !existing.rows[0].village_name || !existing.rows[0].faction_id;
+          await client.query("UPDATE umaykut_v2.players SET village_name = $2 WHERE id = $1", [session.id, villageName]);
+          if (firstSetup) {
+            // First-time founding also initializes legacy accounts that predate the level-one setup.
+            await client.query(
+              `INSERT INTO umaykut_v2.player_game_state
+                (player_id, faction_id, resources, buildings, worker_assignments, worker_state_initialized)
+               VALUES ($1, $2, $3::jsonb, $4::jsonb, $5::jsonb, TRUE)
+               ON CONFLICT (player_id) DO UPDATE SET
+                 faction_id = EXCLUDED.faction_id,
+                 resources = EXCLUDED.resources,
+                 buildings = EXCLUDED.buildings,
+                 worker_assignments = EXCLUDED.worker_assignments,
+                 worker_state_initialized = TRUE,
+                 updated_at = NOW()`,
+              [
+                session.id, factionId, JSON.stringify(INITIAL_RESOURCES),
+                JSON.stringify(INITIAL_BUILDINGS), JSON.stringify({grain:0,wood:0,stone:0})
+              ]
+            );
+          } else {
+            await client.query(
+              `INSERT INTO umaykut_v2.player_game_state(player_id, faction_id)
+               VALUES($1, $2)
+               ON CONFLICT (player_id) DO UPDATE SET faction_id = EXCLUDED.faction_id, updated_at = NOW()`,
+              [session.id, factionId]
+            );
+          }
+          await client.query("COMMIT");
+          inTransaction = false;
+        } catch (error) {
+          if (inTransaction) {
+            try { await client.query("ROLLBACK"); } catch {}
+          }
+          throw error;
+        } finally {
+          client.release();
+        }
+        return sendJson(res, 200, { success: true, villageName, factionId, firstSetup });
       } catch (error) {
         console.error("V2 player profile request failed", {
           code: error.code || "UNKNOWN",
