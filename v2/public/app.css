@@ -10,3 +10,5 @@
 .city-frame.marker-editing .building-number.is-dragging{z-index:30;cursor:grabbing;transform:translate(-50%,-50%) scale(1.16);box-shadow:0 0 0 3px #fff0b477,0 5px 14px #000d,0 0 18px #f6d77f}
 .city-frame.marker-editing .building-number .building-label{max-width:118px}
 @media(max-width:420px){.marker-tools{align-items:flex-start}.marker-tools-actions{width:100%}.marker-tool-button{padding:8px 9px}.marker-status{width:100%;text-align:left;min-width:0}}
+
+.marker-export{background:linear-gradient(145deg,#3b5260,#1b303b)}
