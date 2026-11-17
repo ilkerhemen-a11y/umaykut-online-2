@@ -1,32 +1,74 @@
 const factions={
- hun:{name:"Hun diyarı",themeColor:"#7b2528"},
- seljuk:{name:"Selçuklu diyarı",themeColor:"#8d6a2d"},
- gokturk:{name:"Göktürk diyarı",themeColor:"#176b83"}
+ hun:{name:"Hun Devleti",themeColor:"#7b2528",short:"Kızıl Bozkır",trait:"Atlı birlikler ve hızlı akınlar",description:"Hareketli süvari ordusu, baskın ve sefer odaklı oyun tarzı."},
+ seljuk:{name:"Selçuklu Devleti",themeColor:"#8d6a2d",short:"Altın Hâkimiyet",trait:"Ticaret ve şehirleşme",description:"Üretim, ticaret, güçlü surlar ve düzenli şehir gelişimi odaklı oyun tarzı."},
+ gokturk:{name:"Göktürk Devleti",themeColor:"#176b83",short:"Göklerin Hâkimiyeti",trait:"Dengeli bozkır gücü",description:"Kaynak, keşif, ordu ve savunma arasında dengeli gelişim."}
 };
 const shell=document.querySelector(".game-shell");
 const factionLabel=document.querySelector("#realm-faction");
 let gameStateReady=false;
+let selectedFoundingFaction=null;
 function setFaction(key){
- const faction=factions[key] ? key : "gokturk";
- shell.dataset.faction=faction;
- factionLabel.textContent=factions[faction].name;
- document.querySelector('meta[name="theme-color"]').content=factions[faction].themeColor;
+ if(!factions[key])return false;
+ shell.dataset.faction=key;
+ factionLabel.textContent=factions[key].name;
+ document.querySelector('meta[name="theme-color"]').content=factions[key].themeColor;
  document.querySelectorAll("[data-faction-choice]").forEach(button=>{
-  const active=button.dataset.factionChoice===faction;
+  const active=button.dataset.factionChoice===key;
   button.setAttribute("aria-pressed",String(active));
   button.classList.toggle("selected",active);
  });
- try{localStorage.setItem("umaykut-faction-v2",faction);}catch{}
+ try{localStorage.setItem("umaykut-faction-v2",key);}catch{}
+ return true;
 }
+const foundingDialog=document.querySelector("#founding-dialog");
+const foundingForm=document.querySelector("#founding-form");
+const foundingVillageName=document.querySelector("#founding-village-name");
+const foundingMessage=document.querySelector("#founding-message");
+const foundingSubmit=document.querySelector("#founding-submit");
 document.querySelectorAll("[data-faction-choice]").forEach(button=>{
  button.addEventListener("click",()=>{
-  setFaction(button.dataset.factionChoice);
-  if(gameStateReady) persistGameState().catch(()=>{});
+  selectedFoundingFaction=button.dataset.factionChoice;
+  setFaction(selectedFoundingFaction);
+  foundingMessage.textContent=factions[selectedFoundingFaction].description;
+  foundingSubmit.disabled=false;
  });
 });
-let savedFaction="gokturk";
-try{savedFaction=localStorage.getItem("umaykut-faction-v2")||"gokturk";}catch{}
-setFaction(savedFaction);
+function openFoundingDialog(player,profile){
+ selectedFoundingFaction=null;
+ foundingVillageName.value=profile?.villageName||player?.village_name||"";
+ foundingMessage.textContent="Devletini seç ve köyüne bir isim ver. Bu seçim hesabına kaydedilecek.";
+ foundingSubmit.disabled=true;
+ if(!foundingDialog.open)foundingDialog.showModal();
+}
+foundingForm.addEventListener("submit",async event=>{
+ event.preventDefault();
+ const villageName=foundingVillageName.value.trim();
+ if(!selectedFoundingFaction){foundingMessage.textContent="Önce bir devlet seçmelisin.";return;}
+ if(!foundingForm.reportValidity())return;
+ foundingSubmit.disabled=true;
+ foundingMessage.textContent="Yurdun kuruluyor…";
+ try{
+  const profile=await authRequest("/api/player/profile",{
+   method:"PUT",token:authToken,body:{villageName,factionId:selectedFoundingFaction}
+  });
+  currentPlayer={...currentPlayer,village_name:profile.villageName};
+  updateVillageName(profile.villageName);
+  setFaction(profile.factionId);
+  foundingDialog.close();
+  gameStateReady=true;
+  await persistGameState();
+ }catch(error){
+  foundingMessage.textContent=error.message||"Köyün kurulamadı. Tekrar dene.";
+  foundingSubmit.disabled=false;
+ }
+});
+function updateVillageName(name){
+ const safeName=String(name||"Yeni Yurdum");
+ const title=document.querySelector("#village-name-title");
+ const realmName=document.querySelector("#realm-player-name");
+ if(title)title.textContent=safeName;
+ if(realmName)realmName.textContent=safeName.toLocaleUpperCase("tr-TR")+" YURDU";
+}
 
 // Keep the building overlay in the exact same rendered box as the source image.
 const villageFrame=document.querySelector(".city-frame");
@@ -431,7 +473,6 @@ async function loadGameState(){
  try{
   const state=await authRequest("/api/game/state",{token:authToken});
   if(state.factionId) setFaction(state.factionId);
-  else setFaction(savedFaction);
   if(state.resources&&typeof state.resources==="object")gameResources={...DEFAULT_RESOURCES,...state.resources};
   gameBuildings=Object.fromEntries(Object.entries(BUILDING_SLOT_TYPES).map(([slot,type])=>[
    slot,{type,level:Math.max(1,Number(state.buildings?.[slot]?.level)||1)}
@@ -451,6 +492,7 @@ async function loadGameState(){
   gameStateReady=true;
   saveWorkerState();
   updateWorkerSummary();
+  return state;
  }catch(error){
   gameStateReady=false;
   restoreWorkerState();
@@ -459,7 +501,7 @@ async function loadGameState(){
  }
 }
 
-function enterGame(player,token){
+async function enterGame(player,token){
  currentPlayer=player||currentPlayer;
  authToken=token||authToken;
  try{if(authToken)localStorage.setItem(AUTH_TOKEN_KEY,authToken);}catch{}
@@ -467,13 +509,18 @@ function enterGame(player,token){
  settingsPlayerName.textContent=username;
  settingsPlayerEmail.textContent=player?.email||"Hesap bilgileri";
  const displayName=document.querySelector("#player-display-name");
- const realmName=document.querySelector("#realm-player-name");
  if(displayName)displayName.textContent=username+" Bey";
- if(realmName)realmName.textContent=username.toLocaleUpperCase("tr-TR")+"’İN YURDU";
  authScreen.hidden=true;
  gameShell.removeAttribute("inert");
- loadGameState();
  gameShell.removeAttribute("aria-hidden");
+ await loadGameState();
+ const profile=await authRequest("/api/player/profile",{token:authToken});
+ if(profile.villageName&&profile.factionId){
+  updateVillageName(profile.villageName);
+  setFaction(profile.factionId);
+ }else{
+  openFoundingDialog(currentPlayer,profile||{});
+ }
 }
 
 authForm.addEventListener("submit",async event=>{
@@ -489,7 +536,7 @@ authForm.addEventListener("submit",async event=>{
  authMessage.textContent=registering?"Hesabın oluşturuluyor…":"Oyuna giriş yapılıyor…";
  try{
   const data=await authRequest(registering?"/api/auth/register":"/api/auth/login",{method:"POST",body});
-  enterGame(data.player,data.token);
+  await enterGame(data.player,data.token);
  }catch(error){
   authMessage.textContent=error.message;
  }finally{
@@ -505,7 +552,7 @@ async function restoreAccountSession(){
  authMessage.textContent="Oturum kontrol ediliyor…";
  try{
   const data=await authRequest("/api/auth/me",{token:savedToken});
-  enterGame(data.player,savedToken);
+  await enterGame(data.player,savedToken);
  }catch(error){
   if(error.status===401){
    try{localStorage.removeItem(AUTH_TOKEN_KEY);}catch{}
