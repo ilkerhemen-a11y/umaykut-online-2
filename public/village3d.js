@@ -161,63 +161,158 @@ if(canvas){
   let atlasTexture=null;
   const atlasDataUrl="/assets/user-buildings-atlas.png";
   let latestBuildings=[];
-  const assetCells={center:0,school:1,barracks:2,market:3,stonemason:4,stable:6,blacksmith:7,mill:8,farm:9};
-  const assetAspect={center:.91,school:1.08,barracks:1.23,market:1.56,stonemason:1.83,stable:1.67,blacksmith:1.33,mill:.78,farm:1.56};
-  const displayHeight={center:7,school:3.55,barracks:3.7,market:3.1,stonemason:2.85,stable:3,blacksmith:3.1,mill:3.8,farm:2.65};
-  function cellTexture(index){
-    const texture=atlasTexture.clone(),col=index%5,row=Math.floor(index/5);
-    texture.repeat.set(.2,.5);texture.offset.set(col*.2,row===0?.5:0);
-    texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;return texture;
+  const assetCells={center:0,school:1,barracks:2,market:3,stonemason:4,stable:6,blacksmith:7,mill:8,farm:9,temple:1,shelter:2,archery:2,workshop:7,lumberjack:4};
+  const stoneWall=material(0xd7c39b,.94),stoneLight=material(0xe7d6b2,.9),stoneShade=material(0x9a805c,.96);
+  const plaster=material(0xe2d0a8,.96),plasterWarm=material(0xcab28a,.95),roofTile=material(0x287e80,.5,.12);
+  const roofDeep=material(0x185e64,.54,.1),doorWood=material(0x563923,.88),doorDark=material(0x172d29,.9);
+  const windowDark=material(0x233b38,.72),bannerCloth=material(0x1c7777,.7),cropGreen=material(0x789b45,.9);
+  function box(group,w,h,d,mat,x,y,z,cast=true){
+    const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+    mesh.position.set(x,y,z);mesh.castShadow=cast;mesh.receiveShadow=true;group.add(mesh);return mesh;
   }
-  function imageSprite(index,type,x,z,height,group,baseY=.36){
-    if(!atlasTexture)return null;
-    const footprintRadius=type==="center"?2.55:Math.max(.72,Math.min(1.08,height*.27));
-    const shadow=new THREE.Mesh(
-      new THREE.CircleGeometry(footprintRadius*1.55,40),
-      new THREE.MeshBasicMaterial({color:0x241d13,transparent:true,opacity:.2,depthWrite:false})
-    );
-    shadow.rotation.x=-Math.PI/2;
-    shadow.position.set(x,baseY+.018,z);
-    shadow.renderOrder=2;
-    group.add(shadow);
-    if(type!=="center"){
-      const footing=new THREE.Mesh(
-        new THREE.CylinderGeometry(footprintRadius*.94,footprintRadius,0.14,40),
-        new THREE.MeshStandardMaterial({color:0xa99572,roughness:.94})
-      );
-      footing.position.set(x,baseY+.07,z);
-      footing.castShadow=true;footing.receiveShadow=true;
-      group.add(footing);
-      const trim=new THREE.Mesh(
-        new THREE.TorusGeometry(footprintRadius*.9,.045,8,40),
-        new THREE.MeshStandardMaterial({color:0xc8a75e,roughness:.55,metalness:.16})
-      );
-      trim.rotation.x=Math.PI/2;
-      trim.position.set(x,baseY+.145,z);
-      group.add(trim);
+  function cylinder(group,top,bottom,h,segments,mat,x,y,z){
+    const mesh=new THREE.Mesh(new THREE.CylinderGeometry(top,bottom,h,segments),mat);
+    mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;group.add(mesh);return mesh;
+  }
+  function addDome(group,radius,mat,x,y,z){
+    const dome=new THREE.Mesh(new THREE.SphereGeometry(radius,24,14,0,Math.PI*2,0,Math.PI/2),mat);
+    dome.position.set(x,y,z);dome.scale.y=.88;dome.castShadow=true;dome.receiveShadow=true;group.add(dome);
+    cylinder(group,radius*.98,radius*.98,.16,32,gold,x,y-.04,z);
+    return dome;
+  }
+  function addArchDoor(group,width,height,x,y,z){
+    const shape=new THREE.Shape();
+    shape.moveTo(-width/2,0);shape.lineTo(width/2,0);shape.lineTo(width/2,height*.62);
+    shape.quadraticCurveTo(0,height*1.18,-width/2,height*.62);shape.closePath();
+    const door=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.12,bevelEnabled:false}),doorDark);
+    door.position.set(x,y,z);door.castShadow=true;group.add(door);
+    box(group,.07,height*.62,.15,gold,x-width*.34,y+height*.3,z-.035,false);
+    box(group,.07,height*.62,.15,gold,x+width*.34,y+height*.3,z-.035,false);
+  }
+  function addCornerTurret(group,x,z,scale=1){
+    cylinder(group,.34*scale,.42*scale,.22*scale,12,stoneLight,x,.26*scale,z);
+    cylinder(group,.27*scale,.34*scale,1.18*scale,12,plasterWarm,x,.92*scale,z);
+    cylinder(group,.34*scale,.31*scale,.15*scale,12,gold,x,1.55*scale,z);
+    const roof=new THREE.Mesh(new THREE.ConeGeometry(.38*scale,.62*scale,12),roofTile);
+    roof.position.set(x,1.92*scale,z);roof.castShadow=true;group.add(roof);
+    cylinder(group,.035*scale,.05*scale,.24*scale,8,gold,x,2.34*scale,z);
+  }
+  function addWindow(group,x,y,z){
+    box(group,.28,.52,.08,windowDark,x,y,z,false);
+    box(group,.36,.07,.1,gold,x,y+.28,z-.025,false);
+  }
+  function createCentralPalace(group){
+    box(group,4.25,.32,4.0,stoneShade,0,.22,0);
+    box(group,3.95,.18,3.72,stoneLight,0,.43,0);
+    box(group,3.52,2.18,3.22,plasterWarm,0,1.58,0);
+    box(group,3.7,.22,3.4,stoneLight,0,2.78,0);
+    box(group,3.86,.12,3.56,gold,0,2.92,0,false);
+    for(const x of [-1.48,1.48])for(const z of [-1.32,1.32])addCornerTurret(group,x,z,.88);
+    addArchDoor(group,1.12,1.68,0,.48,1.63);
+    for(const x of [-1.18,1.18]){addWindow(group,x,1.78,1.63);box(group,.08,.75,.1,gold,x,1.78,1.55,false);}
+    cylinder(group,1.46,1.52,.32,32,stoneLight,0,3.05,0);
+    addDome(group,1.42,roofTile,0,3.2,0);
+    cylinder(group,.055,.075,.38,10,gold,0,4.55,0);
+    const crescent=new THREE.Mesh(new THREE.TorusGeometry(.16,.035,8,24,Math.PI*1.65),gold);
+    crescent.position.set(0,4.78,0);crescent.rotation.z=-.45;group.add(crescent);
+    for(const x of [-1.45,1.45]){
+      cylinder(group,.22,.27,1.15,12,plaster,x,3.42,.05);
+      const mini=new THREE.Mesh(new THREE.ConeGeometry(.3,.55,12),roofDeep);
+      mini.position.set(x,4.28,.05);mini.castShadow=true;group.add(mini);
     }
-    const texture=cellTexture(index);
-    const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,alphaTest:.025,depthWrite:false}));
-    sprite.scale.set(height*(assetAspect[type]||1.2),height,1);
-    sprite.position.set(x,baseY+height/2+(type==="center"?0:.13),z);
-    sprite.renderOrder=3;sprite.userData.buildingType=type;
-    group.add(sprite);return sprite;
+    for(let i=0;i<5;i++)box(group,.32,.13,.1,gold,-.64+i*.32,2.25,1.66,false);
+  }
+  function createTownBuilding(type,group){
+    const dims={school:[2.25,1.8,2.05],temple:[2.35,2.15,2.2],barracks:[2.55,1.75,2.1],archery:[2.5,1.65,2.05],market:[2.45,1.55,2.0],stable:[2.55,1.65,2.2],blacksmith:[2.25,1.7,2.0],workshop:[2.35,1.65,2.0],stonemason:[2.2,1.55,1.95],lumberjack:[2.2,1.55,1.95],mill:[1.85,2.25,1.85],farm:[2.55,1.15,1.9],shelter:[2.0,1.45,1.8]};
+    const [w,h,d]=dims[type]||[2.2,1.6,2];
+    const wall=type==="temple"||type==="school"?plaster:plasterWarm;
+    box(group,w+.22,.2,d+.22,stoneShade,0,.12,0);
+    box(group,w,.13,d,stoneLight,0,.27,0);
+    box(group,w,h,d,wall,0,.27+h/2,0);
+    box(group,w+.12,.12,d+.12,stoneLight,0,.27+h,0);
+    if(type==="temple"){
+      cylinder(group,w*.48,w*.52,.28,20,stoneLight,0,.27+h+.12,0);
+      addDome(group,w*.48,roofTile,0,.27+h+.26,0);
+      cylinder(group,.045,.06,.24,8,gold,0,.27+h+1.22,0);
+    }else if(type==="market"){
+      const canopy=new THREE.Mesh(new THREE.ConeGeometry(w*.78,.68,4),bannerCloth);
+      canopy.position.set(0,.27+h+.35,0);canopy.rotation.y=Math.PI/4;canopy.castShadow=true;group.add(canopy);
+      box(group,w*.9,.08,d*.9,gold,0,.27+h+.05,0,false);
+    }else if(type==="mill"){
+      const roof=new THREE.Mesh(new THREE.ConeGeometry(w*.72,.78,8),roofTile);
+      roof.position.set(0,.27+h+.39,0);roof.castShadow=true;group.add(roof);
+      cylinder(group,.08,.11,.48,10,wood,0,.27+h+.2,d*.52);
+      for(let i=0;i<4;i++){const blade=box(group,.11,.95,.08,stoneLight,0,.27+h+.52,d*.52,false);blade.rotation.z=i*Math.PI/2;}
+    }else if(type==="farm"||type==="stable"||type==="barracks"||type==="archery"||type==="shelter"){
+      const roof=new THREE.Mesh(new THREE.ConeGeometry(w*.78,.78,4),type==="shelter"?bannerCloth:roofTile);
+      roof.position.set(0,.27+h+.36,0);roof.rotation.y=Math.PI/4;roof.castShadow=true;group.add(roof);
+      if(type==="shelter")for(let i=0;i<3;i++)box(group,.045,h*.9,.05,gold,-.55+i*.55,.27+h*.48,d*.5,false);
+    }else{
+      const roof=new THREE.Mesh(new THREE.ConeGeometry(w*.78,.72,4),roofTile);
+      roof.position.set(0,.27+h+.34,0);roof.rotation.y=Math.PI/4;roof.castShadow=true;group.add(roof);
+    }
+    addArchDoor(group,.56,.92,0,.28,d/2+.055);
+    addWindow(group,-w*.31,.27+h*.56,d/2+.06);addWindow(group,w*.31,.27+h*.56,d/2+.06);
+    if(type==="blacksmith"||type==="workshop"){
+      box(group,.36,.95,.38,stoneShade,w*.34,.27+h+.45,-d*.22);
+      box(group,.43,.1,.44,stoneLight,w*.34,.27+h+.95,-d*.22);
+      const glow=new THREE.Mesh(new THREE.SphereGeometry(.13,10,8),material(0xe68b35,.45));
+      glow.position.set(-w*.34,.58,d*.52);group.add(glow);
+    }
+    if(type==="market"){
+      for(let i=0;i<3;i++)box(group,.42,.48,.42,wood,-.72+i*.72,.55,d*.62);
+    }
+    if(type==="farm"){
+      for(let row=0;row<3;row++)for(let i=0;i<4;i++){
+        const stalk=new THREE.Mesh(new THREE.ConeGeometry(.07,.34,5),cropGreen);
+        stalk.position.set(-.8+i*.52,.36,.82+row*.16);stalk.castShadow=true;group.add(stalk);
+      }
+    }
+    if(type==="archery"){
+      for(let i=0;i<3;i++){const target=cylinder(group,.2,.2,.08,16,gold,-.8+i*.8,.55,-d*.62);target.rotation.x=Math.PI/2;}
+    }
+    if(type==="stable"){
+      box(group,.16,.95,.12,wood,-.55,.78,d*.54,false);
+      box(group,.16,.95,.12,wood,.55,.78,d*.54,false);
+    }
+    if(type==="stonemason"||type==="lumberjack"){
+      for(let i=0;i<3;i++){const pile=new THREE.Mesh(new THREE.DodecahedronGeometry(.22,0),type==="stonemason"?stoneShade:wood);pile.position.set(-.65+i*.58,.35,-d*.62);pile.castShadow=true;group.add(pile);}
+    }
+    if(type==="school"){
+      for(const x of [-.7,.7])cylinder(group,.12,.14,1.55,10,stoneLight,x,1.04,d*.52);
+      const bell=new THREE.Mesh(new THREE.ConeGeometry(.16,.28,8),gold);bell.position.set(0,.27+h+.3,0);group.add(bell);
+    }
+  }
+  function addBuildingModel(type,x,z){
+    const group=new THREE.Group();group.position.set(x,0,z);group.userData.buildingType=type;
+    const radius=type==="center"?2.5:1.18;
+    const shadow=new THREE.Mesh(new THREE.CircleGeometry(radius*1.55,40),new THREE.MeshBasicMaterial({color:0x241d13,transparent:true,opacity:.24,depthWrite:false}));
+    shadow.rotation.x=-Math.PI/2;shadow.position.y=.025;shadow.renderOrder=2;group.add(shadow);
+    if(type==="center")createCentralPalace(group);else createTownBuilding(type,group);
+    const trim=new THREE.Mesh(new THREE.TorusGeometry(radius*.9,.045,8,48),gold);
+    trim.rotation.x=Math.PI/2;trim.position.y=.34;group.add(trim);
+    group.traverse(node=>{if(node.isMesh){node.castShadow=true;node.receiveShadow=true;}});
+    buildingsGroup.add(group);return group;
+  }
+  function disposeGroup(group){
+    group.traverse(node=>{
+      if(node.geometry)node.geometry.dispose();
+      if(node.material){
+        const mats=Array.isArray(node.material)?node.material:[node.material];
+        mats.forEach(mat=>{if(mat.map)mat.map.dispose();mat.dispose();});
+      }
+    });
   }
   function renderBuildings(){
     while(buildingsGroup.children.length){
-      const child=buildingsGroup.children[0];
-      buildingsGroup.remove(child);
-      if(child.geometry)child.geometry.dispose();
-      if(child.material?.map)child.material.map.dispose();
-      if(child.material)child.material.dispose();
+      const child=buildingsGroup.children[0];buildingsGroup.remove(child);disposeGroup(child);
     }
-    if(!atlasTexture)return;
-    imageSprite(0,"center",0,0,displayHeight.center,buildingsGroup,.34);
+    addBuildingModel("center",0,0);
     latestBuildings.filter(b=>b.type!=="center").slice(0,9).forEach((building,index)=>{
       const explicit=Number(building.slotIndex),slot=Number.isInteger(explicit)&&explicit>=1&&explicit<=9?explicit-1:index;
-      const type=String(building.type||""),cell=assetCells[type],anchor=buildAnchors[slot];
-      if(cell===undefined||!anchor)return;
-      imageSprite(cell,type,anchor[0],anchor[1],displayHeight[type]||3,buildingsGroup,.38);
+      const type=String(building.type||""),anchor=buildAnchors[slot];
+      if(!anchor||!assetCells.hasOwnProperty(type))return;
+      addBuildingModel(type,anchor[0],anchor[1]);
     });
   }
   function projectedBuildSlots(){
