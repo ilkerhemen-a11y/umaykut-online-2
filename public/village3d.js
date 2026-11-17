@@ -83,10 +83,10 @@ if(canvas){
   wallOuter.position.y=1.02;wallOuter.castShadow=true;wallOuter.receiveShadow=true;scene.add(wallOuter);
   const wallInside=new THREE.Mesh(new THREE.CylinderGeometry(10.7,11.02,2.05,96,1,true,wallStart,wallLength),wallInner);
   wallInside.position.y=1.02;wallInside.receiveShadow=true;scene.add(wallInside);
-  const wallCoping=new THREE.Mesh(new THREE.CylinderGeometry(11.2,11.2,.22,96,1,false,wallStart,wallLength),wallTop);
-  wallCoping.position.y=2.08;wallCoping.castShadow=true;scene.add(wallCoping);
   for(let i=0;i<48;i++){
     const a=wallStart+(i+.5)*wallLength/48,x=Math.sin(a)*11.22,z=Math.cos(a)*11.22;
+    const coping=new THREE.Mesh(new THREE.BoxGeometry(.72,.18,.58),wallTop);
+    coping.position.set(x,2.1,z);coping.rotation.y=-a;coping.castShadow=true;scene.add(coping);
     const merlon=new THREE.Mesh(new THREE.BoxGeometry(.46,.43,.5),wallTop);
     merlon.position.set(x,2.38,z);merlon.rotation.y=-a;merlon.castShadow=true;scene.add(merlon);
   }
@@ -118,7 +118,7 @@ if(canvas){
   const gateFrame=new THREE.Shape();
   gateFrame.moveTo(-1.72,0);gateFrame.lineTo(-1.72,2.05);gateFrame.quadraticCurveTo(0,4.0,1.72,2.05);gateFrame.lineTo(1.72,0);gateFrame.closePath();
   const gateOpening=new THREE.Path();
-  gateOpening.moveTo(-1.12,0);gateOpening.lineTo(-1.12,1.75);gateOpening.quadraticCurveTo(0,3.18,1.12,1.75);gateOpening.lineTo(1.12,0);gateOpening.closePath();
+  gateOpening.moveTo(-1.12,0);gateOpening.lineTo(1.12,0);gateOpening.lineTo(1.12,1.75);gateOpening.quadraticCurveTo(0,3.18,-1.12,1.75);gateOpening.closePath();
   gateFrame.holes.push(gateOpening);
   const gateArch=new THREE.Mesh(new THREE.ShapeGeometry(gateFrame),wallTop);
   gateArch.position.set(0,.04,11.28);gateArch.material.side=THREE.DoubleSide;gateArch.castShadow=true;scene.add(gateArch);
@@ -181,7 +181,7 @@ if(canvas){
       if(child.material)child.material.dispose();
     }
     if(!atlasTexture)return;
-    imageSprite(0,"center",0,0,displayHeight.center,buildingsGroup,.16);
+    imageSprite(0,"center",0,0,displayHeight.center,buildingsGroup,.34);
     latestBuildings.filter(b=>b.type!=="center").slice(0,9).forEach((building,index)=>{
       const explicit=Number(building.slotIndex),slot=Number.isInteger(explicit)&&explicit>=1&&explicit<=9?explicit-1:index;
       const type=String(building.type||""),cell=assetCells[type],anchor=buildAnchors[slot];
