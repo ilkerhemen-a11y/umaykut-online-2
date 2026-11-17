@@ -69,6 +69,10 @@ function updateVillageName(name){
  const realmName=document.querySelector("#realm-player-name");
  if(title)title.textContent=safeName;
  if(realmName)realmName.textContent=safeName.toLocaleUpperCase("tr-TR")+" YURDU";
+ const mapCityName=document.querySelector("#map-city-name");
+ const mapCityImage=document.querySelector("#map-city-image");
+ if(mapCityName)mapCityName.textContent=safeName;
+ if(mapCityImage)mapCityImage.alt=safeName+" kalesi";
 }
 
 // Keep the building overlay in the exact same rendered box as the source image.
