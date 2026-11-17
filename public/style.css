@@ -15,7 +15,7 @@
 .unit-art img{width:100%;height:100%;max-width:100%;object-fit:cover;border-radius:7px}
 .army-unit-image{width:27px;height:27px;object-fit:cover;border-radius:4px;vertical-align:middle}
 .army-strip .units{grid-template-columns:repeat(9,minmax(62px,1fr));overflow-x:auto;padding-bottom:4px}
-.army-strip .units div{min-width:62px}
+.army-strip .units div{min-width:62px}.army-strip .army-unit-sprite{display:block;width:34px;height:32px;margin:0 auto 3px;background-repeat:no-repeat;background-size:256px 301px}
 
 .resource-map-nodes{position:absolute;inset:0;pointer-events:none}.resource-map-nodes .resource-node{transform:translate(-50%,-50%);z-index:2;pointer-events:auto;border:1px solid #d5aa42;border-radius:9px;background:#211b12dd;padding:4px 6px;min-width:48px;cursor:pointer}.resource-map-nodes .resource-node span{display:block;font-size:24px;line-height:1.1}.resource-map-nodes .resource-node small{display:block;white-space:nowrap;color:#ffe6a4;font-size:9px}
 
