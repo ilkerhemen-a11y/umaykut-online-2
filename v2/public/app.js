@@ -739,78 +739,10 @@ wallAction.addEventListener("click",async()=>{
  }catch(error){wallMessage.textContent=error.message||"Sur yükseltmesi başlatılamadı.";wallAction.disabled=false;}
 });
 
-// Interactive wall marker positioning: the player chooses the exact point on the village image.
-const wallPositionMarker=document.querySelector("#wall-position-marker");
-const wallPositionToggle=document.querySelector("#wall-position-toggle");
-const wallPositionConfirm=document.querySelector("#wall-position-confirm");
-const wallPositionStatus=document.querySelector("#wall-position-status");
-const wallPositionStage=document.querySelector(".city-stage");
-let wallPositionEditing=false;
-let wallPositionDraft=null;
-const WALL_POSITION_KEY="umaykut-wall-position-draft-v3";
-function readWallPosition(){
- try{
-  const saved=JSON.parse(localStorage.getItem(WALL_POSITION_KEY)||"null");
-  if(saved&&Number.isFinite(saved.x)&&Number.isFinite(saved.y)){
-   wallPositionMarker.style.left=saved.x+"%";
-   wallPositionMarker.style.top=saved.y+"%";
-   return saved;
-  }
- }catch{}
- return {x:parseFloat(wallPositionMarker.style.left)||50.3,y:parseFloat(wallPositionMarker.style.top)||75.3};
-}
-function updateWallPositionStatus(prefix=""){
- const p=wallPositionDraft||readWallPosition();
- wallPositionStatus.textContent=prefix+"Sur işareti konumu: X "+p.x.toFixed(1)+"% · Y "+p.y.toFixed(1)+"%. "+(wallPositionEditing?"İşareti görsel üzerinde istediğin noktaya sürükle.":"");
-}
-function setWallPositionEditing(enabled){
- wallPositionEditing=enabled;
- wallPositionStage.classList.toggle("wall-position-editing",enabled);
- wallPositionMarker.classList.toggle("wall-position-draggable",enabled);
- wallPositionToggle.textContent=enabled?"✋ Konum ayarını bitir":"📍 Sur konumunu belirle";
- wallPositionConfirm.disabled=enabled||!wallPositionDraft;
- updateWallPositionStatus(enabled?"Konum ayarı açık. ":"");
-}
-function moveWallMarker(event){
- if(!wallPositionEditing||!wallPositionStage)return;
- const rect=wallPositionStage.getBoundingClientRect();
- const x=Math.max(1,Math.min(99,(event.clientX-rect.left)/rect.width*100));
- const y=Math.max(1,Math.min(99,(event.clientY-rect.top)/rect.height*100));
- wallPositionDraft={x:Number(x.toFixed(1)),y:Number(y.toFixed(1))};
- wallPositionMarker.style.left=wallPositionDraft.x+"%";
- wallPositionMarker.style.top=wallPositionDraft.y+"%";
- updateWallPositionStatus();
-}
-if(wallPositionMarker&&wallPositionToggle&&wallPositionConfirm&&wallPositionStage){
- wallPositionDraft=readWallPosition();
- updateWallPositionStatus();
- wallPositionToggle.addEventListener("click",()=>setWallPositionEditing(!wallPositionEditing));
- wallPositionMarker.addEventListener("pointerdown",event=>{
-  if(!wallPositionEditing)return;
-  event.preventDefault();
-  wallPositionMarker.setPointerCapture(event.pointerId);
-  moveWallMarker(event);
- });
- wallPositionMarker.addEventListener("pointermove",event=>{if(wallPositionEditing&&wallPositionMarker.hasPointerCapture(event.pointerId))moveWallMarker(event);});
- wallPositionMarker.addEventListener("pointerup",event=>{
-  if(!wallPositionEditing)return;
-  if(wallPositionMarker.hasPointerCapture(event.pointerId))wallPositionMarker.releasePointerCapture(event.pointerId);
- });
- wallPositionStage.addEventListener("pointerdown",event=>{
-  if(wallPositionEditing&&event.target!==wallPositionMarker)moveWallMarker(event);
- });
- wallPositionConfirm.addEventListener("click",()=>{
-  if(!wallPositionDraft)return;
-  try{localStorage.setItem(WALL_POSITION_KEY,JSON.stringify(wallPositionDraft));}catch{}
-  wallPositionStatus.textContent="Konum taslağın kaydedildi: X "+wallPositionDraft.x.toFixed(1)+"% · Y "+wallPositionDraft.y.toFixed(1)+"%. Bu koordinatları bana gönder; kalıcı oyun konumuna ondan sonra aktaralım.";
-  wallPositionConfirm.disabled=true;
- });
-}
-
-
 // Server-authoritative faction army and sequential troop training.
 const armyDialog=document.querySelector("#army-dialog");
 const armyCatalogNode=document.querySelector("#army-unit-catalog");
+let selectedArmyUnitId=null;
 const armyQueueNode=document.querySelector("#army-queue-list");
 const armyMessageNode=document.querySelector("#army-message");
 let armyState=null;
@@ -824,33 +756,67 @@ function renderArmySummary(){
  const strip=document.querySelector("#army-units");
  if(strip){
   strip.replaceChildren();
-  armyState.catalog.slice(0,6).forEach(unit=>{
-   const card=document.createElement("div"),icon=document.createElement("span"),count=document.createElement("b"),name=document.createElement("small");
+  armyState.catalog.forEach(unit=>{
+   const card=document.createElement("button");card.type="button";card.className="army-strip-unit";card.dataset.openUnit=unit.id;
+   const icon=document.createElement("span"),count=document.createElement("b"),name=document.createElement("small");
    icon.textContent=unit.icon;count.textContent=armyNumber(armyState.troops[unit.id]||0);name.textContent=unit.name;
    card.append(icon,count,name);strip.append(card);
   });
  }
 }
+function showArmyUnitList(){
+ document.querySelector("#army-unit-list-section").hidden=false;
+ document.querySelector("#army-unit-detail").hidden=true;
+ selectedArmyUnitId=null;
+}
 function renderArmyCatalog(){
  if(!armyState)return;
  armyCatalogNode.replaceChildren();
  armyState.catalog.forEach(unit=>{
-  const card=document.createElement("article");card.className="army-unit-card"+(unit.unlocked?"":" is-locked");
-  const head=document.createElement("div");head.className="army-unit-card-head";
+  const card=document.createElement("button");card.type="button";card.className="army-unit-card"+(unit.unlocked?"":" is-locked");
+  card.dataset.selectUnit=unit.id;
+  const head=document.createElement("span");head.className="army-unit-card-head";
   const emblem=document.createElement("span");emblem.className="army-unit-emblem";emblem.textContent=unit.icon;
-  const title=document.createElement("div"),name=document.createElement("strong"),owned=document.createElement("small");
+  const title=document.createElement("span"),name=document.createElement("strong"),owned=document.createElement("small");
   name.textContent=unit.name;owned.textContent="Mevcut: "+armyNumber(armyState.troops[unit.id]||0);
   title.append(name,owned);head.append(emblem,title);
-  const stats=document.createElement("p");stats.textContent="Saldırı "+unit.attack+" · Piyade savunması "+unit.infantryDefense+" · Süvari savunması "+unit.cavalryDefense+" · Hız "+unit.speed;
-  const cost=document.createElement("p");cost.className="army-unit-cost";
-  cost.textContent=Object.entries(unit.cost).map(([key,value])=>({wood:"Odun",food:"Yiyecek",iron:"Demir",gold:"Altın"}[key]+" "+armyNumber(value))).join(" · ");
-  const unlock=document.createElement("small");unlock.className="army-unlock";
-  unlock.textContent=unit.unlocked?(unit.building==="barracks"?"Kışla seviyesi "+unit.requiredLevel:"Ahır seviyesi "+unit.requiredLevel):((unit.building==="barracks"?"Kışla":"Ahır")+" seviye "+unit.requiredLevel+" gerekli");
-  const controls=document.createElement("div");controls.className="army-recruit-controls";
-  const amount=document.createElement("input");amount.type="number";amount.min="1";amount.max="100";amount.value="1";amount.inputMode="numeric";amount.setAttribute("aria-label",unit.name+" asker sayısı");
-  const button=document.createElement("button");button.type="button";button.textContent=unit.unlocked?"Yetiştir":"Kilitli";button.disabled=!unit.unlocked;button.dataset.recruitUnit=unit.id;button.dataset.amountInput="army-amount-"+unit.id;amount.id="army-amount-"+unit.id;
-  controls.append(amount,button);card.append(head,stats,cost,unlock,controls);armyCatalogNode.append(card);
+  const meta=document.createElement("span");meta.className="army-unit-card-meta";
+  meta.textContent=unit.unlocked?"Özellikleri görüntüle · Yetiştir":"Kilitli · Gerekli bina seviyesini gör";
+  card.append(head,meta);armyCatalogNode.append(card);
  });
+}
+function renderArmyUnitDetail(unitId){
+ if(!armyState)return;
+ const unit=armyState.catalog.find(item=>item.id===unitId);
+ if(!unit)return;
+ selectedArmyUnitId=unitId;
+ document.querySelector("#army-unit-list-section").hidden=true;
+ const detail=document.querySelector("#army-unit-detail"),content=document.querySelector("#army-unit-detail-content");
+ detail.hidden=false;content.replaceChildren();
+ const heading=document.createElement("div");heading.className="army-detail-heading";
+ const emblem=document.createElement("div");emblem.className="army-detail-emblem";emblem.textContent=unit.icon;
+ const title=document.createElement("div"),name=document.createElement("h3"),owned=document.createElement("p");
+ name.textContent=unit.name;owned.textContent="Ordudaki mevcut sayın: "+armyNumber(armyState.troops[unit.id]||0);
+ title.append(name,owned);heading.append(emblem,title);content.append(heading);
+ const description=document.createElement("p");description.className="army-detail-description";
+ description.textContent=unit.building==="barracks"?"Kışlada yetiştirilen kara birliği.":"Ahırda yetiştirilen atlı birlik.";
+ content.append(description);
+ const stats=document.createElement("div");stats.className="army-detail-stats";
+ [["Saldırı gücü",unit.attack],["Piyade savunması",unit.infantryDefense],["Süvari savunması",unit.cavalryDefense],["Hız",unit.speed],["Taşıma kapasitesi",unit.carry],["Eğitim süresi",unit.secondsPerUnit+" sn / asker"]].forEach(([label,value])=>{
+  const item=document.createElement("div"),strong=document.createElement("strong"),small=document.createElement("small");
+  strong.textContent=String(value);small.textContent=label;item.append(strong,small);stats.append(item);
+ });
+ content.append(stats);
+ const costTitle=document.createElement("h4");costTitle.textContent="Bir asker yetiştirme maliyeti";content.append(costTitle);
+ const costs=document.createElement("p");costs.className="army-unit-cost";
+ costs.textContent=Object.entries(unit.cost).map(([key,value])=>({wood:"Odun",food:"Yiyecek",iron:"Demir",gold:"Altın"}[key]+" "+armyNumber(value))).join(" · ");content.append(costs);
+ const unlock=document.createElement("p");unlock.className="army-unlock";
+ unlock.textContent=unit.unlocked?(unit.building==="barracks"?"Kışla seviyesi ":"Ahır seviyesi ")+unit.requiredLevel+" · Birlik yetiştirilebilir":(unit.building==="barracks"?"Kışla seviye ":"Ahır seviye ")+unit.requiredLevel+" gerekli";
+ content.append(unlock);
+ const controls=document.createElement("div");controls.className="army-recruit-controls army-detail-controls";
+ const amount=document.createElement("input");amount.type="number";amount.min="1";amount.max="100";amount.value="1";amount.inputMode="numeric";amount.id="army-selected-amount";amount.setAttribute("aria-label",unit.name+" yetiştirilecek asker sayısı");
+ const button=document.createElement("button");button.type="button";button.textContent=unit.unlocked?"Bu askeri yetiştir":"Birlik kilitli";button.disabled=!unit.unlocked;button.dataset.recruitUnit=unit.id;button.dataset.amountInput="army-selected-amount";
+ controls.append(amount,button);content.append(controls);
 }
 function renderArmyQueue(){
  if(!armyState)return;
@@ -878,6 +844,7 @@ async function loadArmyState(){
 async function openArmyDialog(){
  if(!authToken)return;
  armyMessageNode.textContent="Ordu bilgileri yükleniyor…";
+ showArmyUnitList();
  armyDialog.showModal();
  await loadArmyState();
  if(armyRefreshTimer)clearInterval(armyRefreshTimer);
@@ -886,7 +853,18 @@ async function openArmyDialog(){
 document.querySelector('[data-action="army"]').addEventListener("click",openArmyDialog);
 document.querySelector("#army-close").addEventListener("click",()=>{armyDialog.close();if(armyRefreshTimer)clearInterval(armyRefreshTimer);});
 armyDialog.addEventListener("click",event=>{if(event.target===armyDialog)armyDialog.close();});
-armyCatalogNode.addEventListener("click",async event=>{
+armyCatalogNode.addEventListener("click",event=>{
+ const button=event.target.closest("[data-select-unit]");
+ if(button)renderArmyUnitDetail(button.dataset.selectUnit);
+});
+document.querySelector("#army-unit-back").addEventListener("click",showArmyUnitList);
+document.querySelector("#army-units").addEventListener("click",event=>{
+ const button=event.target.closest("[data-open-unit]");
+ if(!button)return;
+ if(!armyDialog.open)armyDialog.showModal();
+ loadArmyState().then(()=>renderArmyUnitDetail(button.dataset.openUnit));
+});
+armyCatalogNode.closest("#army-unit-list-section").addEventListener("click",async event=>{
  const button=event.target.closest("[data-recruit-unit]");
  if(!button)return;
  const amount=Number(document.querySelector("#"+button.dataset.amountInput).value);
@@ -896,6 +874,7 @@ armyCatalogNode.addEventListener("click",async event=>{
   const result=await authRequest("/api/game/army/recruit",{method:"POST",token:authToken,body:{unitId:button.dataset.recruitUnit,amount}});
   armyState=result;gameResources={...gameResources,...result.resources};renderResourceBalances();
   renderArmySummary();renderArmyCatalog();renderArmyQueue();
+  if(selectedArmyUnitId)renderArmyUnitDetail(selectedArmyUnitId);
   armyMessageNode.textContent=amount+" asker eğitim kuyruğuna eklendi. Kaynaklar hesabından düşüldü.";
  }catch(error){armyMessageNode.textContent=error.message||"Asker yetiştirme başlatılamadı.";button.disabled=false;}
 });
