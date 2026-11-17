@@ -886,6 +886,19 @@ const attackDialog=document.querySelector("#attack-dialog");
 const attackUnitList=document.querySelector("#attack-unit-list");
 const attackMessage=document.querySelector("#attack-message");
 const attackTargetName=document.querySelector("#attack-target-name");
+
+const neutralRegionDialog=document.querySelector("#neutral-region-dialog");
+const neutralRegionTitle=document.querySelector("#neutral-region-title");
+const neutralGuardCount=document.querySelector("#neutral-guard-count");
+const neutralGarrisonCount=document.querySelector("#neutral-garrison-count");
+const neutralRegionOwner=document.querySelector("#neutral-region-owner");
+const neutralRegionCountdown=document.querySelector("#neutral-region-countdown");
+const neutralRegionUnitList=document.querySelector("#neutral-region-unit-list");
+const neutralRegionTroopSection=document.querySelector("#neutral-region-troop-section");
+const neutralRegionMessage=document.querySelector("#neutral-region-message");
+const neutralRegionAction=document.querySelector("#neutral-region-action");
+let selectedNeutralRegion=null,neutralRegionMode="garrison",neutralRegionTimer=null;
+
 const mapWorldCanvas=document.querySelector("#map-world-canvas");
 const mapViewport=document.querySelector(".world-map");
 let mapZoom=0.82;
@@ -926,6 +939,67 @@ document.querySelector("#map-zoom-reset")?.addEventListener("click",()=>{
 window.addEventListener("resize",()=>applyMapZoom(mapZoom,false));
 applyMapZoom(mapZoom,false);
 
+
+function neutralClaimIsActive(region){
+ return Boolean(region?.claimed_by_player_id&&region.claim_expires_at&&!region.claim_expired&&Date.parse(region.claim_expires_at)>Date.now());
+}
+function renderNeutralRegionCountdown(){
+ if(!selectedNeutralRegion||!neutralRegionCountdown)return;
+ if(!neutralClaimIsActive(selectedNeutralRegion)){
+  neutralRegionCountdown.textContent=selectedNeutralRegion.owner_faction_id?"Bölge kalıcı olarak fethedilmiş.":"İlk garnizon dört saatlik mücadeleyi başlatır.";
+  return;
+ }
+ const left=Math.max(0,Date.parse(selectedNeutralRegion.claim_expires_at)-Date.now());
+ const seconds=Math.floor(left/1000),hours=Math.floor(seconds/3600),minutes=Math.floor((seconds%3600)/60),rest=seconds%60;
+ neutralRegionCountdown.textContent="Hâkimiyet süresinin bitmesine: "+hours+" sa "+minutes+" dk "+rest+" sn";
+}
+function fillNeutralTroopChoices(){
+ neutralRegionUnitList.replaceChildren();
+ if(!armyState)return;
+ armyState.catalog.forEach(unit=>{
+  const owned=Number(armyState.troops?.[unit.id]||0);if(owned<=0)return;
+  const label=document.createElement("label");label.className="attack-unit-row";
+  const name=document.createElement("span");name.textContent=unit.icon+" "+unit.name+" · Mevcut "+armyNumber(owned);
+  const input=document.createElement("input");input.type="number";input.min="0";input.max=String(owned);input.value="0";input.dataset.neutralUnit=unit.id;input.setAttribute("aria-label",unit.name+" gönderilecek sayısı");
+  label.append(name,input);neutralRegionUnitList.append(label);
+ });
+}
+function renderNeutralRegionDialog(region){
+ selectedNeutralRegion=region;
+ neutralRegionTitle.textContent=region.region_name||"Tarafsız Bölge";
+ const guards=Object.values(region.guard_troops||{}).reduce((sum,value)=>sum+Number(value||0),0);
+ neutralGuardCount.textContent=armyNumber(guards);
+ neutralGarrisonCount.textContent=armyNumber(region.garrison_count||0)+" / 100.000";
+ const factionNames={gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"};
+ const owned=Boolean(region.owner_faction_id);
+ const active=neutralClaimIsActive(region);
+ const mine=active&&region.claimed_by_player_id===currentPlayer?.id;
+ const rival=active&&!mine;
+ neutralRegionOwner.textContent=owned
+  ?(factionNames[region.owner_faction_id]||"Bir devlet")+" hâkimiyetinde · "+(region.owner_player_id===currentPlayer?.id?"Senin bölgen":"Fethedilmiş bölge")
+  :mine?"Geçici hâkimiyet sende · Muhafızları yenerek kalıcı fetih yap."
+  :rival?"Geçici hâkimiyet: başka bir oyuncuda · Rakip devletler saldırabilir."
+  :"Tarafsız toprak · İlk garnizon dört saatlik mücadeleyi başlatır.";
+ neutralRegionMode=owned?"owned":mine?"challenge":rival?"attack":"garrison";
+ neutralRegionTroopSection.hidden=owned||mine;
+ fillNeutralTroopChoices();
+ neutralRegionAction.hidden=owned;
+ neutralRegionAction.disabled=false;
+ neutralRegionAction.textContent=mine?"⚔️ Muhafızlara saldır ve fethet":rival?"⚔️ Rakip garnizona saldır":"🏕️ İlk garnizonu kur · 4 saat başlat";
+ neutralRegionMessage.textContent=owned?"Bu bölge şu anda fethedilmiş durumda.":mine?"Garnizondaki tüm askerler muhafızlara karşı savaşa katılacak.":rival?"Göndereceğin ordu, muhafızlar ve mevcut garnizona karşı savaşacak.":"İlk gönderdiğin birlikler garnizon olur. Dört saat içinde muhafızları yenmelisin.";
+ renderNeutralRegionCountdown();
+}
+async function openNeutralRegionDialog(region){
+ try{
+  if(!armyState)await loadArmyState();
+  const latest=(window.__umaykutNeutralRegions||[]).find(item=>String(item.id)===String(region.id))||region;
+  renderNeutralRegionDialog(latest);
+  if(neutralRegionTimer)clearInterval(neutralRegionTimer);
+  neutralRegionTimer=setInterval(renderNeutralRegionCountdown,1000);
+  neutralRegionDialog.showModal();
+ }catch(error){window.alert(error.message||"Bölge bilgileri yüklenemedi.");}
+}
+
 let selectedAttackTarget=null;
 let cachedWorldPlayers=[];
 function renderWorldMap(data){
@@ -956,7 +1030,7 @@ function renderWorldMap(data){
   const icon=document.createElement("span");icon.textContent=village.owner_faction_id?"🏰":"🏘️";
   const name=document.createElement("small");name.textContent=village.region_name;
   const status=document.createElement("b");
-  status.textContent=village.owner_faction_id?({gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"}[village.owner_faction_id]+" hâkimiyeti"):(village.claimed_by_player_id?"Garnizon kuruldu":"Tarafsız");
+  status.textContent=village.owner_faction_id?({gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"}[village.owner_faction_id]+" hâkimiyeti"):(neutralClaimIsActive(village)?"Garnizon kuruldu":"Tarafsız");
   marker.append(icon,name,status);mapWorldCanvas.append(marker);
  });
  (data.resourceNodes||[]).forEach(node=>{
@@ -1005,13 +1079,7 @@ mapWorldCanvas?.addEventListener("click",async event=>{
  const neutralMarker=event.target.closest("[data-neutral-village]");
  if(neutralMarker){
   const region=(window.__umaykutNeutralRegions||[]).find(item=>String(item.id)===neutralMarker.dataset.neutralVillage);
-  if(region){
-   const factionNames={gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"};
-   const guardCount=Object.values(region.guard_troops||{}).reduce((sum,n)=>sum+Number(n||0),0);
-   const garrisonCount=Number(region.garrison_count||0);
-   mapPrompt.hidden=false;resourcePanel.hidden=true;
-   mapPrompt.textContent=region.region_name+" · "+(region.owner_faction_id?(factionNames[region.owner_faction_id]+" hâkimiyetinde"):"Tarafsız bölge")+" · Muhafız: "+guardCount.toLocaleString("tr-TR")+" · Garnizon: "+garrisonCount.toLocaleString("tr-TR")+"/100.000"+(region.claim_expires_at?" · Geçici hâkimiyet bitişi: "+new Date(region.claim_expires_at).toLocaleTimeString("tr-TR"):"");
-  }
+  if(region)openNeutralRegionDialog(region);
   return;
  }
  const playerMarker=event.target.closest("[data-world-player]");
@@ -1189,6 +1257,41 @@ worldPlayerList.addEventListener("click",async event=>{
  }catch(error){attackMessage.textContent=error.message||"Hedef köy seçilemedi.";}
 });
 document.querySelector("#refresh-world-players").addEventListener("click",loadWorldPlayers);
+
+document.querySelector("#neutral-region-close").addEventListener("click",()=>{
+ if(neutralRegionTimer)clearInterval(neutralRegionTimer);
+ neutralRegionDialog.close();
+});
+neutralRegionAction.addEventListener("click",async()=>{
+ if(!selectedNeutralRegion||neutralRegionMode==="owned")return;
+ let troops={};
+ if(neutralRegionMode!=="challenge"){
+  neutralRegionUnitList.querySelectorAll("[data-neutral-unit]").forEach(input=>{
+   const amount=Number(input.value);
+   if(Number.isSafeInteger(amount)&&amount>0)troops[input.dataset.neutralUnit]=amount;
+  });
+  if(!Object.keys(troops).length){neutralRegionMessage.textContent="En az bir asker seçmelisin.";return;}
+ }
+ const endpoint=neutralRegionMode==="garrison"?"garrison":neutralRegionMode==="challenge"?"challenge":"attack";
+ neutralRegionAction.disabled=true;
+ neutralRegionMessage.textContent=endpoint==="garrison"?"İlk garnizon kuruluyor…":endpoint==="challenge"?"Muhafızlarla savaş başlıyor…":"Rakip garnizona saldırı gönderiliyor…";
+ try{
+  const result=await authRequest("/api/game/neutral-regions/"+endpoint,{
+   method:"POST",token:authToken,body:{regionId:selectedNeutralRegion.id,troops}
+  });
+  neutralRegionMessage.textContent=result.message||"Bölge işlemi tamamlandı.";
+  await loadArmyState();
+  await loadWorldPlayers();
+  const updated=(window.__umaykutNeutralRegions||[]).find(item=>String(item.id)===String(selectedNeutralRegion.id));
+  if(updated)renderNeutralRegionDialog(updated);
+  if(result.captured)neutralRegionMessage.textContent=result.message+" Kayıplar: "+armyNumber(result.attackerLosses||0)+" · Sağ kalan: "+armyNumber(result.attackerSurvivors||0)+".";
+ }catch(error){
+  neutralRegionMessage.textContent=error.message||"Bölge işlemi tamamlanamadı.";
+ }finally{
+  neutralRegionAction.disabled=false;
+ }
+});
+
 document.querySelector("#attack-close").addEventListener("click",()=>attackDialog.close());
 document.querySelector("#send-attack").addEventListener("click",async()=>{
  if(!selectedAttackTarget)return;
