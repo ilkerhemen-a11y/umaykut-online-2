@@ -132,3 +132,26 @@
 .army-recruit-controls button:disabled{opacity:.45}
 .army-message{min-height:18px;margin:11px 2px 0;text-align:center;font:11px/1.4 Arial,sans-serif;color:#f0d184}
 @media(max-width:380px){.army-dialog{padding:12px}.army-unit-catalog{grid-template-columns:1fr}.army-summary strong{font-size:16px}}
+
+/* Static wall marker and individual troop detail pages */
+.wall-number{pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation}
+.wall-number.wall-position-draggable{cursor:pointer}
+.army-units{grid-template-columns:repeat(4,minmax(0,1fr))}
+.army-strip-unit{display:grid;justify-items:center;gap:2px;min-width:0;padding:5px 1px;border:1px solid #7c6a45;border-radius:7px;background:linear-gradient(#263a49,#13232e);color:#f7e5b7;cursor:pointer}
+.army-strip-unit span{font-size:18px}.army-strip-unit b{font-size:11px}.army-strip-unit small{font:8px Arial,sans-serif;color:#c6c4b5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.army-unit-card{display:flex;flex-direction:column;gap:8px;width:100%;text-align:left;color:inherit;cursor:pointer}
+.army-unit-card-meta{font:10px Arial,sans-serif;color:#e2c77e}
+.army-unit-detail{margin-top:12px;padding:12px;border:1px solid #927544;border-radius:12px;background:linear-gradient(145deg,#1a2b20,#0b140e)}
+.army-unit-back{padding:8px 10px;border:1px solid #806b43;border-radius:8px;background:#17231a;color:#f0d58f;font:11px Arial,sans-serif}
+.army-detail-heading{display:flex;align-items:center;gap:12px;margin:14px 0 8px}
+.army-detail-emblem{display:grid;place-items:center;width:58px;height:58px;flex:0 0 58px;border:1px solid #b08c4d;border-radius:13px;background:#263728;font-size:34px}
+.army-detail-heading h3{margin:0 0 5px;font-size:19px;color:#f3d78f}
+.army-detail-heading p,.army-detail-description{margin:0;font:11px/1.45 Arial,sans-serif;color:#c9bea2}
+.army-detail-description{margin:10px 0}
+.army-detail-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.army-detail-stats>div{display:grid;gap:4px;padding:9px;border:1px solid #65583a;border-radius:8px;background:#101b14}
+.army-detail-stats strong{font:bold 17px Georgia,serif;color:#f2d58b}
+.army-detail-stats small{font:9px Arial,sans-serif;color:#c8bea4}
+.army-unit-detail h4{margin:13px 0 6px;font-size:12px;color:#e8ce8d}
+.army-detail-controls{margin-top:12px}
+@media(max-width:380px){.army-units{grid-template-columns:repeat(3,minmax(0,1fr))}.army-detail-heading h3{font-size:16px}}
