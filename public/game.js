@@ -241,7 +241,7 @@ const buildSlotPositions=[[28,32],[50,25],[72,32],[81,48],[72,68],[50,77],[28,68
 const userBuildingCells={school:1,barracks:2,market:3,stonemason:4,stable:6,blacksmith:7,mill:8,farm:9};
 function getUserBuildingPreview(type){const index=type==="center"?0:userBuildingCells[type];return index===undefined?null:{src:"/assets/user-buildings-atlas.png",col:index%5,row:Math.floor(index/5)};}
 const buildIcons={school:"",barracks:"",market:"",stonemason:"",stable:"",blacksmith:"",mill:"",farm:""};
-const staticVillageSlotPositions=[{x:36,y:27},{x:64,y:27},{x:76,y:42},{x:81,y:59},{x:63,y:68},{x:50,y:69},{x:34,y:59},{x:20,y:48},{x:23,y:32}];
+const staticVillageSlotPositions=[{x:36,y:30},{x:64,y:30},{x:76,y:43},{x:81,y:57},{x:63,y:65},{x:50,y:67},{x:34,y:57},{x:20,y:48},{x:23,y:35}];
 function currentProjectedSlots(){return staticVillageSlotPositions;}
 function repositionVillageOverlays(){
  const positions=currentProjectedSlots();
