@@ -48,6 +48,72 @@ export function resolveVillageDamage({ attackPower, defensePower = 0, wallLevel 
  * Applies shelter protection before calculating stolen resources.
  * requestedLoot must be derived from server-side attacker capacity.
  */
+
+function troopTotals(troops) {
+  return Object.values(troops || {}).reduce((sum, value) => sum + validNonNegativeInteger(value, "Asker sayısı"), 0);
+}
+function troopPower(troops, catalog, mode) {
+  const units = new Map(catalog.map(unit => [unit.id, unit]));
+  return Object.entries(troops || {}).reduce((sum, [id, count]) => {
+    const unit = units.get(id);
+    if (!unit) return sum;
+    const strength = mode === "attack"
+      ? Number(unit.attack || 0)
+      : Math.max(Number(unit.infantryDefense || 0), Number(unit.cavalryDefense || 0));
+    return sum + validNonNegativeInteger(count, "Asker sayısı") * strength;
+  }, 0);
+}
+function splitLosses(troops, lossCount) {
+  const entries = Object.entries(troops || {});
+  const total = troopTotals(troops);
+  let remainingLoss = Math.min(total, lossCount);
+  const result = {};
+  for (let i = 0; i < entries.length; i++) {
+    const [id, raw] = entries[i];
+    const count = validNonNegativeInteger(raw, "Asker sayısı");
+    const loss = i === entries.length - 1
+      ? Math.min(count, remainingLoss)
+      : Math.min(count, Math.floor(lossCount * count / Math.max(1, total)));
+    result[id] = loss;
+    remainingLoss -= loss;
+  }
+  // Distribute rounding remainder without ever exceeding a unit stack.
+  for (const [id, raw] of entries) {
+    if (remainingLoss <= 0) break;
+    const extra = Math.min(raw - result[id], remainingLoss);
+    result[id] += extra;
+    remainingLoss -= extra;
+  }
+  const survivors = Object.fromEntries(entries.map(([id, count]) => [id, count - result[id]]).filter(([, count]) => count > 0));
+  return { losses: result, survivors, totalLosses: Object.values(result).reduce((sum, n) => sum + n, 0) };
+}
+export function resolveBattle({ attackerTroops, defenderTroops, attackerCatalog, defenderCatalog, defenderResources, wallLevel = 1 }) {
+  const attackPower = troopPower(attackerTroops, attackerCatalog, "attack");
+  const defensePower = troopPower(defenderTroops, defenderCatalog, "defense");
+  const wall = resolveVillageDamage({ attackPower, defensePower, wallLevel });
+  const attackerCount = troopTotals(attackerTroops);
+  const defenderCount = troopTotals(defenderTroops);
+  const attackerLossCount = attackPower + defensePower === 0 ? 0 :
+    Math.min(attackerCount, Math.floor(attackerCount * Math.min(0.9, defensePower / (attackPower + defensePower) * 0.65)));
+  const defenderLossCount = wall.damageAfterWall + defensePower === 0 ? 0 :
+    Math.min(defenderCount, Math.floor(defenderCount * Math.min(0.9, wall.damageAfterWall / (wall.damageAfterWall + defensePower) * 0.85)));
+  const attacker = splitLosses(attackerTroops, attackerLossCount);
+  const defender = splitLosses(defenderTroops, defenderLossCount);
+  const attackerUnits = new Map(attackerCatalog.map(unit => [unit.id, unit]));
+  const carryCapacity = Object.entries(attacker.survivors).reduce((sum, [id, count]) =>
+    sum + count * Number(attackerUnits.get(id)?.carry || 0), 0);
+  const perResourceRequest = Math.floor(carryCapacity / RESOURCE_KEYS.length);
+  const requestedLoot = Object.fromEntries(RESOURCE_KEYS.map(key => [key, perResourceRequest]));
+  const protectedLoot = resolveProtectedLoot({ defenderResources, requestedLoot, wallLevel });
+  return {
+    attackPower, defensePower, ...wall,
+    attackerLosses: attacker.losses, attackerSurvivors: attacker.survivors, attackerLostCount: attacker.totalLosses,
+    defenderLosses: defender.losses, defenderSurvivors: defender.survivors, defenderLostCount: defender.totalLosses,
+    carryCapacity, loot: protectedLoot.loot, protectedResources: protectedLoot.protectedResources,
+    defenderRemainingResources: protectedLoot.remainingResources
+  };
+}
+
 export function resolveProtectedLoot({ defenderResources, requestedLoot, wallLevel = 1 }) {
   if (!defenderResources || typeof defenderResources !== "object" || Array.isArray(defenderResources)) {
     throw new TypeError("Savunmacı kaynakları geçersiz.");
