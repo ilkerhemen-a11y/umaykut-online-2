@@ -372,6 +372,22 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         }
       }
 
+      if (req.method === "DELETE" && url.pathname === "/api/auth/session") {
+        const token = bearerToken(req);
+        const session = verifySessionToken(token, sessionSecret);
+        if (!session) return sendJson(res, 401, { error: "Oturum geçersiz veya süresi dolmuş." });
+        try {
+          const result = await pool.query(
+            "DELETE FROM umaykut_v2.player_sessions WHERE player_id = $1 AND token_hash = $2 RETURNING id",
+            [session.id, sessionTokenHash(token)]
+          );
+          if (!result.rowCount) return sendJson(res, 401, { error: "Oturum zaten kapatılmış." });
+          return sendJson(res, 200, { success: true, message: "Oturum güvenli şekilde kapatıldı." });
+        } catch {
+          return sendJson(res, 500, { error: "Oturum kapatılamadı. Tekrar dene." });
+        }
+      }
+
       if (req.method === "GET" && url.pathname === "/api/auth/me") {
         const token = bearerToken(req);
         const session = verifySessionToken(token, sessionSecret);
@@ -390,7 +406,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
       }
 
       if (!["GET", "POST"].includes(req.method)) {
-        res.setHeader("allow", "GET, POST");
+        res.setHeader("allow", "GET, POST, DELETE");
         return sendJson(res, 405, { error: "Yöntem desteklenmiyor." });
       }
       return sendJson(res, 404, { error: "Kimlik doğrulama uç noktası bulunamadı." });
