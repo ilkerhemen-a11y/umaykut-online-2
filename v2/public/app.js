@@ -891,9 +891,10 @@ async function loadWorldPlayers(){
  if(!authToken||!worldPlayerList)return;
  worldPlayerList.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Köyler aranıyor…"}));
  try{
-  const [playersData,raidsData]=await Promise.all([
+  const [playersData,raidsData,scoutData]=await Promise.all([
    authRequest("/api/game/players",{token:authToken}),
-   authRequest("/api/game/attacks",{token:authToken})
+   authRequest("/api/game/attacks",{token:authToken}),
+   authRequest("/api/game/scouting",{token:authToken})
   ]);
   worldPlayerList.replaceChildren();
   if(!playersData.players.length)worldPlayerList.append(Object.assign(document.createElement("p"),{textContent:"Henüz başka bir oyuncu köy kurmamış."}));
@@ -901,8 +902,10 @@ async function loadWorldPlayers(){
    const card=document.createElement("article");card.className="world-player-card";
    const info=document.createElement("div"),name=document.createElement("strong"),meta=document.createElement("small");
    name.textContent=player.village_name;meta.textContent=(factions[player.faction_id]?.name||"Devlet")+" · "+player.username;info.append(name,meta);
+   const actions=document.createElement("div");actions.className="world-player-actions";
    const action=document.createElement("button");action.type="button";action.textContent="Saldırı hazırla";action.dataset.attackTarget=player.id;
-   card.append(info,action);worldPlayerList.append(card);
+   const scout=document.createElement("button");scout.type="button";scout.textContent="Keşif gönder";scout.dataset.scoutTarget=player.id;
+   actions.append(action,scout);card.append(info,actions);worldPlayerList.append(card);
   });
   activeRaidsList.replaceChildren();
   if(!raidsData.attacks.length)activeRaidsList.append(Object.assign(document.createElement("p"),{textContent:"Aktif sefer bulunmuyor."}));
@@ -931,6 +934,25 @@ async function loadWorldPlayers(){
    }
    activeRaidsList.append(item);
   });
+  const scoutReportsList=document.querySelector("#scout-reports-list");
+  scoutReportsList.replaceChildren();
+  if(!scoutData.missions.length)scoutReportsList.append(Object.assign(document.createElement("p"),{textContent:"Henüz keşif görevi bulunmuyor."}));
+  scoutData.missions.forEach(mission=>{
+   const card=document.createElement("article");card.className="world-raid-card";
+   const title=document.createElement("strong"),status=document.createElement("small");
+   title.textContent="Keşif: "+mission.defender_village;
+   const arrival=Date.parse(mission.arrives_at)-Date.now(),returning=mission.return_at?Date.parse(mission.return_at)-Date.now():0;
+   status.textContent=mission.status==="marching"?"Hedefe varış: "+Math.max(0,Math.ceil(arrival/60000))+" dk":mission.status==="resolved"?"Keşif tamamlandı · dönüş: "+Math.max(0,Math.ceil(returning/60000))+" dk":"Keşif birliği köye döndü";
+   card.append(title,status);
+   if(mission.scout_report){
+    const report=mission.scout_report,detail=document.createElement("small");
+    const resources=Object.entries(report.resources||{}).map(([key,value])=>key+": "+value).join(" · ");
+    const troops=Object.entries(report.troops||{}).map(([key,value])=>key+": "+value).join(" · ")||"Asker bulunamadı";
+    detail.textContent="Kaynaklar: "+resources+" · Savunma ordusu: "+troops;
+    card.append(detail);
+   }
+   scoutReportsList.append(card);
+  });
  }catch(error){worldPlayerList.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Oyuncu köyleri yüklenemedi."}));}
 }
 function openAttackDialog(target){
@@ -950,6 +972,20 @@ function openAttackDialog(target){
  attackDialog.showModal();
 }
 worldPlayerList.addEventListener("click",async event=>{
+ const scoutButton=event.target.closest("[data-scout-target]");
+ if(scoutButton){
+  try{
+   if(!armyState)await loadArmyState();
+   const available=Number(armyState?.troops?.scout||0);
+   if(available<1){window.alert("Keşifçi bulunmuyor. Kışla seviyesini 2 yapıp Ordu bölümünden keşifçi yetiştir.");return;}
+   const amount=Number(window.prompt("Gönderilecek keşifçi sayısı (Mevcut: "+available+")","1"));
+   if(!Number.isSafeInteger(amount)||amount<1||amount>available)return;
+   const result=await authRequest("/api/game/scouting",{method:"POST",token:authToken,body:{targetPlayerId:scoutButton.dataset.scoutTarget,amount}});
+   window.alert("Keşif birliği yola çıktı. Varış yaklaşık "+Math.ceil(result.marchSeconds/60)+" dakika.");
+   await loadArmyState();await loadWorldPlayers();
+  }catch(error){window.alert(error.message||"Keşif emri gönderilemedi.");}
+  return;
+ }
  const button=event.target.closest("[data-attack-target]");if(!button)return;
  try{
   if(!armyState)await loadArmyState();
