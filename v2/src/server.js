@@ -108,8 +108,8 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           const email = input.email.trim().toLowerCase();
           const passwordHash = await hashPassword(input.password);
           const result = await pool.query(
-            "INSERT INTO umaykut_v2.players(username, username_normalized, email, email_normalized, password_hash) VALUES($1, lower($1), $2, lower($2), $3) RETURNING id, username, email, created_at",
-            [username, email, passwordHash]
+            "INSERT INTO umaykut_v2.players(username, username_normalized, email, email_normalized, password_hash) VALUES($1, $2, $3, $4, $5) RETURNING id, username, email, created_at",
+            [username, username.toLowerCase(), email, email.toLowerCase(), passwordHash]
           );
           const player = result.rows[0];
           const token = createSessionToken(player.id, sessionSecret);
