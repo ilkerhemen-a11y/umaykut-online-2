@@ -176,3 +176,8 @@
 .map-world-canvas .map-compass{font-size:16px}
 .world-map:focus-visible{outline:2px solid var(--faction-light);outline-offset:3px}
 @media(max-width:420px){.map-world-canvas{width:1500px;height:1000px}.world-map{height:470px}}
+
+.live-army-route{fill:none;stroke:#ffe09a;stroke-width:5;stroke-linecap:round;stroke-dasharray:13 12;opacity:.9;filter:drop-shadow(0 2px 3px rgba(0,0,0,.8));pointer-events:none}
+.live-army-route.incoming{stroke:#ff9b82}
+.map-army-marker{position:absolute;z-index:7;display:grid;place-items:center;width:36px;height:36px;border:2px solid #ffe09a;border-radius:50%;background:linear-gradient(145deg,#674b22,#172018);box-shadow:0 0 0 4px #151e18aa,0 4px 12px #000b;font:20px Arial,sans-serif;pointer-events:none;transform:translate(-50%,-50%);offset-anchor:center;animation-name:map-army-march;animation-timing-function:linear;animation-iteration-count:1;animation-fill-mode:forwards}
+@keyframes map-army-march{from{offset-distance:0%}to{offset-distance:100%}}
