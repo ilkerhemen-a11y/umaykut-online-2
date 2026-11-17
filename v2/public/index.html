@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101a13">
   <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
   <title>Umaykut Online 2 · V2</title>
-  <link rel="stylesheet" href="/app.css?v=20261117-building-upgrades-1">
+  <link rel="stylesheet" href="/app.css?v=20261117-wall-position-1">
   <link rel="stylesheet" href="/factions.css?v=20261117-founding-flow-2">
 </head>
 <body>
@@ -65,9 +65,14 @@
           <button class="building-number" type="button" data-building-slot="7" style="left:58.59%;top:14.65%" aria-label="7 numaralı Tapınak"><span class="building-index">7</span><span class="building-label">Tapınak</span></button>
           <button class="building-number" type="button" data-building-slot="8" style="left:37.46%;top:33.92%" aria-label="8 numaralı Pazar"><span class="building-index">8</span><span class="building-label">Pazar</span></button>
           <button class="building-number" type="button" data-building-slot="9" style="left:76.55%;top:21.87%" aria-label="9 numaralı Okçu"><span class="building-index">9</span><span class="building-label">Okçu</span></button>
-          <span class="wall-number" aria-label="Sur bölümü 1" title="Sur bölümü 1"><span>1</span><small>Sur</small></span>
+          <button class="wall-number" id="wall-position-marker" type="button" aria-label="Sur işareti; konum ayarlama modunda sürükleyebilirsin" title="Sur işareti"><span>1</span><small>Sur</small></button>
           </div>
         </div>
+      </div>
+      <div class="wall-position-tools" aria-label="Sur konum ayarı">
+        <button id="wall-position-toggle" type="button">📍 Sur konumunu belirle</button>
+        <p id="wall-position-status" role="status" aria-live="polite">Sur işaretinin yerini belirlemek için konum ayarını aç.</p>
+        <button id="wall-position-confirm" type="button" disabled>Konumu onayla</button>
       </div>
       <section id="building-upgrade-tracker" class="building-upgrade-tracker" aria-live="polite" aria-label="Devam eden bina yükseltmeleri" hidden>
         <div class="upgrade-tracker-heading"><div><small>İNŞAAT MERKEZİ</small><h2>Yükseltme Takibi</h2></div><span id="building-upgrade-count">CANLI</span></div>
@@ -206,6 +211,6 @@
     </dialog>
   </main>
 
-  <script type="module" src="/app.js?v=20261117-building-upgrades-1"></script>
+  <script type="module" src="/app.js?v=20261117-wall-position-1"></script>
 </body>
 </html>
