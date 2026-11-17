@@ -18,6 +18,18 @@ const config = loadConfig();
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(here, "../public");
 const assetRoot = resolve(here, "../../public/assets");
+const INITIAL_RESOURCES = Object.freeze({gold:1650,wood:6900,food:9350,stone:7480,iron:8040,horses:100});
+const INITIAL_BUILDINGS = Object.freeze({
+  "1": {type:"center",level:1},
+  "2": {type:"barracks",level:1},
+  "3": {type:"stable",level:1},
+  "4": {type:"blacksmith",level:1},
+  "5": {type:"school",level:1},
+  "6": {type:"lumberyard",level:1},
+  "7": {type:"temple",level:1},
+  "8": {type:"market",level:1},
+  "9": {type:"warehouse",level:1}
+});
 const FIXED_BUILDING_TYPES = Object.freeze({
   "1": "center",
   "2": "barracks",
@@ -313,6 +325,19 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             [username, username.toLowerCase(), email, email.toLowerCase(), passwordHash]
           );
           const player = result.rows[0];
+          // Give every newly registered account an independent, explicit level-1 village.
+          await pool.query(
+            `INSERT INTO umaykut_v2.player_game_state
+              (player_id, resources, buildings, worker_assignments, worker_state_initialized)
+             VALUES ($1, $2::jsonb, $3::jsonb, $4::jsonb, TRUE)
+             ON CONFLICT (player_id) DO NOTHING`,
+            [
+              player.id,
+              JSON.stringify(INITIAL_RESOURCES),
+              JSON.stringify(INITIAL_BUILDINGS),
+              JSON.stringify({grain:0,wood:0,stone:0})
+            ]
+          );
           const token = createSessionToken(player.id, sessionSecret);
           const session = verifySessionToken(token, sessionSecret);
           await pool.query(
