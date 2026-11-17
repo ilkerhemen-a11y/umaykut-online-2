@@ -40,6 +40,10 @@ const BUILDING_TYPES={
  market:{name:"Pazar",icon:"🏪",description:"Kaynak ve ticaret işlemlerinin merkezi."},
  warehouse:{name:"Depo",icon:"📦",description:"Kaynaklarını saklamak için kullanılan yapı."}
 };
+const BUILDING_SLOT_TYPES={
+ "1":"center","2":"barracks","3":"stable","4":"lumberyard",
+ "5":"farm","6":"quarry","7":"ironmine","8":"market","9":"warehouse"
+};
 const BUILDING_BASE_COST={wood:30,stone:20,iron:5};
 const MAX_BUILDING_LEVEL=10;
 let gameResources={...DEFAULT_RESOURCES};
@@ -54,15 +58,14 @@ function renderBuildingMarkers(){
  document.querySelectorAll("[data-building-slot]").forEach(node=>{
   const slot=node.dataset.buildingSlot;
   const building=gameBuildings[slot];
+  const type=building?.type||BUILDING_SLOT_TYPES[slot]||"barracks";
+  const definition=BUILDING_TYPES[type]||BUILDING_TYPES.center;
+  const label=node.querySelector(".building-label");
+  if(label)label.textContent=definition.shortName||definition.name;
   node.classList.toggle("is-built",Boolean(building));
-  if(building){
-   const definition=BUILDING_TYPES[building.type]||BUILDING_TYPES.center;
-   node.setAttribute("aria-label",slot+" numaralı "+definition.name+" seviye "+building.level);
-   node.dataset.level=String(building.level);
-  }else{
-   node.setAttribute("aria-label",slot+" numaralı boş inşa alanı");
-   delete node.dataset.level;
-  }
+  node.setAttribute("aria-label",slot+" numaralı "+definition.name+(building?" seviye "+building.level:" planlanan bina"));
+  if(building)node.dataset.level=String(building.level);
+  else delete node.dataset.level;
  });
 }
 const buildingDialog=document.querySelector("#building-dialog");
@@ -122,6 +125,9 @@ function updateBuildingDialog(){
 }
 function openBuildingDialog(slot){
  selectedBuildingSlot=Number(slot);
+ if(!gameBuildings[String(selectedBuildingSlot)]){
+  buildingTypeSelect.value=BUILDING_SLOT_TYPES[String(selectedBuildingSlot)]||"barracks";
+ }
  buildingMessage.textContent="";
  updateBuildingDialog();
  if(typeof buildingDialog.showModal==="function")buildingDialog.showModal();
