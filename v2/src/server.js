@@ -43,6 +43,30 @@ function normalizeBuildings(stored, { reset = false } = {}) {
   return normalized;
 }
 
+const BUILDING_UPGRADE_DURATIONS_MS = Object.freeze({
+  2: 2 * 60 * 1000, 3: 5 * 60 * 1000, 4: 15 * 60 * 1000,
+  5: 30 * 60 * 1000, 6: 60 * 60 * 1000, 7: 2 * 60 * 60 * 1000,
+  8: 4 * 60 * 60 * 1000, 9: 8 * 60 * 60 * 1000, 10: 12 * 60 * 60 * 1000
+});
+function buildingUpgradeCost(targetLevel) {
+  if (!Number.isSafeInteger(targetLevel) || targetLevel < 2 || targetLevel > 10) throw new RangeError("Geçersiz hedef bina seviyesi.");
+  const multiplier = 2 * Math.pow(1.7, targetLevel - 2);
+  return { wood: Math.round(30 * multiplier), stone: Math.round(20 * multiplier), iron: Math.round(5 * multiplier) };
+}
+function settleCompletedBuildingUpgrades(buildings, now = Date.now()) {
+  let changed = false;
+  const settled = { ...buildings };
+  for (const [slot, building] of Object.entries(settled)) {
+    if (!building?.upgrade) continue;
+    const completesAt = Date.parse(building.upgrade.completesAt);
+    if (Number.isFinite(completesAt) && completesAt <= now) {
+      settled[slot] = { type: building.type, level: Number(building.upgrade.targetLevel) };
+      changed = true;
+    }
+  }
+  return { buildings: settled, changed };
+}
+
 const FIXED_BUILDING_TYPES = Object.freeze({
   "1": "center",
   "2": "barracks",
@@ -194,26 +218,34 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             inTransaction = false;
             return sendJson(res, 409, { error: "Bu bina en yüksek seviye olan 10'a ulaştı." });
           }
+          const settled = settleCompletedBuildingUpgrades(buildings);
+          for (const [buildingSlot, building] of Object.entries(settled.buildings)) buildings[buildingSlot] = building;
+          const currentBuilding = buildings[key];
+          if (currentBuilding.upgrade) {
+            await client.query("ROLLBACK"); inTransaction = false;
+            return sendJson(res, 409, { error: "Bu bina zaten yükseltiliyor.", building: currentBuilding, buildings });
+          }
           const targetLevel = currentLevel + 1;
-          const cost = { wood: 30 * targetLevel, stone: 20 * targetLevel, iron: 5 * targetLevel };
+          const cost = buildingUpgradeCost(targetLevel);
           const missing = Object.fromEntries(Object.entries(cost)
             .filter(([resource,amount]) => Number(resources[resource] || 0) < amount)
             .map(([resource,amount]) => [resource, amount - Number(resources[resource] || 0)]));
           if (Object.keys(missing).length) {
-            await client.query("ROLLBACK");
-            inTransaction = false;
+            await client.query("ROLLBACK"); inTransaction = false;
             return sendJson(res, 409, { error: "Yeterli kaynak yok.", missing, cost });
           }
           for (const [resource,amount] of Object.entries(cost)) resources[resource] = Number(resources[resource]) - amount;
-          const building = { type: fixedType, level: targetLevel };
+          const startedAt = new Date();
+          const completesAt = new Date(startedAt.getTime() + BUILDING_UPGRADE_DURATIONS_MS[targetLevel]);
+          const building = { type: fixedType, level: currentLevel,
+            upgrade: { targetLevel, startedAt: startedAt.toISOString(), completesAt: completesAt.toISOString() } };
           buildings[key] = building;
           await client.query(
             "UPDATE umaykut_v2.player_game_state SET resources = $2::jsonb, buildings = $3::jsonb, updated_at = NOW() WHERE player_id = $1",
             [playerId, JSON.stringify(resources), JSON.stringify(buildings)]
           );
-          await client.query("COMMIT");
-          inTransaction = false;
-          return sendJson(res, 200, { success: true, slot, building, cost, resources, buildings });
+          await client.query("COMMIT"); inTransaction = false;
+          return sendJson(res, 200, { success: true, slot, building, cost, durationMs: BUILDING_UPGRADE_DURATIONS_MS[targetLevel], resources, buildings });
         } catch (error) {
           if (inTransaction) {
             try { await client.query("ROLLBACK"); } catch {}
@@ -367,10 +399,12 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           const row = state.rows[0];
           // A not-yet-founded character always receives a clean level-one village.
           // For established players, repair missing/invalid slots without lowering valid progress.
-          const buildings = normalizeBuildings(row.buildings, {
+          const normalized = normalizeBuildings(row.buildings, {
             reset: !row.village_name || !row.faction_id
           });
-          if (JSON.stringify(buildings) !== JSON.stringify(
+          const completion = settleCompletedBuildingUpgrades(normalized);
+          const buildings = completion.buildings;
+          if (completion.changed || JSON.stringify(buildings) !== JSON.stringify(
             typeof row.buildings === "string" ? JSON.parse(row.buildings || "{}") : (row.buildings || {})
           )) {
             await pool.query(
