@@ -243,7 +243,7 @@ if(canvas){
   }
   function resetCamera(){
     orbitTheta=.42;orbitPhi=.92;
-    cameraRadius=(canvas.clientWidth/(canvas.clientHeight||1))<.78?35:30;applyCamera();
+    cameraRadius=(canvas.clientWidth/(canvas.clientHeight||1))<.78?48:34;applyCamera();
   }
   async function loadUserImages(){
     atlasTexture=await new THREE.TextureLoader().loadAsync(atlasDataUrl);
@@ -256,8 +256,8 @@ if(canvas){
       getCenterPosition(){return projectedCenterPosition();},
       setBuildings(buildings){latestBuildings=Array.isArray(buildings)?buildings:[];renderBuildings();},
       getBuildingPreview(type){const index=assetCells[type];return index===undefined?null:{src:atlasDataUrl,col:index%5,row:Math.floor(index/5)};},
-      zoomIn(){cameraRadius=Math.max(24,cameraRadius-2.5);applyCamera();},
-      zoomOut(){cameraRadius=Math.min(45,cameraRadius+2.5);applyCamera();},
+      zoomIn(){cameraRadius=Math.max(36,cameraRadius-2.5);applyCamera();},
+      zoomOut(){cameraRadius=Math.min(62,cameraRadius+2.5);applyCamera();},
       resetCamera
     };
     document.getElementById("village")?.classList.add("has-3d-village");
@@ -265,8 +265,8 @@ if(canvas){
   }
   function resize(){
     const w=canvas.clientWidth||innerWidth,h=canvas.clientHeight||520,aspect=w/h;
-    renderer.setSize(w,h,false);camera.aspect=aspect;camera.fov=aspect<.78?48:35;
-    cameraRadius=aspect<.78?35:30;applyCamera();
+    renderer.setSize(w,h,false);camera.aspect=aspect;camera.fov=aspect<.78?54:38;
+    cameraRadius=aspect<.78?48:34;applyCamera();
   }
   if("ResizeObserver" in window)new ResizeObserver(resize).observe(canvas);
   else window.addEventListener("resize",resize);
@@ -294,7 +294,7 @@ if(canvas){
       dragPoint={x:event.clientX,y:event.clientY};applyCamera();
     }else if(pointers.size>=2){
       const next=pinchDistance();
-      if(lastPinch>0&&next>0){cameraRadius=Math.max(24,Math.min(45,cameraRadius-(next-lastPinch)*.045));applyCamera();}
+      if(lastPinch>0&&next>0){cameraRadius=Math.max(36,Math.min(62,cameraRadius-(next-lastPinch)*.045));applyCamera();}
       lastPinch=next;
     }
   });
@@ -308,7 +308,7 @@ if(canvas){
   canvas.addEventListener("pointercancel",release);
   canvas.addEventListener("wheel",event=>{
     event.preventDefault();event.stopPropagation();
-    cameraRadius=Math.max(24,Math.min(45,cameraRadius*Math.exp(event.deltaY*.001)));applyCamera();
+    cameraRadius=Math.max(36,Math.min(62,cameraRadius*Math.exp(event.deltaY*.001)));applyCamera();
   },{passive:false});
 
   let frame=0;
