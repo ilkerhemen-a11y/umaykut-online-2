@@ -13,11 +13,17 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   const html=await page.text();
   assert.match(html,/İlker'in Yurdu/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/data-faction="gokturk"/);\n  assert.match(html,/data-faction-choice="gokturk" aria-pressed="true"/);\n  assert.equal((html.match(/class="building-number(?: is-center)?"/g)||[]).length,9);\n  assert.match(html,/1 numaralı merkez binası/);
+  assert.match(html,/data-faction="gokturk"/);
+  assert.match(html,/data-faction-choice="gokturk" aria-pressed="true"/);
+  assert.equal((html.match(/class="building-number(?: is-center)?"/g)||[]).length,9);
+  assert.match(html,/1 numaralı merkez binası/);
 
   const script=await fetch(base+"/app.js");
   assert.equal(script.status,200);
-  const appScript=await script.text();\n  assert.match(appScript,/data-faction-choice/);\n  assert.match(appScript,/umaykut-faction-v2/);\n  assert.match(appScript,/gokturk/);
+  const appScript=await script.text();
+  assert.match(appScript,/data-faction-choice/);
+  assert.match(appScript,/umaykut-faction-v2/);
+  assert.match(appScript,/gokturk/);
 
   const asset=await fetch(base+"/assets/IMG-20261117-WA0073.jpg");
   assert.equal(asset.status,200);
