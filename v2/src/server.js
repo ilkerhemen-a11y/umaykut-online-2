@@ -424,6 +424,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             return sendJson(res, 400, { error: "E-posta/oyuncu adı ve şifre gerekli." });
           }
 
+          await pool.query("ALTER TABLE umaykut_v2.players ADD COLUMN IF NOT EXISTS village_name VARCHAR(32)");
           const result = await pool.query(
             "SELECT id, username, email, password_hash, village_name FROM umaykut_v2.players WHERE email_normalized = $1 OR username_normalized = $1 LIMIT 1",
             [login]
