@@ -132,6 +132,8 @@ const BUILDING_BASE_COST={wood:30,stone:20,iron:5};
 const MAX_BUILDING_LEVEL=10;
 let gameResources={...DEFAULT_RESOURCES};
 let gameBuildings={...DEFAULT_BUILDINGS};
+let gameWall={level:1,upgrade:null};
+let wallServerEffects={defensePercent:5,shelterCapacity:{gold:500,wood:500,food:500,stone:500,iron:500}};
 function renderResourceBalances(){
  for(const key of Object.keys(DEFAULT_RESOURCES)){
   const node=document.querySelector("#resource-"+key);
@@ -565,6 +567,9 @@ async function loadGameState(){
   setServerClock(state.serverNow);
   if(state.factionId) setFaction(state.factionId);
   if(state.resources&&typeof state.resources==="object")gameResources={...DEFAULT_RESOURCES,...state.resources};
+  gameWall=state.wall||{level:1,upgrade:null};
+  wallServerEffects=state.wallEffects||wallEffectsForLevel(gameWall.level);
+  renderWallDialog();
   gameBuildings=Object.fromEntries(Object.entries(BUILDING_SLOT_TYPES).map(([slot,type])=>{
    const saved=state.buildings?.[slot]||{};
    return [slot,{type,level:Math.max(1,Number(saved.level)||1),upgrade:saved.upgrade||null}];
@@ -690,7 +695,38 @@ setAuthMode("login");
 restoreAccountSession();
 
 
-// Interactive wall marker positioning: the player chooses the exact point on the village image.
+
+function wallEffectsForLevel(level){const n=Math.max(1,Math.min(10,Number(level)||1));return {defensePercent:n*5,shelterCapacity:{gold:n*500,wood:n*500,food:n*500,stone:n*500,iron:n*500}};}
+const wallDialog=document.querySelector("#wall-dialog");
+const wallMarker=document.querySelector("#wall-position-marker");
+const wallAction=document.querySelector("#wall-action");
+const wallMessage=document.querySelector("#wall-message");
+function renderWallDialog(){
+ const level=Number(gameWall.level)||1,effects=wallServerEffects||wallEffectsForLevel(level);
+ document.querySelector("#wall-level").textContent=level+" / 10";
+ document.querySelector("#wall-level-fill").style.width=(level*10)+"%";
+ document.querySelector("#wall-defense").textContent=effects.defensePercent+"%";
+ document.querySelector("#wall-shelter").textContent=formatNumber(effects.shelterCapacity.wood||level*500);
+ const target=level+1,cost=target<=10?wallUpgradeCostForLevel(target):null;
+ document.querySelector("#wall-upgrade-title").textContent=target<=10?"Seviye "+target+" sur yükseltme maliyeti":"Sur en yüksek seviyede";
+ for(const key of ["wood","stone","iron","gold"])document.querySelector("#wall-cost-"+key).textContent=cost?formatNumber(cost[key]):"—";
+ wallAction.disabled=target>10||Boolean(gameWall.upgrade);
+ wallAction.textContent=gameWall.upgrade?"Yükseltme sürüyor":target>10?"En yüksek seviye":"Sur seviyesini yükselt";
+ if(gameWall.upgrade){wallMessage.textContent="Seviye "+gameWall.upgrade.targetLevel+" yükseltmesi devam ediyor. Tamamlanma: "+new Date(gameWall.upgrade.completesAt).toLocaleString("tr-TR");}
+ else if(!wallMessage.textContent)wallMessage.textContent="Her seviye saldırı hasarını %5 azaltır ve her kaynak türünden 500 ek koruma sağlar.";
+}
+function wallUpgradeCostForLevel(level){const scale=Math.pow(1.65,level-2);return {wood:Math.round(250*scale),stone:Math.round(220*scale),iron:Math.round(90*scale),gold:Math.round(100*scale)};}
+wallMarker.addEventListener("click",()=>{renderWallDialog();wallDialog.showModal();});
+document.querySelector("#wall-close").addEventListener("click",()=>wallDialog.close());
+wallAction.addEventListener("click",async()=>{
+ wallAction.disabled=true;wallMessage.textContent="Sur yükseltmesi başlatılıyor…";
+ try{
+  const result=await authRequest("/api/game/wall",{method:"POST",token:authToken,body:{action:"upgrade"}});
+  gameResources={...gameResources,...result.resources};gameWall=result.wall;wallServerEffects=result.wallEffects;
+  renderResourceBalances();renderWallDialog();wallMessage.textContent="Sur yükseltmesi başladı. Seviye "+result.wall.upgrade.targetLevel+" tamamlandığında savunman artacak.";
+ }catch(error){wallMessage.textContent=error.message||"Sur yükseltmesi başlatılamadı.";wallAction.disabled=false;}
+});
+\n// Interactive wall marker positioning: the player chooses the exact point on the village image.
 const wallPositionMarker=document.querySelector("#wall-position-marker");
 const wallPositionToggle=document.querySelector("#wall-position-toggle");
 const wallPositionConfirm=document.querySelector("#wall-position-confirm");
@@ -698,7 +734,7 @@ const wallPositionStatus=document.querySelector("#wall-position-status");
 const wallPositionStage=document.querySelector(".city-stage");
 let wallPositionEditing=false;
 let wallPositionDraft=null;
-const WALL_POSITION_KEY="umaykut-wall-position-draft-v2";
+const WALL_POSITION_KEY="umaykut-wall-position-draft-v3";
 function readWallPosition(){
  try{
   const saved=JSON.parse(localStorage.getItem(WALL_POSITION_KEY)||"null");
@@ -709,7 +745,7 @@ function readWallPosition(){
   }
  }catch{}
  const style=getComputedStyle(wallPositionMarker);
- return {x:parseFloat(style.left)/wallPositionStage.clientWidth*100||50,y:parseFloat(style.top)/wallPositionStage.clientHeight*100||7};
+ return {x:parseFloat(style.left)||50.3,y:parseFloat(style.top)||75.3};
 }
 function updateWallPositionStatus(prefix=""){
  const p=wallPositionDraft||readWallPosition();
