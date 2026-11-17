@@ -4,7 +4,6 @@ export const FACTIONS = Object.freeze([
   {
     id: "selcuk",
     name: "Selçuk Devleti",
-    image: "/assets/IMG-20261117-WA0581.jpg",
     style: "Dengeli",
     description: "Akıl, düzen ve uyumla hareket eden; saldırı ve savunmayı birlikte geliştiren devlet.",
     motto: "Güç, akıl ve adaletle birleşir.",
@@ -17,7 +16,6 @@ export const FACTIONS = Object.freeze([
   {
     id: "hun",
     name: "Hun Devleti",
-    image: "/assets/IMG-20261117-WA7162.jpg",
     style: "Agresif savaşçı",
     description: "Hızlı hücumları, cesur savaşçıları ve bozkır süvarileriyle tanınan devlet.",
     motto: "Cesaret bozkırda yol açar.",
