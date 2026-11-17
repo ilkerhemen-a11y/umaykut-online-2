@@ -197,3 +197,19 @@
 .scout-portrait{width:48px;height:48px;flex:0 0 48px;object-fit:cover;border-radius:9px;border:1px solid rgba(202,165,91,.6);box-shadow:0 3px 10px rgba(0,0,0,.25)}
 .scout-report-content{min-width:0;flex:1}
 .scout-report-content small{overflow-wrap:anywhere}
+
+
+/* Neutral region conquest dialog */
+.neutral-region-dialog{width:min(92vw,470px);max-height:86dvh;overflow:auto;border:1px solid rgba(202,165,91,.55);border-radius:18px;background:linear-gradient(160deg,#18251f,#0d1717);color:#f6ead1;box-shadow:0 22px 70px #000b}
+.neutral-region-dialog::backdrop{background:rgba(3,8,8,.78);backdrop-filter:blur(4px)}
+.neutral-region-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.neutral-region-stats>div{display:grid;gap:5px;padding:11px;border:1px solid rgba(202,165,91,.3);border-radius:11px;background:rgba(8,14,13,.55)}
+.neutral-region-stats small{font:700 9px Arial,sans-serif;letter-spacing:.12em;color:#c7a35e}
+.neutral-region-stats strong{font:700 19px Georgia,serif;color:#f4d58c}
+.neutral-region-countdown{margin:8px 0;padding:10px;border-radius:9px;background:rgba(202,165,91,.1);color:#f2d89d;font-size:12px}
+#neutral-region-dialog section h3{margin:12px 0 6px;font-size:13px;color:#ead09a}
+#neutral-region-unit-list{display:grid;grid-template-columns:1fr;gap:2px;max-height:28dvh;overflow:auto}
+#neutral-region-unit-list .attack-unit-row{padding:7px 2px;font-size:12px}
+#neutral-region-action{width:100%;margin-top:8px}
+#neutral-region-action:disabled{opacity:.55;cursor:not-allowed}
+.neutral-region-dialog .army-dialog-head button{border:0;background:transparent;color:#f4e5c7;font-size:25px}
