@@ -1,7 +1,7 @@
 const factions={
  hun:{name:"Hun Devleti",themeColor:"#7b2528",short:"Kızıl Bozkır",trait:"Atlı birlikler ve hızlı akınlar",description:"Hareketli süvari ordusu, baskın ve sefer odaklı oyun tarzı."},
  seljuk:{name:"Selçuklu Devleti",themeColor:"#8d6a2d",short:"Altın Hâkimiyet",trait:"Ticaret ve şehirleşme",description:"Üretim, ticaret, güçlü surlar ve düzenli şehir gelişimi odaklı oyun tarzı."},
- gokturk:{name:"Göktürk Devleti",themeColor:"#176b83",short:"Göklerin Hâkimiyeti",trait:"Dengeli bozkır gücü",description:"Kaynak, keşif, ordu ve savunma arasında dengeli gelişim."}
+ gokturk:{name:"Göktürk Devleti",themeColor:"#176b83",short:"Göklerin Hâkimiyeti",trait:"Dengeli bozkır gücü",description:"Kaynak, casus, ordu ve savunma arasında dengeli gelişim."}
 };
 const shell=document.querySelector(".game-shell");
 const factionLabel=document.querySelector("#realm-faction");
@@ -886,7 +886,73 @@ const attackDialog=document.querySelector("#attack-dialog");
 const attackUnitList=document.querySelector("#attack-unit-list");
 const attackMessage=document.querySelector("#attack-message");
 const attackTargetName=document.querySelector("#attack-target-name");
+const mapWorldCanvas=document.querySelector("#map-world-canvas");
+const mapViewport=document.querySelector(".world-map");
 let selectedAttackTarget=null;
+let cachedWorldPlayers=[];
+function renderWorldMap(data){
+ if(!mapWorldCanvas)return;
+ cachedWorldPlayers=Array.isArray(data.players)?data.players:[];
+ const world=data.world||{world_x:50,world_y:50};
+ const ownX=Math.max(0,Math.min(100,Number(world.world_x)||50));
+ const ownY=Math.max(0,Math.min(100,Number(world.world_y)||50));
+ const ownCity=mapWorldCanvas.querySelector(".map-own-city");
+ if(ownCity){ownCity.style.left=ownX+"%";ownCity.style.top=ownY+"%";}
+ mapWorldCanvas.querySelectorAll(".dynamic-world-marker").forEach(marker=>marker.remove());
+ const mineTypes={
+  iron:{icon:"⛏️",name:"Demir Madeni"},
+  stone:{icon:"🪨",name:"Taş Madeni"},
+  gold:{icon:"🪙",name:"Altın Madeni"}
+ };
+ (data.resourceNodes||[]).forEach(node=>{
+  const type=mineTypes[node.resource_type];if(!type)return;
+  const marker=document.createElement("button");marker.type="button";
+  marker.className="map-point map-mine-point dynamic-world-marker";
+  marker.dataset.worldMine=String(node.id);
+  marker.style.left=Number(node.world_x)+"%";marker.style.top=Number(node.world_y)+"%";
+  marker.setAttribute("aria-label",type.name+", verim "+node.yield_level+" / 9");
+  const icon=document.createElement("span");icon.textContent=type.icon;
+  const name=document.createElement("small");name.textContent=type.name+" #"+node.id;
+  const yieldLabel=document.createElement("b");yieldLabel.textContent="Verim "+node.yield_level+"/9";
+  marker.append(icon,name,yieldLabel);mapWorldCanvas.append(marker);
+ });
+ cachedWorldPlayers.forEach(player=>{
+  const marker=document.createElement("button");marker.type="button";
+  marker.className="map-point map-player-point dynamic-world-marker";
+  marker.dataset.worldPlayer=player.id;
+  marker.style.left=Number(player.world_x)+"%";marker.style.top=Number(player.world_y)+"%";
+  marker.setAttribute("aria-label",player.village_name+" oyuncu köyü");
+  const icon=document.createElement("span");icon.textContent="🏰";
+  const name=document.createElement("small");name.textContent=player.village_name||"Oyuncu yurdu";
+  const faction=document.createElement("b");faction.textContent=factions[player.faction_id]?.name||"Oyuncu";
+  marker.append(icon,name,faction);mapWorldCanvas.append(marker);
+ });
+ if(mapViewport&&mapWorldCanvas){
+  requestAnimationFrame(()=>{
+   const scaleX=mapWorldCanvas.clientWidth/100,scaleY=mapWorldCanvas.clientHeight/100;
+   mapViewport.scrollLeft=Math.max(0,ownX*scaleX-mapViewport.clientWidth/2);
+   mapViewport.scrollTop=Math.max(0,ownY*scaleY-mapViewport.clientHeight/2);
+  });
+ }
+}
+mapWorldCanvas?.addEventListener("click",async event=>{
+ const mine=event.target.closest("[data-world-mine]");
+ if(mine){
+  const node=(window.__umaykutWorldNodes||[]).find(item=>String(item.id)===mine.dataset.worldMine);
+  if(node){
+   const labels={iron:"Demir Madeni",stone:"Taş Madeni",gold:"Altın Madeni"};
+   mapPrompt.hidden=false;resourcePanel.hidden=true;
+   mapPrompt.textContent=labels[node.resource_type]+" · Verim seviyesi "+node.yield_level+"/9. Bu maden ortak dünyada keşfedildi.";
+  }
+  return;
+ }
+ const playerMarker=event.target.closest("[data-world-player]");
+ if(!playerMarker)return;
+ const target=cachedWorldPlayers.find(player=>player.id===playerMarker.dataset.worldPlayer);
+ if(!target)return;
+ try{if(!armyState)await loadArmyState();openAttackDialog(target);}
+ catch(error){window.alert(error.message||"Oyuncu bilgisi alınamadı.");}
+});
 async function loadWorldPlayers(){
  if(!authToken||!worldPlayerList)return;
  worldPlayerList.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Köyler aranıyor…"}));
@@ -896,6 +962,8 @@ async function loadWorldPlayers(){
    authRequest("/api/game/attacks",{token:authToken}),
    authRequest("/api/game/scouting",{token:authToken})
   ]);
+  window.__umaykutWorldNodes=playersData.resourceNodes||[];
+  renderWorldMap(playersData);
   worldPlayerList.replaceChildren();
   if(!playersData.players.length)worldPlayerList.append(Object.assign(document.createElement("p"),{textContent:"Henüz başka bir oyuncu köy kurmamış."}));
   playersData.players.forEach(player=>{
@@ -904,7 +972,7 @@ async function loadWorldPlayers(){
    name.textContent=player.village_name;meta.textContent=(factions[player.faction_id]?.name||"Devlet")+" · "+player.username;info.append(name,meta);
    const actions=document.createElement("div");actions.className="world-player-actions";
    const action=document.createElement("button");action.type="button";action.textContent="Saldırı hazırla";action.dataset.attackTarget=player.id;
-   const scout=document.createElement("button");scout.type="button";scout.textContent="Keşif gönder";scout.dataset.scoutTarget=player.id;
+   const scout=document.createElement("button");scout.type="button";scout.textContent="Casus gönder";scout.dataset.scoutTarget=player.id;
    actions.append(action,scout);card.append(info,actions);worldPlayerList.append(card);
   });
   activeRaidsList.replaceChildren();
@@ -936,19 +1004,19 @@ async function loadWorldPlayers(){
   });
   const scoutReportsList=document.querySelector("#scout-reports-list");
   scoutReportsList.replaceChildren();
-  if(!scoutData.missions.length)scoutReportsList.append(Object.assign(document.createElement("p"),{textContent:"Henüz keşif görevi bulunmuyor."}));
+  if(!scoutData.missions.length)scoutReportsList.append(Object.assign(document.createElement("p"),{textContent:"Henüz casus görevi bulunmuyor."}));
   scoutData.missions.forEach(mission=>{
    const card=document.createElement("article");card.className="world-raid-card";
    const title=document.createElement("strong"),status=document.createElement("small");
-   title.textContent=mission.defender_report?"Köyüne keşif geldi: "+mission.attacker_village:"Keşif: "+mission.defender_village;
+   title.textContent=mission.defender_report?"Köyüne casus geldi: "+mission.attacker_village:"Casus: "+mission.defender_village;
    const arrival=Date.parse(mission.arrives_at)-Date.now(),returning=mission.return_at?Date.parse(mission.return_at)-Date.now():0;
-   status.textContent=mission.defender_report?"Savunma bildirimi · Gelen casus: "+mission.defender_report.incomingScouts+" · Kaybedilen casus: "+mission.defender_report.ownScoutsLost+" · Kalan: "+mission.defender_report.ownScoutsRemaining:mission.status==="marching"?"Hedefe varış: "+Math.max(0,Math.ceil(arrival/60000))+" dk":mission.status==="resolved"?"Keşif tamamlandı · dönüş: "+Math.max(0,Math.ceil(returning/60000))+" dk":"Keşif birliği köye döndü";
+   status.textContent=mission.defender_report?"Savunma bildirimi · Gelen casus: "+mission.defender_report.incomingScouts+" · Kaybedilen casus: "+mission.defender_report.ownScoutsLost+" · Kalan: "+mission.defender_report.ownScoutsRemaining:mission.status==="marching"?"Hedefe varış: "+Math.max(0,Math.ceil(arrival/60000))+" dk":mission.status==="resolved"?"Casus tamamlandı · dönüş: "+Math.max(0,Math.ceil(returning/60000))+" dk":"Casus birliği köye döndü";
    card.append(title,status);
    if(mission.scout_report){
     const report=mission.scout_report,detail=document.createElement("small");
     const resources=Object.entries(report.resources||{}).map(([key,value])=>key+": "+value).join(" · ");
     const troops=Object.entries(report.troops||{}).map(([key,value])=>key+": "+value).join(" · ")||"Asker bulunamadı";
-    detail.textContent=report.informationGathered===false?"Keşif başarısız. Casusların tamamı kaybedildi.": "Kaynaklar: "+resources+" · Savunma ordusu: "+troops+" · Geri dönecek casus: "+Number(report.attackerSurvivors||0);
+    detail.textContent=report.informationGathered===false?"Casus başarısız. Casusların tamamı kaybedildi.": "Kaynaklar: "+resources+" · Savunma ordusu: "+troops+" · Geri dönecek casus: "+Number(report.attackerSurvivors||0);
     card.append(detail);
    }
    scoutReportsList.append(card);
@@ -977,13 +1045,13 @@ worldPlayerList.addEventListener("click",async event=>{
   try{
    if(!armyState)await loadArmyState();
    const available=Number(armyState?.troops?.scout||0);
-   if(available<1){window.alert("Keşifçi bulunmuyor. Kışla seviyesini 2 yapıp Ordu bölümünden keşifçi yetiştir.");return;}
-   const amount=Number(window.prompt("Gönderilecek keşifçi sayısı (Mevcut: "+available+")","1"));
+   if(available<1){window.alert("Casus bulunmuyor. Kışla seviyesini 2 yapıp Ordu bölümünden casus yetiştir.");return;}
+   const amount=Number(window.prompt("Gönderilecek casus sayısı (Mevcut: "+available+")","1"));
    if(!Number.isSafeInteger(amount)||amount<1||amount>available)return;
    const result=await authRequest("/api/game/scouting",{method:"POST",token:authToken,body:{targetPlayerId:scoutButton.dataset.scoutTarget,amount}});
-   window.alert("Keşif birliği yola çıktı. Varış yaklaşık "+Math.ceil(result.marchSeconds/60)+" dakika.");
+   window.alert("Casus birliği yola çıktı. Varış yaklaşık "+Math.ceil(result.marchSeconds/60)+" dakika.");
    await loadArmyState();await loadWorldPlayers();
-  }catch(error){window.alert(error.message||"Keşif emri gönderilemedi.");}
+  }catch(error){window.alert(error.message||"Casus emri gönderilemedi.");}
   return;
  }
  const button=event.target.closest("[data-attack-target]");if(!button)return;

@@ -82,3 +82,11 @@ test("legacy training entries without timestamps are safely settled", () => {
   assert.equal(result.trainingQueue.length, 0);
   assert.equal(result.changed, true);
 });
+
+test("the reconnaissance unit is displayed as Casus in every faction", () => {
+  for (const faction of ["gokturk", "hun", "seljuk"]) {
+    const unit = getTroopCatalog(faction, { barracks: { level: 2 } }).find(item => item.id === "scout");
+    assert.equal(unit.name, "Casus");
+    assert.equal(unit.unlocked, true);
+  }
+});

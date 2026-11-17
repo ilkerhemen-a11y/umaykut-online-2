@@ -118,13 +118,14 @@
 
     <section class="map-view" id="map-view" hidden aria-label="Ortak dünya haritası">
       <div class="map-heading">
-        <div><small>ORTAK DÜNYA</small><h1>Harita</h1><p>Kaynak bölgelerini keşfet ve işçilerini görevlendir</p></div>
+        <div><small>UMAYKUT DÜNYASI</small><h1>Geniş Dünya Haritası</h1><p>Haritada gezin, rakip yurtları ve zengin maden yataklarını keşfet</p></div>
         <div class="worker-summary"><span>👷</span><strong id="workers-available">1.800</strong><small>Boştaki işçi</small><em id="workers-assigned-total">0 görevde</em></div>
       </div>
       <div class="map-legend" aria-label="Harita işaretleri">
-        <span><i>🌾</i> Tahıl</span><span><i>🌲</i> Odun</span><span><i>🪨</i> Taş</span><span><i>🏰</i> Şehrin</span>
+        <span><i>🏰</i> Yurtlar</span><span><i>⛏️</i> Demir</span><span><i>🪨</i> Taş</span><span><i>🪙</i> Altın</span><span><i>🌲</i> Orman</span>
       </div>
-      <div class="world-map" aria-label="Köy ve kaynak alanlarının bulunduğu 2D dünya haritası">
+      <div class="world-map" aria-label="Gezilebilir ortak dünya haritası. Kaydırarak haritada ilerleyebilirsin." tabindex="0">
+        <div class="map-world-canvas" id="map-world-canvas">
         <svg class="map-landscape" viewBox="0 0 640 760" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
           <defs>
             <linearGradient id="map-ground" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8ca65e"/><stop offset=".52" stop-color="#6e8b4c"/><stop offset="1" stop-color="#496b3d"/></linearGradient>
@@ -157,6 +158,7 @@
         <button class="map-point resource-wood" type="button" data-resource="wood" aria-pressed="false" style="left:76%;top:28%"><span>🌲</span><small>Orman</small><b id="assigned-wood">0 işçi</b></button>
         <button class="map-point resource-stone" type="button" data-resource="stone" aria-pressed="false" style="left:75%;top:72%"><span>🪨</span><small>Taş Ocağı</small><b id="assigned-stone">0 işçi</b></button>
         <div class="map-own-city" style="left:47%;top:51%"><img id="map-city-image" src="/assets/IMG-20261117-WA2419.jpg" alt="Yeni Yurdum kalesi" width="58" height="58" decoding="async"><b id="map-city-name">Yeni Yurdum</b><small>Senin şehrin</small></div>
+        </div>
       </div>
       <section class="map-detail" id="map-detail">
         <p id="map-prompt">İşçi göndermek için haritadaki bir kaynak noktasına dokun.</p>
@@ -173,9 +175,9 @@
         <div class="world-players-heading"><div><small>ORTAK DÜNYA</small><h2 id="world-players-title">Diğer oyuncu köyleri</h2></div><button id="refresh-world-players" type="button">Yenile</button></div>
         <div id="world-player-list"><p>Oyuncu köyleri yükleniyor…</p></div>
         <h3>⚔️ Seferler ve savaş raporları</h3><div id="active-raids-list"><p>Aktif sefer bulunmuyor.</p></div>
-        <h3>🕵️ Keşif raporları</h3><div id="scout-reports-list"><p>Henüz keşif görevi bulunmuyor.</p></div>
+        <h3>🕵️ Casus raporları</h3><div id="scout-reports-list"><p>Henüz casus görevi bulunmuyor.</p></div>
       </section>
-      <p class="map-prototype-note">Harita önizlemesi · Devlet seçimin ve işçi dağılımın hesabınla senkronize edilir.</p>
+      <p class="map-prototype-note">Ortak dünya haritası · Kaydırarak gez, maden yataklarına ve diğer oyuncuların yurtlarına dokun.</p>
     </section>
 
     <nav class="bottom-nav" aria-label="Ana menü">
@@ -219,7 +221,7 @@
           </button>
           <button class="founding-faction" type="button" data-faction-choice="gokturk" aria-pressed="false">
             <img class="founding-gokturk-image" src="/assets/IMG-20261117-WA0073.jpg" alt="Göktürk devletinin köy ve merkez bina görseli" loading="lazy">
-            <strong>Göktürk</strong><small>Göklerin Hâkimiyeti</small><span>Dengeli gelişim, keşif ve bozkır hâkimiyeti.</span>
+            <strong>Göktürk</strong><small>Göklerin Hâkimiyeti</small><span>Dengeli gelişim, casus ve bozkır hâkimiyeti.</span>
           </button>
         </div>
         <p id="founding-message" class="founding-message" role="status" aria-live="polite">Devletini seç ve köyüne bir isim ver.</p>
