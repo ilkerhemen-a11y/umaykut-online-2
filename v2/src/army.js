@@ -33,8 +33,8 @@ const FACTION_UNITS = {
     archer: { name: "Hun Yaycısı", icon: "🏹", attack: 35 },
     shield: { name: "Hun Kalkanlısı", icon: "🛡️", infantryDefense: 39 },
     guard: { name: "Hun Seçkin Akıncısı", icon: "⚔️", attack: 57 },
-    light_cavalry: { name: "Hun Akıncısı", icon: "🐎", speed: 17 },
-    mounted_archer: { name: "Hun Atlı Okçusu", icon: "🎯", attack: 50, speed: 18 },
+    light_cavalry: { name: "Hun Akıncısı", icon: "🐎" },
+    mounted_archer: { name: "Hun Atlı Okçusu", icon: "🎯", attack: 50 },
     heavy_cavalry: { name: "Hun Ağır Süvarisi", icon: "🐴", attack: 73, speed: 11 }
   },
   seljuk: {
@@ -62,7 +62,7 @@ export function getTroopCatalog(factionId, buildings = {}) {
       requiredLevel: base.level, unlocked: level >= base.level,
       buildingLevel: level, attack, infantryDefense,
       cavalryDefense: unit.cavalryDefense, speed, carry: unit.carry,
-      secondsPerUnit: base.seconds, cost: { ...base.cost }
+      secondsPerUnit: Math.max(5, Math.round(base.seconds * Math.max(0.82, 1 - (level - 1) * 0.02))), cost: { ...base.cost }
     };
   });
 }
