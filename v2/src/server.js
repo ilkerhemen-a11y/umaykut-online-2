@@ -4,6 +4,7 @@ import { dirname, extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig } from "./config.js";
 import { createPool } from "./database.js";
+import { handleArmyRequest } from "./army.js";
 import {
   bearerToken,
   createSessionToken,
@@ -189,6 +190,8 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
     }
 
 
+
+    if (await handleArmyRequest({ req, res, url, pool, sessionSecret })) return;
 
     if(url.pathname==="/api/game/wall"){
       if(!pool)return sendJson(res,503,{error:"Oyun kayıt servisi henüz yapılandırılmadı."});
