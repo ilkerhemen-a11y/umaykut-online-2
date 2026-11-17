@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#101a13">
   <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
   <title>Umaykut Online 2 · V2</title>
-  <link rel="stylesheet" href="/app.css?v=20261117-settings-logout-1">
-  <link rel="stylesheet" href="/factions.css?v=20261117-settings-logout-1">
+  <link rel="stylesheet" href="/app.css?v=20261117-founding-flow-1">
+  <link rel="stylesheet" href="/factions.css?v=20261117-founding-flow-1">
 </head>
 <body>
   <section id="auth-screen" class="auth-screen" aria-label="Umaykut Online II giriş ve kayıt">
@@ -34,7 +34,7 @@
       <small>Hesap bilgilerini güvenli tut. Şifren en az 10 karakter olmalı.</small>
     </div>
   </section>
-  <main id="game-shell" class="game-shell" data-faction="gokturk" inert aria-hidden="true">
+  <main id="game-shell" class="game-shell" inert aria-hidden="true">
     <header class="top">
       <div class="brand"><span class="brand-mark">✦</span><div><strong>UMAYKUT</strong><small>BOZKIRIN HÂKİMİYETİ</small></div></div>
       <div class="resources" aria-label="Kaynaklar">
@@ -45,20 +45,13 @@
         <div class="resource"><span>⛏️</span><b id="resource-iron">8.040</b><small>Demir</small></div>
         <div class="resource"><span>🐎</span><b id="resource-horses">100</b><small>At</small></div>
       </div>
-      <div class="realm"><span id="realm-player-name">İLKER'İN YURDU</span><b>SEVİYE 1</b><span class="realm-sub" id="realm-faction">Göktürk diyarı</span></div>
+      <div class="realm"><span id="realm-player-name">YENİ YURDUM</span><b>SEVİYE 1</b><span class="realm-sub" id="realm-faction">Göktürk diyarı</span></div>
       <button class="top-settings" id="open-settings" type="button" aria-haspopup="dialog" aria-controls="settings-dialog" aria-label="Ayarları aç">⚙️</button>
     </header>
 
     <section class="village-wrap" aria-label="Köy görünümü">
-      <div class="village-heading"><div><small>HOŞ GELDİN, BEYİM</small><h1>İlker'in Yurdu</h1></div><div class="player-level">✦ <span><b id="player-display-name">Oyuncu Bey</b><br><small>Seviye 1 · İlk adım</small></span></div></div>
-      <section class="faction-panel" aria-label="Devlet seçimi">
-        <div class="faction-caption">DEVLETİNİ SEÇ</div>
-        <div class="faction-switcher" role="group" aria-label="Devlet görünümünü seç">
-          <button type="button" data-faction-choice="hun" aria-pressed="false"><span class="faction-symbol faction-art"><img src="/assets/IMG-20261117-WA7162.jpg" alt="Hun devleti görseli"></span><span>Hun</span><small>Kırmızı</small></button>
-          <button type="button" data-faction-choice="seljuk" aria-pressed="false"><span class="faction-symbol faction-art"><img src="/assets/IMG-20261117-WA0581.jpg" alt="Selçuklu devleti görseli"></span><span>Selçuklu</span><small>Altın</small></button>
-          <button type="button" data-faction-choice="gokturk" aria-pressed="true"><span class="faction-symbol">𐰴</span><span>Göktürk</span><small>Mavi</small></button>
-        </div>
-      </section>
+      <div class="village-heading"><div><small>HOŞ GELDİN, BEYİM</small><h1 id="village-name-title">Yeni Yurdum</h1></div><div class="player-level">✦ <span><b id="player-display-name">Oyuncu Bey</b><br><small>Seviye 1 · İlk adım</small></span></div></div>
+
       <div class="city-frame" aria-label="Göktürk köyü ve numaralandırılmış binalar">
         <div class="city-stage">
           <img class="city-art" src="/assets/IMG-20261117-WA0073.jpg" alt="Orman içinde dairesel taş surlarla çevrili, merkez binası ve sekiz çevre binası bulunan Göktürk köyü" fetchpriority="high">
@@ -168,6 +161,29 @@
       <button type="button"><span>🎒</span>Envanter</button>
       <button type="button" data-action="settings" aria-haspopup="dialog" aria-controls="settings-dialog"><span>⚙️</span>Ayarlar</button>
     </nav>
+    <dialog id="founding-dialog" class="founding-dialog" aria-labelledby="founding-title">
+      <div class="founding-heading"><small>UMAYKUT ONLINE II · YENİ BİR BAŞLANGIÇ</small><h2 id="founding-title">Yurdunu Kur</h2><p>Önce devletini seç, sonra köyüne ad ver. Bu seçimler hesabına kaydedilir.</p></div>
+      <form id="founding-form">
+        <label for="founding-village-name">Köyünün adı</label>
+        <input id="founding-village-name" name="villageName" minlength="3" maxlength="32" required placeholder="Örn. Bozkır Kartalları" autocomplete="off">
+        <div class="founding-factions" role="group" aria-label="Devlet seçimi">
+          <button class="founding-faction" type="button" data-faction-choice="hun" aria-pressed="false">
+            <img src="/assets/IMG-20261117-WA7162.jpg" alt="Hun devleti">
+            <strong>Hun</strong><small>Kızıl Bozkır</small><span>Atlı birlikler, hızlı akınlar ve hareket kabiliyeti.</span>
+          </button>
+          <button class="founding-faction" type="button" data-faction-choice="seljuk" aria-pressed="false">
+            <img src="/assets/IMG-20261117-WA0581.jpg" alt="Selçuklu devleti">
+            <strong>Selçuklu</strong><small>Altın Hâkimiyet</small><span>Ticaret, üretim, şehirleşme ve güçlü savunma.</span>
+          </button>
+          <button class="founding-faction" type="button" data-faction-choice="gokturk" aria-pressed="false">
+            <span class="founding-gokturk">𐰴</span>
+            <strong>Göktürk</strong><small>Göklerin Hâkimiyeti</small><span>Dengeli gelişim, keşif ve bozkır hâkimiyeti.</span>
+          </button>
+        </div>
+        <p id="founding-message" class="founding-message" role="status" aria-live="polite">Devletini seç ve köyüne bir isim ver.</p>
+        <button id="founding-submit" class="founding-submit" type="submit" disabled>Yurdumu Kur ve Oyuna Başla</button>
+      </form>
+    </dialog>
     <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
       <div class="settings-head"><div><small>UMAYKUT ONLINE II</small><h2 id="settings-title">Oyun Ayarları</h2></div><button class="settings-close" id="close-settings" type="button" aria-label="Ayarları kapat">×</button></div>
       <section class="settings-account">
@@ -185,6 +201,6 @@
     </dialog>
   </main>
 
-  <script type="module" src="/app.js?v=20261117-settings-logout-1"></script>
+  <script type="module" src="/app.js?v=20261117-founding-flow-1"></script>
 </body>
 </html>
