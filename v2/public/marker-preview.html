@@ -32,14 +32,14 @@ a.back{display:inline-block;color:#e8cb80;text-align:center;width:100%;font-size
 <div class="stage-wrap"><div id="stage">
 <img id="art" src="/assets/IMG-20261117-WA0073.jpg" alt="Göktürk başlangıç köyü">
 <button class="marker" data-n="1" style="left:50%;top:45%" aria-label="1 Merkez">1<small>Merkez</small></button>
-<button class="marker" data-n="2" style="left:39%;top:34%" aria-label="2 Kışla">2<small>Kışla</small></button>
-<button class="marker" data-n="3" style="left:62%;top:34%" aria-label="3 Ahır">3<small>Ahır</small></button>
-<button class="marker" data-n="4" style="left:24%;top:42%" aria-label="4 Oduncu Ocağı">4<small>Oduncu Ocağı</small></button>
-<button class="marker" data-n="5" style="left:76%;top:42%" aria-label="5 Çiftlik">5<small>Çiftlik</small></button>
+<button class="marker" data-n="2" style="left:41.82%;top:33.31%" aria-label="2 Kışla">2<small>Kışla</small></button>
+<button class="marker" data-n="3" style="left:64.5%;top:33.66%" aria-label="3 Ahır">3<small>Ahır</small></button>
+<button class="marker" data-n="4" style="left:23.79%;top:40.14%" aria-label="4 Oduncu Ocağı">4<small>Oduncu Ocağı</small></button>
+<button class="marker" data-n="5" style="left:82.43%;top:40.76%" aria-label="5 Çiftlik">5<small>Çiftlik</small></button>
 <button class="marker" data-n="6" style="left:21%;top:51%" aria-label="6 Taş Ocağı">6<small>Taş Ocağı</small></button>
-<button class="marker" data-n="7" style="left:78%;top:51%" aria-label="7 Demir Madeni">7<small>Demir Madeni</small></button>
-<button class="marker" data-n="8" style="left:38%;top:57%" aria-label="8 Pazar">8<small>Pazar</small></button>
-<button class="marker" data-n="9" style="left:63%;top:57%" aria-label="9 Depo">9<small>Depo</small></button>
+<button class="marker" data-n="7" style="left:85.22%;top:53.18%" aria-label="7 Demir Madeni">7<small>Demir Madeni</small></button>
+<button class="marker" data-n="8" style="left:38.5%;top:58.98%" aria-label="8 Pazar">8<small>Pazar</small></button>
+<button class="marker" data-n="9" style="left:66.47%;top:59.53%" aria-label="9 Depo">9<small>Depo</small></button>
 </div></div>
 <div class="controls">
 <button class="action" id="copy">Koordinatları kopyala</button>
@@ -51,7 +51,7 @@ a.back{display:inline-block;color:#e8cb80;text-align:center;width:100%;font-size
 </main>
 <script>
 const stage=document.querySelector("#stage"),art=document.querySelector("#art"),coords=document.querySelector("#coords");
-const initial={"1":[50,45],"2":[39,34],"3":[62,34],"4":[24,42],"5":[76,42],"6":[21,51],"7":[78,51],"8":[38,57],"9":[63,57]};
+const initial={"1":[50,45],"2":[41.82,33.31],"3":[64.5,33.66],"4":[23.79,40.14],"5":[82.43,40.76],"6":[21,51],"7":[85.22,53.18],"8":[38.5,58.98],"9":[66.47,59.53]};
 const names={"1":"Merkez","2":"Kışla","3":"Ahır","4":"Oduncu Ocağı","5":"Çiftlik","6":"Taş Ocağı","7":"Demir Madeni","8":"Pazar","9":"Depo"};
 function fit(){if(!art.naturalWidth)return;const box=stage.parentElement;const maxW=box.clientWidth-16,maxH=window.innerHeight*.76;const s=Math.min(maxW/art.naturalWidth,maxH/art.naturalHeight);stage.style.width=Math.round(art.naturalWidth*s)+"px";stage.style.height=Math.round(art.naturalHeight*s)+"px";}
 function getData(){return [...document.querySelectorAll(".marker")].sort((a,b)=>Number(a.dataset.n)-Number(b.dataset.n)).map(el=>{const n=el.dataset.n;return n+" "+names[n]+": "+Number(parseFloat(el.style.left).toFixed(2))+"%, "+Number(parseFloat(el.style.top).toFixed(2))+"%";}).join("\n");}
