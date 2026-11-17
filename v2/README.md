@@ -20,5 +20,6 @@ The existing production service is not modified by this V2 branch. Never add dat
 
 ## Village image status
 - The village screen displays the uploaded photo at `../public/assets/IMG-20261117-WA0073.jpg`, served at `/assets/IMG-20261117-WA0073.jpg`.
-- The image is shown as a single complete picture; the old numbered building markers and building-detail prototype are removed from this view.
-- Hun, Seljuk and Göktürk choices currently switch the interface accent palette and persist the selected faction. They still share the uploaded village image until separate faction artwork is added.
+- The image is shown as a single complete picture with nine compact numbered overlays: 1 for the central building and 2–9 for the surrounding buildings. The labels are positioned proportionally so they remain aligned on mobile screens.
+- Göktürk is the default starting faction and is the faction associated with this uploaded village artwork.
+- Hun, Seljuk and Göktürk choices switch the interface accent palette and persist the selected faction. Separate Hun and Seljuk village artwork can be connected when those image files are added.
