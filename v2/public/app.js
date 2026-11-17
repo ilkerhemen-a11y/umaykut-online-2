@@ -715,6 +715,8 @@ function renderWallDialog(){
  document.querySelector("#wall-level-fill").style.width=(level*10)+"%";
  document.querySelector("#wall-defense").textContent=effects.defensePercent+"%";
  document.querySelector("#wall-shelter").textContent=formatNumber(effects.shelterCapacity.wood||level*500);
+ document.querySelector("#wall-shelter-breakdown").textContent="Altın "+formatNumber(effects.shelterCapacity.gold)+" · Odun "+formatNumber(effects.shelterCapacity.wood)+" · Yiyecek "+formatNumber(effects.shelterCapacity.food)+" · Taş "+formatNumber(effects.shelterCapacity.stone)+" · Demir "+formatNumber(effects.shelterCapacity.iron);
+ wallMarker.querySelector("span").textContent=String(level);
  const target=level+1,cost=target<=10?wallUpgradeCostForLevel(target):null;
  document.querySelector("#wall-upgrade-title").textContent=target<=10?"Seviye "+target+" sur yükseltme maliyeti":"Sur en yüksek seviyede";
  for(const key of ["wood","stone","iron","gold"])document.querySelector("#wall-cost-"+key).textContent=cost?formatNumber(cost[key]):"—";
