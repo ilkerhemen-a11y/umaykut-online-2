@@ -207,6 +207,45 @@ navButtons.forEach(button=>{
  });
 });
 
+// Settings are device preferences; account progress remains on the server.
+const settingsDialog=document.querySelector("#settings-dialog");
+const settingsMessage=document.querySelector("#settings-message");
+const settingsPlayerName=document.querySelector("#settings-player-name");
+const settingsPlayerEmail=document.querySelector("#settings-player-email");
+const settingsThemeName=document.querySelector("#settings-theme-name");
+const reducedMotionToggle=document.querySelector("#setting-reduced-motion");
+const compactResourcesToggle=document.querySelector("#setting-compact-resources");
+const SETTINGS_KEY="umaykut-v2-settings";
+let currentPlayer=null;
+function readSettings(){
+ try{return JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");}catch{return {};}
+}
+function applySettings(){
+ const prefs=readSettings();
+ reducedMotionToggle.checked=Boolean(prefs.reducedMotion);
+ compactResourcesToggle.checked=Boolean(prefs.compactResources);
+ document.documentElement.classList.toggle("reduce-motion",reducedMotionToggle.checked);
+ shell.classList.toggle("compact-resources",compactResourcesToggle.checked);
+}
+function saveSettings(){
+ try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({reducedMotion:reducedMotionToggle.checked,compactResources:compactResourcesToggle.checked}));}catch{}
+ applySettings();
+}
+function openSettings(){
+ settingsPlayerName.textContent=currentPlayer?.username||"Oyuncu";
+ settingsPlayerEmail.textContent=currentPlayer?.email||"E-posta bilgisi alınamadı";
+ settingsThemeName.textContent=factions[shell.dataset.faction]?.name||"Göktürk diyarı";
+ settingsMessage.textContent="";
+ applySettings();
+ if(!settingsDialog.open)settingsDialog.showModal();
+}
+document.querySelector("#open-settings").addEventListener("click",openSettings);
+document.querySelector('[data-action="settings"]').addEventListener("click",openSettings);
+document.querySelector("#close-settings").addEventListener("click",()=>settingsDialog.close());
+reducedMotionToggle.addEventListener("change",saveSettings);
+compactResourcesToggle.addEventListener("change",saveSettings);
+applySettings();
+
 const WORKER_POOL=1800;
 const WORKER_STORAGE_KEY="umaykut-worker-state-v2";
 const resourceInfo={
@@ -421,9 +460,12 @@ async function loadGameState(){
 }
 
 function enterGame(player,token){
+ currentPlayer=player||currentPlayer;
  authToken=token||authToken;
  try{if(authToken)localStorage.setItem(AUTH_TOKEN_KEY,authToken);}catch{}
  const username=player?.username||"Oyuncu";
+ settingsPlayerName.textContent=username;
+ settingsPlayerEmail.textContent=player?.email||"Hesap bilgileri";
  const displayName=document.querySelector("#player-display-name");
  const realmName=document.querySelector("#realm-player-name");
  if(displayName)displayName.textContent=username+" Bey";
@@ -475,5 +517,34 @@ async function restoreAccountSession(){
   authSubmit.disabled=false;
  }
 }
+async function logoutAccount(){
+ const logoutButton=document.querySelector("#logout-button");
+ logoutButton.disabled=true;
+ settingsMessage.textContent="Oturum güvenli şekilde kapatılıyor…";
+ try{
+  if(authToken){
+   await authRequest("/api/auth/session",{method:"DELETE",token:authToken});
+  }
+  try{localStorage.removeItem(AUTH_TOKEN_KEY);}catch{}
+  authToken=null;
+  currentPlayer=null;
+  gameStateReady=false;
+  settingsDialog.close();
+  gameShell.setAttribute("inert","");
+  gameShell.setAttribute("aria-hidden","true");
+  authScreen.hidden=false;
+  authMessage.textContent="Güvenli çıkış yapıldı. Yeniden giriş yapabilirsin.";
+  authPassword.value="";
+  setAuthMode("login");
+  window.scrollTo({top:0,behavior:"auto"});
+ }catch(error){
+  settingsMessage.textContent=error.message||"Çıkış yapılamadı. Tekrar dene.";
+ }finally{
+  logoutButton.disabled=false;
+ }
+}
+document.querySelector("#logout-button").addEventListener("click",()=>{
+ if(window.confirm("Oyundan çıkış yapmak istiyor musun? Şehrin ve ilerlemen hesabında saklı kalır."))logoutAccount();
+});
 setAuthMode("login");
 restoreAccountSession();
