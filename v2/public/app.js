@@ -157,8 +157,113 @@ function openBuildingDialog(slot){
  if(typeof buildingDialog.showModal==="function")buildingDialog.showModal();
  else buildingDialog.setAttribute("open","");
 }
-document.querySelectorAll("[data-building-slot]").forEach(node=>{
- node.addEventListener("click",()=>openBuildingDialog(node.dataset.buildingSlot));
+// In-game marker calibration: labels stay attached to their building markers.
+const markerEditToggle=document.querySelector("#marker-edit-toggle");
+const markerReset=document.querySelector("#marker-reset");
+const markerStatus=document.querySelector("#marker-status");
+const markerStorageKey="umaykut-village-marker-positions-v2";
+const markerNodes=[...document.querySelectorAll("[data-building-slot]")];
+const defaultMarkerPositions=Object.fromEntries(markerNodes.map(node=>[
+ node.dataset.buildingSlot,{left:node.style.left,top:node.style.top}
+]));
+let markerEditMode=false;
+let activeMarker=null;
+let activeMarkerPointer=null;
+
+function saveMarkerPositions(){
+ const positions=Object.fromEntries(markerNodes.map(node=>[
+  node.dataset.buildingSlot,
+  {left:parseFloat(node.style.left),top:parseFloat(node.style.top)}
+ ]));
+ try{
+  localStorage.setItem(markerStorageKey,JSON.stringify(positions));
+  return true;
+ }catch{
+  return false;
+ }
+}
+function restoreMarkerPositions(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(markerStorageKey)||"null");
+  if(!saved||typeof saved!=="object")return;
+  markerNodes.forEach(node=>{
+   const position=saved[node.dataset.buildingSlot];
+   const left=Number(position?.left),top=Number(position?.top);
+   if(!Number.isFinite(left)||!Number.isFinite(top))return;
+   node.style.left=Math.max(1,Math.min(99,left))+"%";
+   node.style.top=Math.max(1,Math.min(99,top))+"%";
+  });
+ }catch{}
+}
+function setMarkerEditMode(enabled){
+ markerEditMode=Boolean(enabled);
+ villageFrame?.classList.toggle("marker-editing",markerEditMode);
+ if(markerEditToggle){
+  markerEditToggle.setAttribute("aria-pressed",String(markerEditMode));
+  markerEditToggle.textContent=markerEditMode?"Düzenlemeyi Bitir":"Konumları Düzenle";
+ }
+ if(markerReset)markerReset.hidden=!markerEditMode;
+ if(markerStatus){
+  markerStatus.textContent=markerEditMode
+   ?"Numarayı basılı tutup doğru binanın üzerine sürükle. Konumlar otomatik kaydedilir."
+   :"Bina numaralarını hizalamak için Konumları Düzenle'ye dokun.";
+ }
+}
+function finishMarkerDrag(node,event){
+ if(activeMarker!==node||activeMarkerPointer!==event.pointerId)return;
+ node.classList.remove("is-dragging");
+ activeMarker=null;
+ activeMarkerPointer=null;
+ const saved=saveMarkerPositions();
+ if(markerStatus)markerStatus.textContent=saved
+  ?"Konum kaydedildi. Diğer numaraları da sürükleyebilirsin."
+  :"Konum değişti ancak bu cihazda kaydedilemedi.";
+}
+restoreMarkerPositions();
+markerNodes.forEach(node=>{
+ node.addEventListener("pointerdown",event=>{
+  if(!markerEditMode)return;
+  activeMarker=node;
+  activeMarkerPointer=event.pointerId;
+  node.classList.add("is-dragging");
+  if(typeof node.setPointerCapture==="function")node.setPointerCapture(event.pointerId);
+  event.preventDefault();
+ });
+ node.addEventListener("pointermove",event=>{
+  if(!markerEditMode||activeMarker!==node||activeMarkerPointer!==event.pointerId)return;
+  const rect=villageStage.getBoundingClientRect();
+  if(!rect.width||!rect.height)return;
+  const left=Math.max(1,Math.min(99,(event.clientX-rect.left)/rect.width*100));
+  const top=Math.max(1,Math.min(99,(event.clientY-rect.top)/rect.height*100));
+  node.style.left=left+"%";
+  node.style.top=top+"%";
+  event.preventDefault();
+ });
+ node.addEventListener("pointerup",event=>finishMarkerDrag(node,event));
+ node.addEventListener("pointercancel",event=>finishMarkerDrag(node,event));
+ node.addEventListener("click",event=>{
+  if(markerEditMode){
+   event.preventDefault();
+   event.stopPropagation();
+   return;
+  }
+  openBuildingDialog(node.dataset.buildingSlot);
+ });
+});
+markerEditToggle?.addEventListener("click",()=>{
+ setMarkerEditMode(!markerEditMode);
+});
+markerReset?.addEventListener("click",()=>{
+ markerNodes.forEach(node=>{
+  const position=defaultMarkerPositions[node.dataset.buildingSlot];
+  if(!position)return;
+  node.style.left=position.left;
+  node.style.top=position.top;
+ });
+ const saved=saveMarkerPositions();
+ if(markerStatus)markerStatus.textContent=saved
+  ?"Dokuz numara başlangıç konumlarına döndürüldü."
+  :"Konumlar sıfırlandı ancak bu cihazda kaydedilemedi.";
 });
 buildingClose.addEventListener("click",()=>buildingDialog.close());
 buildingTypeSelect.addEventListener("change",updateBuildingDialog);

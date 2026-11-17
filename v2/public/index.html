@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#101a13">
   <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
   <title>Umaykut Online 2 · V2</title>
-  <link rel="stylesheet" href="/app.css?v=20261117-village-coordinates-1">
-  <link rel="stylesheet" href="/factions.css?v=20261117-village-coordinates-1">
+  <link rel="stylesheet" href="/app.css?v=20261117-draggable-village-markers-1">
+  <link rel="stylesheet" href="/factions.css?v=20261117-draggable-village-markers-1">
 </head>
 <body>
   <section id="auth-screen" class="auth-screen" aria-label="Umaykut Online II giriş ve kayıt">
@@ -58,6 +58,13 @@
           <button type="button" data-faction-choice="gokturk" aria-pressed="true"><span class="faction-symbol">𐰴</span><span>Göktürk</span><small>Mavi</small></button>
         </div>
       </section>
+      <div class="marker-tools" role="group" aria-label="Bina numaralarını hizala">
+        <div class="marker-tools-actions">
+          <button id="marker-edit-toggle" class="marker-tool-button" type="button" aria-pressed="false">Konumları Düzenle</button>
+          <button id="marker-reset" class="marker-tool-button marker-reset" type="button" hidden>Başlangıç Konumları</button>
+        </div>
+        <p id="marker-status" class="marker-status" role="status" aria-live="polite">Bina numaralarını hizalamak için Konumları Düzenle'ye dokun.</p>
+      </div>
       <div class="city-frame" aria-label="Göktürk köyü ve numaralandırılmış binalar">
         <div class="city-stage">
           <img class="city-art" src="/assets/IMG-20261117-WA0073.jpg" alt="Orman içinde dairesel taş surlarla çevrili, merkez binası ve sekiz çevre binası bulunan Göktürk köyü" fetchpriority="high">
@@ -181,6 +188,6 @@
     </nav>
   </main>
 
-  <script type="module" src="/app.js?v=20261117-village-coordinates-1"></script>
+  <script type="module" src="/app.js?v=20261117-draggable-village-markers-1"></script>
 </body>
 </html>
