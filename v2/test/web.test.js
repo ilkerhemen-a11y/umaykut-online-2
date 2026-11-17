@@ -13,8 +13,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   const html=await page.text();
   assert.match(html,/İlker'in Yurdu/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261117-village-stage-2"/);
-  assert.match(html,/src="\/app\.js\?v=20261117-village-stage-2"/);
+  assert.match(html,/href="\/app\.css\?v=20261117-draggable-village-markers-1"/);
+  assert.match(html,/src="\/app\.js\?v=20261117-draggable-village-markers-1"/);
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n        </div>\n      </div>\n      <dialog id="building-dialog"',stageStart);
   assert.ok(stageEnd>stageStart);
@@ -32,7 +32,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
     assert.ok(html.slice(markerStart,markerEnd).includes('class="building-label">'+name+'</span>'));
   }
 
-  const expectedPositions=[["1",50,45],["2",39,34],["3",62,34],["4",24,42],["5",76,42],["6",21,51],["7",78,51],["8",38,57],["9",63,57]];
+  const expectedPositions=[["1",50,45],["2",41.82,33.31],["3",64.5,33.66],["4",23.79,40.14],["5",82.43,40.76],["6",21,51],["7",85.22,53.18],["8",38.5,58.98],["9",66.47,59.53]];
   for(const [slot,x,y] of expectedPositions){
     const markerStart=html.indexOf('data-building-slot="'+slot+'"');
     const markerEnd=html.indexOf("</button>",markerStart);
@@ -40,7 +40,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
 
   // Building markers must overlay the image itself, not flow after it.
-  const styles=await fetch(base+"/app.css?v=20261117-village-stage-2");
+  const styles=await fetch(base+"/app.css?v=20261117-draggable-village-markers-1");
   assert.equal(styles.status,200);
   const css=await styles.text();
   assert.ok(css.includes(".city-frame{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
@@ -60,7 +60,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,3);
 
-  const script=await fetch(base+"/app.js?v=20261117-village-stage-2");
+  const script=await fetch(base+"/app.js?v=20261117-draggable-village-markers-1");
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.match(appScript,/data-faction-choice/);
@@ -78,6 +78,13 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/recallButton\.addEventListener/);
   assert.match(appScript,/WORKER_POOL=1800/);
   assert.match(appScript,/showScreen/);
+  assert.match(html,/id="marker-edit-toggle"/);
+  assert.match(html,/id="marker-reset"/);
+  assert.match(appScript,/markerStorageKey/);
+  assert.match(appScript,/pointermove/);
+  assert.match(appScript,/saveMarkerPositions/);
+  assert.ok(css.includes(".city-frame.marker-editing .building-number"));
+
 
   const asset=await fetch(base+"/assets/IMG-20261117-WA0073.jpg");
   assert.equal(asset.status,200);
