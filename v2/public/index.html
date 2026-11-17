@@ -179,12 +179,19 @@
 
     <nav class="bottom-nav" aria-label="Ana menü">
       <button class="active" type="button" data-screen="village"><span>🏰</span>Köy</button>
-      <button type="button"><span>⚔️</span>Ordu</button>
+      <button type="button" data-action="army"><span>⚔️</span>Ordu</button>
       <button type="button" data-screen="map"><span>🗺️</span>Harita</button>
       <button type="button"><span>🎒</span>Envanter</button>
       <button type="button" data-action="settings" aria-haspopup="dialog" aria-controls="settings-dialog"><span>⚙️</span>Ayarlar</button>
     </nav>
-    <dialog id="founding-dialog" class="founding-dialog" aria-labelledby="founding-title">
+    <dialog id="army-dialog" class="army-dialog" aria-labelledby="army-dialog-title">
+  <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · SAVAŞ HAZIRLIĞI</small><h2 id="army-dialog-title">Ordu ve Asker Yetiştirme</h2></div><button id="army-close" type="button" aria-label="Kapat">×</button></div>
+  <div class="army-summary"><div><strong id="army-total-units">0</strong><small>Toplam asker</small></div><div><strong id="army-total-power">0</strong><small>Ordu gücü</small></div><div><strong id="army-faction-name">Göktürk</strong><small>Devlet</small></div></div>
+  <section class="army-training-queue"><h3>⏳ Eğitim kuyruğu</h3><div id="army-queue-list"><p>Aktif eğitim bulunmuyor.</p></div></section>
+  <section class="army-recruit-section"><h3>⚔️ Birlik yetiştir</h3><p id="army-building-hint">Kışla ve Ahır seviyelerine göre yeni askerler açılır.</p><div id="army-unit-catalog" class="army-unit-catalog"><p>Ordu bilgileri yükleniyor…</p></div></section>
+  <p id="army-message" class="army-message" role="status" aria-live="polite"></p>
+</dialog>
+\n    <dialog id="founding-dialog" class="founding-dialog" aria-labelledby="founding-title">
       <div class="founding-heading"><small>UMAYKUT ONLINE II · YENİ BİR BAŞLANGIÇ</small><h2 id="founding-title">Yurdunu Kur</h2><p>Önce devletini seç, sonra köyüne ad ver. Bu seçimler hesabına kaydedilir.</p></div>
       <form id="founding-form">
         <label for="founding-village-name">Köyünün adı</label>
