@@ -38,3 +38,22 @@ test("higher barracks and stable levels shorten training times", () => {
   assert.ok(high.find(unit => unit.id === "infantry").secondsPerUnit < low.find(unit => unit.id === "infantry").secondsPerUnit);
   assert.ok(high.find(unit => unit.id === "light_cavalry").secondsPerUnit < low.find(unit => unit.id === "light_cavalry").secondsPerUnit);
 });
+
+test("numeric V2 building slots correctly unlock troops and reduce training time", () => {
+  const levelOne = getTroopCatalog("gokturk", {
+    "2": { type: "barracks", level: 1 },
+    "3": { type: "stable", level: 1 }
+  });
+  assert.equal(levelOne.find(unit => unit.id === "archer").unlocked, false);
+  assert.equal(levelOne.find(unit => unit.id === "mounted_archer").unlocked, false);
+
+  const levelFive = getTroopCatalog("gokturk", {
+    "2": { type: "barracks", level: 5 },
+    "3": { type: "stable", level: 5 }
+  });
+  assert.equal(levelFive.find(unit => unit.id === "archer").unlocked, true);
+  assert.equal(levelFive.find(unit => unit.id === "shield").unlocked, true);
+  assert.equal(levelFive.find(unit => unit.id === "mounted_archer").unlocked, true);
+  assert.ok(levelFive.find(unit => unit.id === "infantry").secondsPerUnit <
+    levelOne.find(unit => unit.id === "infantry").secondsPerUnit);
+});
