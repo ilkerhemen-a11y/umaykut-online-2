@@ -4,7 +4,7 @@ import { dirname, extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig } from "./config.js";
 import { createPool } from "./database.js";
-import { handleArmyRequest } from "./army.js";
+import { handleArmyRequest, getTroopCatalog, settleTrainingQueue } from "./army.js";
 import {
   bearerToken,
   createSessionToken,
@@ -192,6 +192,99 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
 
 
     if (await handleArmyRequest({ req, res, url, pool, sessionSecret })) return;
+
+
+    if (url.pathname === "/api/game/players" || url.pathname === "/api/game/attacks" || url.pathname === "/api/game/attack") {
+      if (!pool) return sendJson(res,503,{error:"Oyun kayıt servisi henüz yapılandırılmadı."});
+      if (!sessionSecret || sessionSecret.length < 32) return sendJson(res,503,{error:"Oturum güvenlik ayarı eksik."});
+      const token=bearerToken(req), session=verifySessionToken(token,sessionSecret);
+      if(!session)return sendJson(res,401,{error:"Oturum geçersiz veya süresi dolmuş."});
+      const valid=await pool.query("SELECT 1 FROM umaykut_v2.player_sessions WHERE player_id=$1 AND token_hash=$2 AND expires_at>NOW()",[session.id,sessionTokenHash(token)]);
+      if(!valid.rowCount)return sendJson(res,401,{error:"Oyuncu oturumu bulunamadı."});
+      if(req.method==="GET" && url.pathname==="/api/game/players"){
+        const result=await pool.query(
+          `SELECT p.id,p.username,p.village_name,s.faction_id
+           FROM umaykut_v2.players p
+           JOIN umaykut_v2.player_game_state s ON s.player_id=p.id
+           WHERE p.id<>$1 AND p.village_name IS NOT NULL AND s.faction_id IS NOT NULL
+           ORDER BY p.created_at ASC LIMIT 50`,[session.id]);
+        return sendJson(res,200,{players:result.rows});
+      }
+      if(req.method==="GET" && url.pathname==="/api/game/attacks"){
+        const result=await pool.query(
+          `SELECT r.id,r.attacker_id,r.defender_id,r.attacker_village,r.defender_village,
+                  r.troops,r.attack_power,r.departed_at,r.arrives_at,r.status,
+                  CASE WHEN r.attacker_id=$1 THEN 'outgoing' ELSE 'incoming' END AS direction
+           FROM umaykut_v2.player_raids r
+           WHERE (r.attacker_id=$1 OR r.defender_id=$1) AND r.status='marching'
+           ORDER BY r.arrives_at ASC LIMIT 50`,[session.id]);
+        return sendJson(res,200,{attacks:result.rows,serverNow:new Date().toISOString()});
+      }
+      if(req.method!=="POST" || url.pathname!=="/api/game/attack"){
+        res.setHeader("allow",url.pathname==="/api/game/attack"?"POST":"GET");
+        return sendJson(res,405,{error:"Yöntem desteklenmiyor."});
+      }
+      try{
+        const input=await readJson(req);
+        const targetId=String(input.targetPlayerId||"");
+        if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(targetId))
+          return sendJson(res,400,{error:"Geçerli bir hedef köy seçmelisin."});
+        if(targetId===session.id)return sendJson(res,400,{error:"Kendi köyüne saldırı gönderemezsin."});
+        if(!input.troops||typeof input.troops!=="object"||Array.isArray(input.troops))
+          return sendJson(res,400,{error:"Gönderilecek birlikleri seçmelisin."});
+        const client=await pool.connect();let inTx=false;
+        try{
+          await client.query("BEGIN");inTx=true;
+          const ids=[session.id,targetId].sort();
+          const result=await client.query(
+            `SELECT p.id,p.village_name,s.faction_id,s.resources,s.buildings,s.troops,s.training_queue
+             FROM umaykut_v2.players p JOIN umaykut_v2.player_game_state s ON s.player_id=p.id
+             WHERE p.id=ANY($1::uuid[]) ORDER BY p.id FOR UPDATE OF s`,[ids]);
+          if(result.rowCount!==2){await client.query("ROLLBACK");inTx=false;return sendJson(res,404,{error:"Hedef köy bulunamadı veya henüz kurulmadı."});}
+          const attacker=result.rows.find(row=>row.id===session.id),defender=result.rows.find(row=>row.id===targetId);
+          if(!attacker?.village_name||!defender?.village_name||!defender.faction_id){
+            await client.query("ROLLBACK");inTx=false;return sendJson(res,404,{error:"Hedef köy henüz kurulmadı."});
+          }
+          const troops=typeof attacker.troops==="string"?JSON.parse(attacker.troops||"{}"):{...(attacker.troops||{})};
+          const queue=typeof attacker.training_queue==="string"?JSON.parse(attacker.training_queue||"[]"):(attacker.training_queue||[]);
+          const settled=settleTrainingQueue(troops,queue);
+          const catalog=getTroopCatalog(attacker.faction_id,typeof attacker.buildings==="string"?JSON.parse(attacker.buildings||"{}"):(attacker.buildings||{}));
+          const selected={},unitMap=new Map(catalog.map(unit=>[unit.id,unit]));
+          let attackPower=0,slowestSpeed=Infinity,total=0;
+          for(const [unitId,raw] of Object.entries(input.troops)){
+            const amount=Number(raw),unit=unitMap.get(unitId);
+            if(!unit||!Number.isSafeInteger(amount)||amount<0){
+              await client.query("ROLLBACK");inTx=false;return sendJson(res,400,{error:"Gönderilen birlik bilgisi geçersiz."});
+            }
+            if(amount===0)continue;
+            const owned=Number(settled.troops[unitId]||0);
+            if(amount>owned){
+              await client.query("ROLLBACK");inTx=false;return sendJson(res,409,{error:unit.name+" sayısı orduda yeterli değil.",available:owned});
+            }
+            selected[unitId]=amount;total+=amount;attackPower+=amount*unit.attack;slowestSpeed=Math.min(slowestSpeed,unit.speed);
+          }
+          if(!total){
+            await client.query("ROLLBACK");inTx=false;return sendJson(res,400,{error:"En az bir asker seçmelisin."});
+          }
+          for(const [unitId,amount] of Object.entries(selected))settled.troops[unitId]-=amount;
+          const departedAt=new Date(),marchSeconds=Math.max(60,Math.ceil(3600/Math.max(1,slowestSpeed)));
+          const arrivesAt=new Date(departedAt.getTime()+marchSeconds*1000);
+          const raid=await client.query(
+            `INSERT INTO umaykut_v2.player_raids(attacker_id,defender_id,attacker_village,defender_village,troops,attack_power,departed_at,arrives_at,status)
+             VALUES($1,$2,$3,$4,$5::jsonb,$6,$7,$8,'marching') RETURNING id,attacker_village,defender_village,troops,attack_power,departed_at,arrives_at,status`,
+            [session.id,targetId,attacker.village_name,defender.village_name,JSON.stringify(selected),attackPower,departedAt.toISOString(),arrivesAt.toISOString()]);
+          await client.query(
+            "UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb,training_queue=$3::jsonb,updated_at=NOW() WHERE player_id=$1",
+            [session.id,JSON.stringify(settled.troops),JSON.stringify(settled.trainingQueue)]);
+          await client.query("COMMIT");inTx=false;
+          return sendJson(res,201,{success:true,raid:raid.rows[0],marchSeconds,remainingTroops:settled.troops,armyPower:attackPower,serverNow:new Date().toISOString()});
+        }catch(error){if(inTx){try{await client.query("ROLLBACK");}catch{}}throw error;}
+        finally{client.release();}
+      }catch(error){
+        console.error("V2 attack launch failed",{code:error.code||"UNKNOWN",message:String(error.message||"").slice(0,180)});
+        return sendJson(res,error.status||500,{error:error.status?error.message:"Saldırı emri gönderilemedi."});
+      }
+    }
 
     if(url.pathname==="/api/game/wall"){
       if(!pool)return sendJson(res,503,{error:"Oyun kayıt servisi henüz yapılandırılmadı."});
