@@ -306,13 +306,21 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         }catch(error){console.error("V2 scout launch failed",{message:String(error.message||"").slice(0,160)});return sendJson(res,500,{error:"Keşif emri gönderilemedi."});}
       }
       if(req.method==="GET" && url.pathname==="/api/game/players"){
-        const result=await pool.query(
-          `SELECT p.id,p.username,p.village_name,s.faction_id
-           FROM umaykut_v2.players p
-           JOIN umaykut_v2.player_game_state s ON s.player_id=p.id
-           WHERE p.id<>$1 AND p.village_name IS NOT NULL AND s.faction_id IS NOT NULL
-           ORDER BY p.created_at ASC LIMIT 50`,[session.id]);
-        return sendJson(res,200,{players:result.rows});
+        const [result,own,nodes]=await Promise.all([
+          pool.query(
+            `SELECT p.id,p.username,p.village_name,s.faction_id,s.world_x,s.world_y
+             FROM umaykut_v2.players p
+             JOIN umaykut_v2.player_game_state s ON s.player_id=p.id
+             WHERE p.id<>$1 AND p.village_name IS NOT NULL AND s.faction_id IS NOT NULL
+             ORDER BY p.created_at ASC LIMIT 100`,[session.id]),
+          pool.query("SELECT world_x,world_y FROM umaykut_v2.player_game_state WHERE player_id=$1",[session.id]),
+          pool.query("SELECT id,resource_type,world_x,world_y,yield_level FROM umaykut_v2.world_resource_nodes ORDER BY id")
+        ]);
+        return sendJson(res,200,{
+          players:result.rows,
+          world:own.rows[0]||{world_x:50,world_y:50},
+          resourceNodes:nodes.rows
+        });
       }
       if(req.method==="GET" && url.pathname==="/api/game/attacks"){
         // Complete returning marches exactly once; the raid row lock prevents duplicate refunds.
