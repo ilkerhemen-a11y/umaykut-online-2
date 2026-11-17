@@ -4,8 +4,8 @@
 - Node.js 20+
 - Set DATABASE_URL to the Render PostgreSQL internal connection URL.
 - Set SESSION_SECRET to a random secret of at least 32 characters.
-- Apply `migrations/001_accounts.sql` once using a trusted PostgreSQL connection.
-- The migration creates the isolated `umaykut_v2` schema. V2 account tables do not share the legacy application's public-schema table names.
+- Migrations in `migrations/` are applied automatically at startup and tracked in `umaykut_v2.schema_migrations`.
+- The isolated `umaykut_v2` schema keeps V2 accounts and game state separate from the legacy application's public-schema tables.
 - Run `npm install`, `npm test`, then `npm start`.
 
 ## Render configuration (V2 service only)
@@ -31,3 +31,9 @@ The existing production service is not modified by this V2 branch. Never add dat
 - The initial 1,800-worker pool is split between available workers and workers assigned to grain, wood and stone. Players can send workers to a region or recall them later. No production rates or resource yields are assumed yet.
 - Worker assignments are saved in this browser's local storage, so they survive refreshes on the same device/browser. They are not yet synced across devices or accounts and are not yet stored in PostgreSQL.
 - Distribution ratios and production rates remain undecided; no suggested 700/600/500 split or production coefficients are treated as approved game rules.
+
+## Player game-state sync
+- `GET /api/game/state` and `PUT /api/game/state` require a valid V2 bearer session.
+- The selected faction and the 1,800-worker distribution across grain, wood and stone are stored per player in PostgreSQL.
+- Existing browser-only worker assignments are imported once when a player first synchronizes. Later changes are saved to the player's account and are available across devices.
+- This persistence step does not yet generate resources, charge construction costs, or change army counts; those gameplay systems are the next implementation stages.

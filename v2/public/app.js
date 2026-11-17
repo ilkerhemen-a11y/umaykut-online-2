@@ -5,6 +5,7 @@ const factions={
 };
 const shell=document.querySelector(".game-shell");
 const factionLabel=document.querySelector("#realm-faction");
+let gameStateReady=false;
 function setFaction(key){
  const faction=factions[key] ? key : "gokturk";
  shell.dataset.faction=faction;
@@ -18,7 +19,10 @@ function setFaction(key){
  try{localStorage.setItem("umaykut-faction-v2",faction);}catch{}
 }
 document.querySelectorAll("[data-faction-choice]").forEach(button=>{
- button.addEventListener("click",()=>setFaction(button.dataset.factionChoice));
+ button.addEventListener("click",()=>{
+  setFaction(button.dataset.factionChoice);
+  if(gameStateReady) persistGameState().catch(()=>{});
+ });
 });
 let savedFaction="gokturk";
 try{savedFaction=localStorage.getItem("umaykut-faction-v2")||"gokturk";}catch{}
@@ -70,6 +74,9 @@ function saveWorkerState(){
  try{
   localStorage.setItem(WORKER_STORAGE_KEY,JSON.stringify({version:2,workerPool:WORKER_POOL,assigned}));
  }catch{}
+ if(gameStateReady) persistGameState().catch(()=>{
+  if(workerStatus) workerStatus.textContent="Bağlantı kurulamadı; değişiklik bu cihazda saklandı.";
+ });
 }
 const availableLabel=document.querySelector("#workers-available");
 const assignedTotalLabel=document.querySelector("#workers-assigned-total");
@@ -139,7 +146,7 @@ assignButton.addEventListener("click",()=>{
  saveWorkerState();
  updateWorkerSummary();
  workerInput.value="1";
- workerStatus.textContent=`${formatNumber(count)} işçi ${resourceInfo[selectedResource].name} bölgesine gönderildi. ${formatNumber(assigned[selectedResource])} görevde, ${formatNumber(availableWorkers)} boştadır. Bu cihazda kaydedildi.`;
+ workerStatus.textContent=`${formatNumber(count)} işçi ${resourceInfo[selectedResource].name} bölgesine gönderildi. ${formatNumber(assigned[selectedResource])} görevde, ${formatNumber(availableWorkers)} boştadır. Hesabına kaydedildi.`;
 });
 recallButton.addEventListener("click",()=>{
  if(!selectedResource)return;
@@ -155,7 +162,7 @@ recallButton.addEventListener("click",()=>{
  saveWorkerState();
  updateWorkerSummary();
  workerInput.value="1";
- workerStatus.textContent=`${formatNumber(count)} işçi ${resourceInfo[selectedResource].name} bölgesinden geri çağrıldı. ${formatNumber(assigned[selectedResource])} görevde, ${formatNumber(availableWorkers)} boştadır. Bu cihazda kaydedildi.`;
+ workerStatus.textContent=`${formatNumber(count)} işçi ${resourceInfo[selectedResource].name} bölgesinden geri çağrıldı. ${formatNumber(assigned[selectedResource])} görevde, ${formatNumber(availableWorkers)} boştadır. Hesabına kaydedildi.`;
 });
 restoreWorkerState();
 updateWorkerSummary();
@@ -210,6 +217,44 @@ async function authRequest(path,{method="GET",body,token}={}){
  return data;
 }
 
+
+async function persistGameState(){
+ if(!authToken||!gameStateReady)return;
+ return authRequest("/api/game/state",{
+  method:"PUT",
+  token:authToken,
+  body:{factionId:shell.dataset.faction,workerAssignments:{...assigned}}
+ });
+}
+
+async function loadGameState(){
+ if(!authToken)return;
+ gameStateReady=false;
+ try{
+  const state=await authRequest("/api/game/state",{token:authToken});
+  if(state.factionId) setFaction(state.factionId);
+  else setFaction(savedFaction);
+  if(state.workerStateInitialized){
+   ["grain","wood","stone"].forEach(key=>{assigned[key]=Number(state.workerAssignments?.[key]||0);});
+   availableWorkers=Math.max(0,Number(state.workerPool||WORKER_POOL)-totalAssigned());
+  }else{
+   await authRequest("/api/game/state",{
+    method:"PUT",token:authToken,
+    body:{factionId:shell.dataset.faction,workerAssignments:{...assigned}}
+   });
+   availableWorkers=Math.max(0,WORKER_POOL-totalAssigned());
+  }
+  gameStateReady=true;
+  saveWorkerState();
+  updateWorkerSummary();
+ }catch(error){
+  gameStateReady=false;
+  restoreWorkerState();
+  updateWorkerSummary();
+  if(workerStatus)workerStatus.textContent="Sunucu eşitlemesi yapılamadı; yerel kayıt korunuyor.";
+ }
+}
+
 function enterGame(player,token){
  authToken=token||authToken;
  try{if(authToken)localStorage.setItem(AUTH_TOKEN_KEY,authToken);}catch{}
@@ -220,6 +265,7 @@ function enterGame(player,token){
  if(realmName)realmName.textContent=username.toLocaleUpperCase("tr-TR")+"’İN YURDU";
  authScreen.hidden=true;
  gameShell.removeAttribute("inert");
+ loadGameState();
  gameShell.removeAttribute("aria-hidden");
 }
 

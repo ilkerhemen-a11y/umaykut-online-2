@@ -92,6 +92,88 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
       }
     }
 
+
+    if (url.pathname === "/api/game/state") {
+      if (!pool) return sendJson(res, 503, { error: "Oyun kayıt servisi henüz yapılandırılmadı." });
+      if (!sessionSecret || sessionSecret.length < 32) {
+        return sendJson(res, 503, { error: "Oturum güvenlik ayarı eksik." });
+      }
+      if (!["GET", "PUT"].includes(req.method)) {
+        res.setHeader("allow", "GET, PUT");
+        return sendJson(res, 405, { error: "Yöntem desteklenmiyor." });
+      }
+      const token = bearerToken(req);
+      const session = verifySessionToken(token, sessionSecret);
+      if (!session) return sendJson(res, 401, { error: "Oturum geçersiz veya süresi dolmuş." });
+      try {
+        const playerResult = await pool.query(
+          "SELECT p.id FROM umaykut_v2.players p JOIN umaykut_v2.player_sessions s ON s.player_id = p.id WHERE p.id = $1 AND s.token_hash = $2 AND s.expires_at > NOW()",
+          [session.id, sessionTokenHash(token)]
+        );
+        if (!playerResult.rowCount) return sendJson(res, 401, { error: "Oyuncu oturumu bulunamadı." });
+        const playerId = playerResult.rows[0].id;
+        if (req.method === "GET") {
+          await pool.query(
+            "INSERT INTO umaykut_v2.player_game_state(player_id) VALUES($1) ON CONFLICT (player_id) DO NOTHING",
+            [playerId]
+          );
+          const state = await pool.query(
+            "SELECT faction_id, worker_pool, worker_assignments, worker_state_initialized, updated_at FROM umaykut_v2.player_game_state WHERE player_id = $1",
+            [playerId]
+          );
+          const row = state.rows[0];
+          return sendJson(res, 200, {
+            factionId: row.faction_id,
+            workerPool: Number(row.worker_pool),
+            workerAssignments: row.worker_assignments,
+            workerStateInitialized: row.worker_state_initialized,
+            updatedAt: row.updated_at
+          });
+        }
+        const input = await readJson(req);
+        const allowedFactions = new Set(["hun", "seljuk", "gokturk"]);
+        const factionId = input.factionId == null ? null : String(input.factionId);
+        if (factionId !== null && !allowedFactions.has(factionId)) {
+          return sendJson(res, 400, { error: "Geçerli bir devlet seçmelisin." });
+        }
+        const source = input.workerAssignments && typeof input.workerAssignments === "object"
+          ? input.workerAssignments : {};
+        const workerAssignments = { grain: source.grain, wood: source.wood, stone: source.stone };
+        const values = Object.values(workerAssignments);
+        if (!values.every(value => Number.isSafeInteger(value) && value >= 0) ||
+            Object.keys(source).some(key => !["grain", "wood", "stone"].includes(key)) ||
+            values.reduce((sum, value) => sum + value, 0) > 1800) {
+          return sendJson(res, 400, { error: "İşçi dağılımı geçersiz. Toplam işçi sayısı 1.800'ü aşamaz." });
+        }
+        const saved = await pool.query(
+          `INSERT INTO umaykut_v2.player_game_state(player_id, faction_id, worker_assignments, worker_state_initialized)
+           VALUES($1, $2, $3::jsonb, TRUE)
+           ON CONFLICT (player_id) DO UPDATE
+             SET faction_id = COALESCE(EXCLUDED.faction_id, umaykut_v2.player_game_state.faction_id),
+                 worker_assignments = EXCLUDED.worker_assignments,
+                 worker_state_initialized = TRUE,
+                 updated_at = NOW()
+           RETURNING faction_id, worker_pool, worker_assignments, worker_state_initialized, updated_at`,
+          [playerId, factionId, JSON.stringify(workerAssignments)]
+        );
+        const row = saved.rows[0];
+        return sendJson(res, 200, {
+          success: true,
+          factionId: row.faction_id,
+          workerPool: Number(row.worker_pool),
+          workerAssignments: row.worker_assignments,
+          workerStateInitialized: row.worker_state_initialized,
+          updatedAt: row.updated_at
+        });
+      } catch (error) {
+        console.error("V2 game state request failed", {
+          code: error.code || "UNKNOWN",
+          message: String(error.message || "Unknown game state error").slice(0, 200)
+        });
+        return sendJson(res, 500, { error: "Oyun ilerlemesi kaydedilemedi." });
+      }
+    }
+
     if (url.pathname.startsWith("/api/auth/")) {
       if (!pool) return sendJson(res, 503, { error: "Hesap servisi henüz yapılandırılmadı." });
       if (!sessionSecret || sessionSecret.length < 32) {
