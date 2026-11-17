@@ -745,8 +745,7 @@ function readWallPosition(){
    return saved;
   }
  }catch{}
- const style=getComputedStyle(wallPositionMarker);
- return {x:parseFloat(style.left)||50.3,y:parseFloat(style.top)||75.3};
+ return {x:parseFloat(wallPositionMarker.style.left)||50.3,y:parseFloat(wallPositionMarker.style.top)||75.3};
 }
 function updateWallPositionStatus(prefix=""){
  const p=wallPositionDraft||readWallPosition();
