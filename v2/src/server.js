@@ -4,6 +4,7 @@ import { dirname, extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig } from "./config.js";
 import { resolveBattle, resolveScoutClash } from "./combat.js";
+import { handleNeutralRegionRequest } from "./neutral-regions-api.js";
 import { createPool } from "./database.js";
 import { handleArmyRequest, getTroopCatalog, settleTrainingQueue } from "./army.js";
 import {
@@ -193,6 +194,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
 
 
     if (await handleArmyRequest({ req, res, url, pool, sessionSecret })) return;
+    if (await handleNeutralRegionRequest({ req, res, url, pool, sessionSecret })) return;
 
 
     if (url.pathname === "/api/game/players" || url.pathname === "/api/game/attacks" || url.pathname === "/api/game/attack" || url.pathname === "/api/game/scouting") {
