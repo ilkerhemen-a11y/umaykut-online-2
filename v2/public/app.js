@@ -981,23 +981,25 @@ const mapWorldCanvas=document.querySelector("#map-world-canvas");
 const mapViewport=document.querySelector(".world-map");
 let mapZoom=0.55;
 const MAP_ZOOM_MIN=0.55,MAP_ZOOM_MAX=1.6,MAP_ZOOM_STEP=0.15;
-function applyMapZoom(nextZoom,preserveCenter=true){
+function applyMapZoom(nextZoom,preserveCenter=true,focalPoint=null){
  if(!mapWorldCanvas||!mapViewport)return;
- const oldWidth=mapWorldCanvas.clientWidth||1800,oldHeight=mapWorldCanvas.clientHeight||1200;
- const centerX=mapViewport.scrollLeft+mapViewport.clientWidth/2;
- const centerY=mapViewport.scrollTop+mapViewport.clientHeight/2;
- const ratioX=centerX/oldWidth,ratioY=centerY/oldHeight;
- mapZoom=Math.max(MAP_ZOOM_MIN,Math.min(MAP_ZOOM_MAX,Math.round(nextZoom*100)/100));
  const mobile=window.matchMedia("(max-width: 420px)").matches;
  const baseWidth=mobile?1500:1800,baseHeight=mobile?1000:1200;
- mapWorldCanvas.style.width=Math.round(baseWidth*mapZoom)+"px";
- mapWorldCanvas.style.height=Math.round(baseHeight*mapZoom)+"px";
+ const anchorX=focalPoint?focalPoint.x:mapViewport.clientWidth/2;
+ const anchorY=focalPoint?focalPoint.y:mapViewport.clientHeight/2;
+ const worldX=(mapViewport.scrollLeft+anchorX)/(baseWidth*mapZoom);
+ const worldY=(mapViewport.scrollTop+anchorY)/(baseHeight*mapZoom);
+ mapZoom=Math.max(MAP_ZOOM_MIN,Math.min(MAP_ZOOM_MAX,Math.round(nextZoom*100)/100));
+ // CSS zoom scales the complete map scene, including every marker, label and SVG overlay.
+ mapWorldCanvas.style.width=baseWidth+"px";
+ mapWorldCanvas.style.height=baseHeight+"px";
+ mapWorldCanvas.style.zoom=String(mapZoom);
  const label=document.querySelector("#map-zoom-level");
  if(label)label.textContent=Math.round(mapZoom*100)+"%";
  if(preserveCenter){
   requestAnimationFrame(()=>{
-   mapViewport.scrollLeft=Math.max(0,ratioX*mapWorldCanvas.clientWidth-mapViewport.clientWidth/2);
-   mapViewport.scrollTop=Math.max(0,ratioY*mapWorldCanvas.clientHeight-mapViewport.clientHeight/2);
+   mapViewport.scrollLeft=Math.max(0,worldX*baseWidth*mapZoom-anchorX);
+   mapViewport.scrollTop=Math.max(0,worldY*baseHeight*mapZoom-anchorY);
   });
  }
 }
@@ -1014,6 +1016,39 @@ document.querySelector("#map-zoom-reset")?.addEventListener("click",()=>{
   });
  }
 });
+// Touch navigation: one finger pans natively; two fingers pinch-zoom around their midpoint.
+if(mapViewport){
+ const activeTouches=new Map();
+ let pinchStartDistance=0,pinchStartZoom=mapZoom;
+ const touchDistance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+ const touchMidpoint=(a,b)=>({x:(a.x+b.x)/2-mapViewport.getBoundingClientRect().left,y:(a.y+b.y)/2-mapViewport.getBoundingClientRect().top});
+ mapViewport.addEventListener("pointerdown",event=>{
+  if(event.pointerType!=="touch")return;
+  activeTouches.set(event.pointerId,{x:event.clientX,y:event.clientY});
+  if(activeTouches.size===2){
+   const points=[...activeTouches.values()];
+   pinchStartDistance=Math.max(1,touchDistance(points[0],points[1]));
+   pinchStartZoom=mapZoom;
+  }
+ });
+ mapViewport.addEventListener("pointermove",event=>{
+  if(event.pointerType!=="touch"||!activeTouches.has(event.pointerId))return;
+  activeTouches.set(event.pointerId,{x:event.clientX,y:event.clientY});
+  if(activeTouches.size<2)return;
+  const points=[...activeTouches.values()].slice(0,2);
+  const distance=touchDistance(points[0],points[1]);
+  const midpoint=touchMidpoint(points[0],points[1]);
+  applyMapZoom(pinchStartZoom*(distance/pinchStartDistance),true,midpoint);
+  event.preventDefault();
+ },{passive:false});
+ const finishTouch=event=>{
+  if(event.pointerType!=="touch")return;
+  activeTouches.delete(event.pointerId);
+  if(activeTouches.size<2){pinchStartDistance=0;pinchStartZoom=mapZoom;}
+ };
+ mapViewport.addEventListener("pointerup",finishTouch);
+ mapViewport.addEventListener("pointercancel",finishTouch);
+}
 window.addEventListener("resize",()=>applyMapZoom(mapZoom,false));
 applyMapZoom(mapZoom,false);
 
