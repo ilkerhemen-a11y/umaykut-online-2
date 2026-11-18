@@ -854,6 +854,62 @@ async function openArmyDialog(){
 document.querySelector('[data-action="army"]').addEventListener("click",openArmyDialog);
 document.querySelector("#army-close").addEventListener("click",()=>{armyDialog.close();if(armyRefreshTimer)clearInterval(armyRefreshTimer);});
 armyDialog.addEventListener("click",event=>{if(event.target===armyDialog)armyDialog.close();});
+const battleReportsDialog=document.querySelector("#battle-reports-dialog");
+const battleReportsList=document.querySelector("#battle-reports-list");
+const battleReportsMessage=document.querySelector("#battle-reports-message");
+function reportNumber(value){return new Intl.NumberFormat("tr-TR").format(Number(value)||0);}
+function renderBattleReports(attacks){
+ battleReportsList.replaceChildren();
+ const completed=attacks.filter(raid=>raid.battle_report&&["resolved","returned"].includes(raid.status));
+ if(!completed.length){
+  battleReportsList.append(Object.assign(document.createElement("p"),{textContent:"Henüz tamamlanmış bir savaş raporun yok. Saldırı veya savunma yaptığında raporların burada görünecek."}));
+  return;
+ }
+ completed.forEach(raid=>{
+  const report=raid.battle_report;
+  const card=document.createElement("article");card.className="battle-report-card";
+  const heading=document.createElement("div");heading.className="battle-report-heading";
+  const title=document.createElement("strong");
+  title.textContent=(raid.direction==="outgoing"?"⚔️ Saldırı: ":"🛡️ Savunma: ")+(raid.direction==="outgoing"?raid.defender_village:raid.attacker_village);
+  const outcome=document.createElement("span");outcome.className="battle-report-outcome";
+  outcome.textContent=report.winner===(raid.direction==="outgoing"?"attacker":"defender")?"Zafer":"Mağlubiyet";
+  heading.append(title,outcome);card.append(heading);
+  const date=document.createElement("small");date.className="battle-report-date";
+  date.textContent=new Date(raid.arrives_at).toLocaleString("tr-TR");card.append(date);
+  const ownLoss=raid.direction==="outgoing"?report.attackerLostCount:report.defenderLostCount;
+  const enemyLoss=raid.direction==="outgoing"?report.defenderLostCount:report.attackerLostCount;
+  const stats=document.createElement("div");stats.className="battle-report-stats";
+  [["Senin kayıpların",ownLoss],["Rakip kayıpları",enemyLoss],["Savunma gücü",report.defenderPower],["Sur engeli","%"+(report.wallDefensePercent||0)]].forEach(([label,value])=>{
+   const item=document.createElement("div"),strong=document.createElement("strong"),small=document.createElement("small");
+   strong.textContent=reportNumber(value);small.textContent=label;item.append(strong,small);stats.append(item);
+  });
+  card.append(stats);
+  const detail=document.createElement("p");detail.textContent=report.outcomeText||"Savaş tamamlandı.";card.append(detail);
+  if(raid.direction==="outgoing"&&raid.loot){
+   const loot=Object.entries(raid.loot).filter(([,count])=>Number(count)>0);
+   if(loot.length){const lootLine=document.createElement("small");lootLine.className="battle-report-loot";lootLine.textContent="Ganimet: "+loot.map(([key,count])=>key+" "+reportNumber(count)).join(" · ");card.append(lootLine);}
+  }
+  battleReportsList.append(card);
+ });
+}
+async function openBattleReports(){
+ if(!authToken)return;
+ battleReportsMessage.textContent="Savaş kayıtların getiriliyor…";
+ battleReportsList.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Raporlar yükleniyor…"}));
+ battleReportsDialog.showModal();
+ try{
+  const data=await authRequest("/api/game/attacks",{token:authToken});
+  renderBattleReports(data.attacks||[]);
+  battleReportsMessage.textContent=(data.attacks||[]).filter(raid=>raid.battle_report).length+" savaş kaydı bulundu.";
+ }catch(error){
+  battleReportsList.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Savaş raporları yüklenemedi."}));
+  battleReportsMessage.textContent="Bağlantını kontrol edip yeniden dene.";
+ }
+}
+document.querySelector('[data-action="battle-reports"]').addEventListener("click",openBattleReports);
+document.querySelector("#battle-reports-close").addEventListener("click",()=>battleReportsDialog.close());
+battleReportsDialog.addEventListener("click",event=>{if(event.target===battleReportsDialog)battleReportsDialog.close();});
+
 armyCatalogNode.addEventListener("click",event=>{
  const button=event.target.closest("[data-select-unit]");
  if(button)renderArmyUnitDetail(button.dataset.selectUnit);
