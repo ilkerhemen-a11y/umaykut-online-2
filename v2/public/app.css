@@ -232,3 +232,6 @@
 .battle-report-card p{margin:9px 0 0}
 .battle-report-loot{display:block;margin-top:7px;color:#e2c477}
 @media(min-width:600px){.bottom-nav button{font-size:10px}.bottom-nav button span{font-size:22px}}
+
+.battle-report-card[data-kind="territory"]{border-color:#b18d4b}
+.battle-report-kind{display:inline-block;margin-top:7px;color:#e3c77f;font:700 9px Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase}
