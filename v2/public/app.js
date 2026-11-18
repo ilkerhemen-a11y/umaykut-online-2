@@ -1095,7 +1095,7 @@ function renderWorldMap(data){
  if(overlay){
   overlay.querySelectorAll(".mining-range-ring").forEach(ring=>ring.remove());
   const schoolLevel=Math.max(1,Math.min(5,Number(gameBuildings["5"]?.level)||1));
-  const miningRange=10+(schoolLevel-1)*5;
+  const miningRange=2+(schoolLevel-1)*2;
   const ring=document.createElementNS("http://www.w3.org/2000/svg","circle");
   ring.setAttribute("class","mining-range-ring");
   ring.setAttribute("cx",String(ownX*18));ring.setAttribute("cy",String(ownY*12));
@@ -1133,7 +1133,7 @@ function renderWorldMap(data){
   marker.dataset.worldMine=String(node.id);
   marker.style.left=Number(node.world_x)+"%";marker.style.top=Number(node.world_y)+"%";
   const schoolLevel=Math.max(1,Math.min(5,Number(gameBuildings["5"]?.level)||1));
-  const range=10+(schoolLevel-1)*5;
+  const range=2+(schoolLevel-1)*2;
   const dx=(Number(node.world_x)-ownX)*18,dy=(Number(node.world_y)-ownY)*12;
   const inRange=Math.hypot(dx,dy)<=range*18;
   marker.dataset.inRange=String(inRange);
@@ -1172,7 +1172,7 @@ mapWorldCanvas?.addEventListener("click",async event=>{
    const ownCity=mapWorldCanvas.querySelector(".map-own-city");
    const ownX=parseFloat(ownCity?.style.left)||50,ownY=parseFloat(ownCity?.style.top)||50;
    const schoolLevel=Math.max(1,Math.min(5,Number(gameBuildings["5"]?.level)||1));
-   const range=10+(schoolLevel-1)*5;
+   const range=2+(schoolLevel-1)*2;
    const dx=(Number(node.world_x)-ownX)*18,dy=(Number(node.world_y)-ownY)*12;
    if(Math.hypot(dx,dy)>range*18){
     mapPrompt.hidden=false;resourcePanel.hidden=true;
