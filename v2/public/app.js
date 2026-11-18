@@ -1169,9 +1169,19 @@ mapWorldCanvas?.addEventListener("click",async event=>{
  if(mine){
   const node=(window.__umaykutWorldNodes||[]).find(item=>String(item.id)===mine.dataset.worldMine);
   if(node){
+   const ownCity=mapWorldCanvas.querySelector(".map-own-city");
+   const ownX=parseFloat(ownCity?.style.left)||50,ownY=parseFloat(ownCity?.style.top)||50;
+   const schoolLevel=Math.max(1,Math.min(5,Number(gameBuildings["5"]?.level)||1));
+   const range=20+(schoolLevel-1)*10;
+   const dx=(Number(node.world_x)-ownX)*18,dy=(Number(node.world_y)-ownY)*12;
+   if(Math.hypot(dx,dy)>range*18){
+    mapPrompt.hidden=false;resourcePanel.hidden=true;
+    mapPrompt.textContent="Bu maden okulunun mevcut erişim çemberinin dışında. Okul seviyeni yükselterek erişim alanını genişletebilirsin.";
+    return;
+   }
    const labels={iron:"Demir Madeni",stone:"Taş Madeni",gold:"Altın Madeni"};
    mapPrompt.hidden=false;resourcePanel.hidden=true;
-   mapPrompt.textContent=labels[node.resource_type]+" · Verim seviyesi "+node.yield_level+"/9. Bu maden ortak dünyada keşfedildi.";
+   mapPrompt.textContent=labels[node.resource_type]+" · Verim seviyesi "+node.yield_level+"/9. Maden erişim alanında.";
   }
   return;
  }
