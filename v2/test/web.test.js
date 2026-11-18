@@ -101,7 +101,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/function renderBattleReports\(attacks\)/);
   assert.match(appScript,/function openBattleReports\(\)/);
   assert.match(appScript,/api\/game\/attacks/);
-  assert.match(appScript,/neutral-regions\\/reports/);
+  assert.match(appScript,/neutral-regions\/reports/);
   assert.ok(appScript.includes("function fitVillageImage()"));
   assert.ok(appScript.includes("villageImage.naturalWidth"));
   assert.ok(appScript.includes("new ResizeObserver(fitVillageImage)"));
