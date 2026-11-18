@@ -1091,6 +1091,18 @@ function renderWorldMap(data){
  const ownY=Math.max(0,Math.min(100,Number(world.world_y)||50));
  const ownCity=mapWorldCanvas.querySelector(".map-own-city");
  if(ownCity){ownCity.style.left=ownX+"%";ownCity.style.top=ownY+"%";}
+ const overlay=mapWorldCanvas.querySelector(".map-geography-overlay");
+ if(overlay){
+  overlay.querySelectorAll(".mining-range-ring").forEach(ring=>ring.remove());
+  const schoolLevel=Math.max(1,Math.min(5,Number(gameBuildings["5"]?.level)||1));
+  const miningRange=20+(schoolLevel-1)*10;
+  const ring=document.createElementNS("http://www.w3.org/2000/svg","circle");
+  ring.setAttribute("class","mining-range-ring");
+  ring.setAttribute("cx",String(ownX*18));ring.setAttribute("cy",String(ownY*12));
+  ring.setAttribute("r",String(miningRange*18));
+  ring.setAttribute("data-school-level",String(schoolLevel));
+  overlay.append(ring);
+ }
  mapWorldCanvas.querySelectorAll(".dynamic-world-marker").forEach(marker=>marker.remove());
  const mineTypes={
   iron:{icon:"⛏️",name:"Demir Madeni"},
@@ -1120,7 +1132,14 @@ function renderWorldMap(data){
   marker.className="map-point map-mine-point dynamic-world-marker";
   marker.dataset.worldMine=String(node.id);
   marker.style.left=Number(node.world_x)+"%";marker.style.top=Number(node.world_y)+"%";
-  marker.setAttribute("aria-label",type.name+", verim "+node.yield_level+" / 9");
+  const schoolLevel=Math.max(1,Math.min(5,Number(gameBuildings["5"]?.level)||1));
+  const range=20+(schoolLevel-1)*10;
+  const dx=(Number(node.world_x)-ownX)*18,dy=(Number(node.world_y)-ownY)*12;
+  const inRange=Math.hypot(dx,dy)<=range*18;
+  marker.dataset.inRange=String(inRange);
+  marker.classList.toggle("mine-out-of-range",!inRange);
+  marker.title=type.name+" · Verim "+node.yield_level+"/9 · "+(inRange?"Erişim alanında":"Erişim alanı dışında");
+  marker.setAttribute("aria-label",type.name+", verim "+node.yield_level+" / 9, "+(inRange?"erişim alanında":"erişim alanı dışında"));
   const icon=document.createElement("span");icon.textContent=type.icon;
   const name=document.createElement("small");name.textContent=type.name+" #"+node.id;
   const yieldLabel=document.createElement("b");yieldLabel.textContent="Verim "+node.yield_level+"/9";

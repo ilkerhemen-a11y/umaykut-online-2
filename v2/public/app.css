@@ -291,3 +291,11 @@
 .map-own-city{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;gap:3px;}
 .map-own-city img{width:58px;height:58px;border:2px solid #e0c27c;border-radius:50%;object-fit:cover;box-shadow:0 3px 10px #0009;}
 .map-own-city b,.map-own-city small{text-shadow:0 1px 4px #000,0 1px 8px #000;}
+
+
+/* Pulsing school-based mining access boundary on the world map. */
+.mining-range-ring{fill:#55d9ff0a;stroke:#63dcff;stroke-width:5;stroke-dasharray:18 11;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 7px #46d9ff) drop-shadow(0 0 15px #229fff);pointer-events:none;animation:mining-range-pulse 2.8s ease-in-out infinite;}
+@keyframes mining-range-pulse{0%,100%{stroke-opacity:.48;fill-opacity:.025;stroke-width:4}50%{stroke-opacity:1;fill-opacity:.11;stroke-width:7}}
+.map-mine-point.mine-out-of-range{opacity:.48;filter:grayscale(.8);border-style:dashed;}
+.map-mine-point:not(.mine-out-of-range){box-shadow:0 0 0 2px #62dfff66,0 0 13px #4ccfff88;}
+@media(prefers-reduced-motion:reduce){.mining-range-ring{animation:none;stroke-opacity:.85;}}
