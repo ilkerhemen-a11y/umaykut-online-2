@@ -867,7 +867,7 @@ function renderBattleReports(attacks){
  }
  completed.forEach(raid=>{
   const report=raid.battle_report;
-  const card=document.createElement("article");card.className="battle-report-card";
+  const card=document.createElement("article");card.className="battle-report-card"+(raid.neutralRegion?" territory":"");
   const heading=document.createElement("div");heading.className="battle-report-heading";
   const title=document.createElement("strong");
   title.textContent=raid.neutralRegion
