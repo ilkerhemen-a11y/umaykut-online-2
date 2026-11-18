@@ -20,7 +20,7 @@ import {
 const config = loadConfig();
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(here, "../public");
-const assetRoot = resolve(here, "../../public/assets");
+const assetRoot = resolve(here, "../public/assets");
 const INITIAL_RESOURCES = Object.freeze({gold:1650,wood:6900,food:9350,stone:7480,iron:8040,horses:100});
 const INITIAL_BUILDINGS = Object.freeze({
   "1": {type:"center",level:1},
@@ -163,7 +163,7 @@ async function sendStatic(res, root, relative) {
       "content-type": mimeTypes[extname(target).toLowerCase()] || "application/octet-stream",
       "content-length": data.length,
       "x-content-type-options": "nosniff",
-      "cache-control": extname(target) === ".html" ? "no-cache" : "public, max-age=300"
+      "cache-control": [".html", ".css", ".js"].includes(extname(target).toLowerCase()) ? "no-cache" : "public, max-age=300"
     });
     res.end(data);
   } catch {
