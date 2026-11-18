@@ -53,6 +53,20 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
   );
   if(!valid.rowCount)return json(res,401,{error:'Oyuncu oturumu bulunamadı.'}),true;
 
+  if(req.method==='GET'&&path==='/api/game/neutral-regions/reports'){
+    const reports=await pool.query(
+      `SELECT r.id,r.region_id,n.region_name,r.battle_type,r.battle_report,r.created_at,
+              actor.village_name AS actor_village,opponent.village_name AS opponent_village,
+              CASE WHEN r.actor_player_id=$1 THEN 'outgoing' ELSE 'incoming' END AS direction
+       FROM umaykut_v2.neutral_region_battle_reports r
+       JOIN umaykut_v2.world_neutral_regions n ON n.id=r.region_id
+       JOIN umaykut_v2.players actor ON actor.id=r.actor_player_id
+       LEFT JOIN umaykut_v2.players opponent ON opponent.id=r.opponent_player_id
+       WHERE r.actor_player_id=$1 OR r.opponent_player_id=$1
+       ORDER BY r.created_at DESC LIMIT 100`,[session.id]
+    );
+    return json(res,200,{reports:reports.rows,serverNow:new Date().toISOString()}),true;
+  }
   if(req.method==='GET'&&path==='/api/game/neutral-regions'){
     const result=await pool.query(
       `SELECT id,region_name,world_x,world_y,guard_troops,owner_player_id,owner_faction_id,
@@ -139,6 +153,11 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
            WHERE id=$1`,
           [regionId,session.id,factionId,JSON.stringify(attackerAfter),countTroops(attackerAfter),JSON.stringify(guardsAfter)]
         );
+        await client.query(
+          `INSERT INTO umaykut_v2.neutral_region_battle_reports(region_id,actor_player_id,battle_type,battle_report)
+           VALUES($1,$2,'guard_challenge',$3::jsonb)`,
+          [regionId,session.id,JSON.stringify({winner:'attacker',attackerVillage:'Senin garnizonun',defenderVillage:'Tarafsız muhafızlar',attackerLosses:battle.attackerLosses,defenderLosses:battle.defenderLosses,attackerSurvivors:battle.attackerSurvivors,defenderSurvivors:battle.defendersSurvivors,captured:true,outcomeText:'Tarafsız muhafızlar yenildi; bölge fethedildi.'})]
+        );
         await client.query('COMMIT');tx=false;
         return json(res,200,{success:true,victory:true,captured:true,ownerFactionId:factionId,attackerSurvivors:battle.attackerSurvivors,attackerLosses:battle.attackerLosses,defenderLosses:battle.defenderLosses,message:'Muhafızlar yenildi; bölge fethedildi ve devletinin rengine boyandı.'}),true;
       }
@@ -146,15 +165,22 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
         'UPDATE umaykut_v2.world_neutral_regions SET garrison_troops=$2::jsonb,garrison_count=$3,guard_troops=$4::jsonb,updated_at=NOW() WHERE id=$1',
         [regionId,JSON.stringify(attackerAfter),countTroops(attackerAfter),JSON.stringify(guardsAfter)]
       );
+      await client.query(
+        `INSERT INTO umaykut_v2.neutral_region_battle_reports(region_id,actor_player_id,battle_type,battle_report)
+         VALUES($1,$2,'guard_challenge',$3::jsonb)`,
+        [regionId,session.id,JSON.stringify({winner:'defender',attackerVillage:'Senin garnizonun',defenderVillage:'Tarafsız muhafızlar',attackerLosses:battle.attackerLosses,defenderLosses:battle.defenderLosses,attackerSurvivors:battle.attackerSurvivors,defenderSurvivors:battle.defendersSurvivors,captured:false,outcomeText:'Muhafızlar savunmayı sürdürdü; garnizon takviyesi gerekiyor.'})]
+      );
       await client.query('COMMIT');tx=false;
       return json(res,200,{success:true,victory:false,captured:false,attackerSurvivors:battle.attackerSurvivors,attackerLosses:battle.attackerLosses,defenderLosses:battle.defenderLosses,message:'Muhafızlar henüz yenilmedi. Garnizonu güçlendirip yeniden saldırabilirsin.'}),true;
     }
 
-    if(!region.claimed_by_player_id||expireNeutralClaim({claimExpiresAt:region.claim_expires_at})){
+    const ownedRegion=Boolean(region.owner_player_id);
+    const defenderPlayerId=region.owner_player_id||region.claimed_by_player_id;
+    if(!defenderPlayerId||(!ownedRegion&&expireNeutralClaim({claimExpiresAt:region.claim_expires_at}))){
       await client.query('ROLLBACK');tx=false;
-      return json(res,409,{error:'Bölgede aktif bir hâkimiyet mücadelesi yok veya dört saatlik süre sona ermiş.'}),true;
+      return json(res,409,{error:'Bölgede saldırılabilir bir garnizon bulunmuyor veya geçici hâkimiyet süresi sona ermiş.'}),true;
     }
-    if(region.claimed_by_player_id===session.id){
+    if(defenderPlayerId===session.id){
       await client.query('ROLLBACK');tx=false;
       return json(res,409,{error:'Kendi garnizonuna saldıramazsın.'}),true;
     }
@@ -162,7 +188,7 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
       attackingTroops:troops,
       defendingTroops:parse(region.garrison_troops),
       guardTroops:parse(region.guard_troops),
-      claimExpiresAt:region.claim_expires_at
+      claimExpiresAt:region.claim_expires_at,ownedRegion
     });
     const defenderStacks={...parse(region.garrison_troops),...Object.fromEntries(Object.entries(parse(region.guard_troops)).map(([id,n])=>['guard_'+id,n]))};
     const attackerAfter=applyLosses(troops,battle.attackerLosses);
@@ -177,6 +203,11 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
           garrison_troops=$4::jsonb,garrison_count=$5,guard_troops=$6::jsonb,updated_at=NOW() WHERE id=$1`,
         [regionId,session.id,factionId,JSON.stringify(attackerAfter),countTroops(attackerAfter),JSON.stringify(guardsAfter)]
       );
+      await client.query(
+        `INSERT INTO umaykut_v2.neutral_region_battle_reports(region_id,actor_player_id,opponent_player_id,battle_type,battle_report)
+         VALUES($1,$2,$3,$4,$5::jsonb)`,
+        [regionId,session.id,defenderPlayerId,ownedRegion?'territory_attack':'claim_attack',JSON.stringify({winner:'attacker',attackerVillage:'Senin ordun',defenderVillage:region.region_name,attackerLosses:battle.attackerLosses,defenderLosses:battle.defenderLosses,attackerSurvivors:battle.attackerSurvivors,defenderSurvivors:battle.defendersSurvivors,captured:true,outcomeText:ownedRegion?'Bölge savunması aşıldı; toprak yeniden fethedildi.':'Rakip garnizon yenildi; bölge fethedildi.'})]
+      );
       await client.query('COMMIT');tx=false;
       return json(res,200,{success:true,victory:true,captured:true,ownerFactionId:factionId,attackerSurvivors:battle.attackerSurvivors,attackerLosses:battle.attackerLosses,defenderLosses:battle.defenderLosses,message:'Bölge fethedildi; devletinin rengiyle haritaya işlendi.'}),true;
     }
@@ -186,6 +217,11 @@ export async function handleNeutralRegionRequest({req,res,url,pool,sessionSecret
     await client.query(
       'UPDATE umaykut_v2.world_neutral_regions SET garrison_troops=$2::jsonb,garrison_count=$3,guard_troops=$4::jsonb,updated_at=NOW() WHERE id=$1',
       [regionId,JSON.stringify(garrisonAfter),countTroops(garrisonAfter),JSON.stringify(guardsAfter)]
+    );
+    await client.query(
+      `INSERT INTO umaykut_v2.neutral_region_battle_reports(region_id,actor_player_id,opponent_player_id,battle_type,battle_report)
+       VALUES($1,$2,$3,$4,$5::jsonb)`,
+      [regionId,session.id,defenderPlayerId,ownedRegion?'territory_attack':'claim_attack',JSON.stringify({winner:'defender',attackerVillage:'Senin ordun',defenderVillage:region.region_name,attackerLosses:battle.attackerLosses,defenderLosses:battle.defenderLosses,attackerSurvivors:battle.attackerSurvivors,defenderSurvivors:battle.defendersSurvivors,captured:false,outcomeText:'Bölge savunması saldırıyı püskürttü; hâkimiyet korundu.'})]
     );
     await client.query('COMMIT');tx=false;
     return json(res,200,{success:true,victory:false,captured:false,attackerSurvivors:battle.attackerSurvivors,attackerLosses:battle.attackerLosses,defenderLosses:battle.defenderLosses,message:'Saldırı başarısız oldu; bölge hâkimiyeti devam ediyor.'}),true;
