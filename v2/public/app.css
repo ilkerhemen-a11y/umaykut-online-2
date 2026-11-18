@@ -304,3 +304,12 @@
 /* Separate isometric building artwork in the building detail dialog. */
 .building-dialog img.dialog-emblem{display:block;width:min(100%,230px);height:154px;object-fit:contain;margin:0 auto 8px;padding:8px;border:1px solid #a8894b66;border-radius:14px;background:radial-gradient(ellipse at 50% 40%,#d9bd7628,#10181180 74%);filter:drop-shadow(0 7px 9px #0008)}
 @media(max-width:390px){.building-dialog img.dialog-emblem{height:132px;width:min(100%,205px)}}
+
+/* Five illustrated resources; marker and artwork scale with the entire map. */
+.map-mine-point.resource-node-marker{width:48px;min-width:48px;height:48px;padding:2px;border:1px solid #77d9f2;border-radius:13px;background:linear-gradient(145deg,#203a43ed,#101d22f2);box-shadow:0 0 0 2px #4cc9f366,0 4px 12px #000b;overflow:visible}
+.map-mine-point.resource-node-marker>img{display:block;width:42px;height:42px;object-fit:contain;filter:drop-shadow(0 2px 2px #0009);pointer-events:none}
+.map-mine-point.resource-node-marker>small{position:absolute;top:calc(100% + 3px);left:50%;transform:translateX(-50%);display:block;max-width:90px;padding:2px 5px;border:1px solid #66c9e477;border-radius:5px;background:#10212bef;color:#e5f8ff;font:700 8px Arial,sans-serif;text-align:center;white-space:nowrap}
+.map-mine-point.resource-node-marker>b{display:none}
+.map-mine-point.resource-node-marker.mine-out-of-range{opacity:.72;filter:saturate(.65)}
+.map-mine-point.resource-node-marker:not(.mine-out-of-range){box-shadow:0 0 0 2px #62dfff99,0 0 16px #4ccfffaa,0 4px 12px #000b}
+@media(max-width:420px){.map-mine-point.resource-node-marker{width:44px;min-width:44px;height:44px}.map-mine-point.resource-node-marker>img{width:38px;height:38px}}

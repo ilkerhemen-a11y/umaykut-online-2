@@ -1152,9 +1152,11 @@ function renderWorldMap(data){
  }
  mapWorldCanvas.querySelectorAll(".dynamic-world-marker").forEach(marker=>marker.remove());
  const mineTypes={
-  iron:{icon:"⛏️",name:"Demir Madeni"},
-  stone:{icon:"🪨",name:"Taş Madeni"},
-  gold:{icon:"🪙",name:"Altın Madeni"}
+  stone:{asset:"stone.svg",name:"Taş Ocağı"},
+  wood:{asset:"wood.svg",name:"Odun Deposu"},
+  iron:{asset:"iron.svg",name:"Demir Madeni"},
+  gold:{asset:"gold.svg",name:"Altın Yatağı"},
+  grain:{asset:"grain.svg",name:"Tahıl Tarlası"}
  };
 
  const neutralVillages=Array.isArray(data.neutralRegions)?data.neutralRegions:[];
@@ -1176,7 +1178,7 @@ function renderWorldMap(data){
  (data.resourceNodes||[]).forEach(node=>{
   const type=mineTypes[node.resource_type];if(!type)return;
   const marker=document.createElement("button");marker.type="button";
-  marker.className="map-point map-mine-point dynamic-world-marker";
+  marker.className="map-point map-mine-point resource-node-marker resource-node-"+node.resource_type+" dynamic-world-marker";
   marker.dataset.worldMine=String(node.id);
   marker.style.left=Number(node.world_x)+"%";marker.style.top=Number(node.world_y)+"%";
   const schoolLevel=Math.max(1,Math.min(5,Number(gameBuildings["5"]?.level)||1));
@@ -1185,10 +1187,10 @@ function renderWorldMap(data){
   const inRange=Math.hypot(dx,dy)<=range*18;
   marker.dataset.inRange=String(inRange);
   marker.classList.toggle("mine-out-of-range",!inRange);
-  marker.title=type.name+" · Verim "+node.yield_level+"/9 · "+(inRange?"Erişim alanında":"Erişim alanı dışında");
-  marker.setAttribute("aria-label",type.name+", verim "+node.yield_level+" / 9, "+(inRange?"erişim alanında":"erişim alanı dışında"));
-  const icon=document.createElement("span");icon.textContent=type.icon;
-  const name=document.createElement("small");name.textContent=type.name+" #"+node.id;
+  marker.title=type.name+" · Verim "+node.yield_level+"/9 · "+(inRange?"Mavi alan içinde":"Mavi alan dışında");
+  marker.setAttribute("aria-label",type.name+", verim "+node.yield_level+" / 9, "+(inRange?"mavi alan içinde":"mavi alan dışında"));
+  const icon=document.createElement("img");icon.src="/assets/resources/"+type.asset;icon.alt="";icon.width=42;icon.height=42;icon.loading="lazy";icon.decoding="async";
+  const name=document.createElement("small");name.textContent=type.name;
   const yieldLabel=document.createElement("b");yieldLabel.textContent="Verim "+node.yield_level+"/9";
   marker.append(icon,name,yieldLabel);mapWorldCanvas.append(marker);
  });
@@ -1226,7 +1228,7 @@ mapWorldCanvas?.addEventListener("click",async event=>{
     mapPrompt.textContent="Bu maden okulunun mevcut erişim çemberinin dışında. Okul seviyeni yükselterek erişim alanını genişletebilirsin.";
     return;
    }
-   const labels={iron:"Demir Madeni",stone:"Taş Madeni",gold:"Altın Madeni"};
+   const labels={iron:"Demir Madeni",stone:"Taş Ocağı",gold:"Altın Yatağı",wood:"Odun Deposu",grain:"Tahıl Tarlası"};
    mapPrompt.hidden=false;resourcePanel.hidden=true;
    mapPrompt.textContent=labels[node.resource_type]+" · Verim seviyesi "+node.yield_level+"/9. Maden erişim alanında.";
   }

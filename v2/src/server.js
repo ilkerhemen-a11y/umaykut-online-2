@@ -316,7 +316,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
              WHERE p.id<>$1 AND p.village_name IS NOT NULL AND s.faction_id IS NOT NULL
              ORDER BY p.created_at ASC LIMIT 100`,[session.id]),
           pool.query("SELECT world_x,world_y FROM umaykut_v2.player_game_state WHERE player_id=$1",[session.id]),
-          pool.query("SELECT id,resource_type,world_x,world_y,yield_level FROM umaykut_v2.world_resource_nodes ORDER BY id")
+          pool.query("SELECT id,resource_type,world_x,world_y,yield_level FROM umaykut_v2.world_resource_nodes WHERE owner_player_id IS NULL OR owner_player_id=$1 ORDER BY id",[session.id])
         ]);
         return sendJson(res,200,{
           players:result.rows,
@@ -705,6 +705,25 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
                 session.id, factionId, JSON.stringify(INITIAL_RESOURCES),
                 JSON.stringify(INITIAL_BUILDINGS), JSON.stringify({grain:0,wood:0,stone:0})
               ]
+            );
+            // Five personal resource points are seeded once, around the new village and inside its blue ring.
+            await client.query(
+              `INSERT INTO umaykut_v2.world_resource_nodes
+                 (id,resource_type,world_x,world_y,yield_level,owner_player_id)
+               SELECT nextval('umaykut_v2.world_resource_node_id_seq'),v.resource_type,
+                      GREATEST(1,LEAST(99,s.world_x+v.dx)),GREATEST(1,LEAST(99,s.world_y+v.dy)),
+                      5,s.player_id::text
+               FROM umaykut_v2.player_game_state s
+               CROSS JOIN (VALUES
+                 ('stone'::varchar,-1.15::double precision,-1.05::double precision),
+                 ('wood'::varchar,1.15::double precision,-1.05::double precision),
+                 ('iron'::varchar,-1.15::double precision,1.05::double precision),
+                 ('gold'::varchar,1.15::double precision,1.05::double precision),
+                 ('grain'::varchar,0.00::double precision,1.65::double precision)
+               ) AS v(resource_type,dx,dy)
+               WHERE s.player_id=$1
+                 AND NOT EXISTS(SELECT 1 FROM umaykut_v2.world_resource_nodes n WHERE n.owner_player_id=s.player_id::text)`,
+              [session.id]
             );
           } else {
             await client.query(
