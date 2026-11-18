@@ -118,6 +118,17 @@ const BUILDING_SLOT_TYPES={
  "1":"center","2":"barracks","3":"stable","4":"blacksmith",
  "5":"school","6":"lumberyard","7":"temple","8":"market","9":"warehouse"
 };
+const BUILDING_ART={
+ "1":"/assets/seljuk-center.svg",
+ "2":"/assets/buildings/barracks.svg",
+ "3":"/assets/buildings/stable.svg",
+ "4":"/assets/buildings/blacksmith.svg",
+ "5":"/assets/buildings/school.svg",
+ "6":"/assets/buildings/lumberjack.svg",
+ "7":"/assets/buildings/temple.svg",
+ "8":"/assets/buildings/market.svg",
+ "9":"/assets/buildings/archery.svg"
+};
 const DEFAULT_BUILDINGS={
  "1":{type:"center",level:1},
  "2":{type:"barracks",level:1},
@@ -258,7 +269,8 @@ function updateBuildingDialog(){
  const atMaximum=currentLevel>=MAX_BUILDING_LEVEL;
  const upgrading=Boolean(building.upgrade);
  const cost=buildingCostFor(targetLevel);
- buildingEmblem.textContent=definition.icon;
+ buildingEmblem.src=BUILDING_ART[slot]||"/assets/keep.svg";
+  buildingEmblem.alt=definition.name+" görseli";
  buildingEyebrow.textContent="İNŞA ALANI "+slot;
  buildingTitle.textContent=definition.name;
  buildingDescription.textContent=definition.description;

@@ -299,3 +299,8 @@
 .map-mine-point.mine-out-of-range{opacity:.48;filter:grayscale(.8);border-style:dashed;}
 .map-mine-point:not(.mine-out-of-range){box-shadow:0 0 0 2px #62dfff66,0 0 13px #4ccfff88;}
 @media(prefers-reduced-motion:reduce){.mining-range-ring{animation:none;stroke-opacity:.85;}}
+
+
+/* Separate isometric building artwork in the building detail dialog. */
+.building-dialog img.dialog-emblem{display:block;width:min(100%,230px);height:154px;object-fit:contain;margin:0 auto 8px;padding:8px;border:1px solid #a8894b66;border-radius:14px;background:radial-gradient(ellipse at 50% 40%,#d9bd7628,#10181180 74%);filter:drop-shadow(0 7px 9px #0008)}
+@media(max-width:390px){.building-dialog img.dialog-emblem{height:132px;width:min(100%,205px)}}

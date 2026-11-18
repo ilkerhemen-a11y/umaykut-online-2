@@ -35,8 +35,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261118-battle-reports-2"/);
-  assert.ok(html.includes('src="/app.js?v=20261118-battle-reports-2"'));
+  assert.match(html,/href="\/app\.css\?v=20261118-building-art-1"/);
+  assert.ok(html.includes('src="/app.js?v=20261118-building-art-1"'));
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n      <section id="building-upgrade-tracker"',stageStart);
   assert.ok(stageEnd>stageStart);
@@ -86,6 +86,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(css.includes("font:700 7px/1.2 Arial,sans-serif"));
   assert.ok(!css.includes(".city-frame{max-height:700px}"));
   assert.ok(!css.includes(".city-frame{min-height:360px;max-height:58dvh}"));
+  assert.match(html,/img class="dialog-emblem" id="building-emblem"[^>]*src="\/assets\/seljuk-center\.svg"/);
   assert.match(html,/id="building-upgrade-tracker"/);
   assert.match(html,/id="building-upgrade-list"/);
   assert.match(html,/id="map-view" hidden/);
@@ -123,6 +124,14 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/setServerClock\(state.serverNow\)/);
   assert.match(appScript,/building-upgrade-count/);
   assert.match(appScript,/BUILDING_SLOT_TYPES/);
+  assert.match(appScript,/const BUILDING_ART=\{/);
+  assert.match(appScript,/buildingEmblem\.src=BUILDING_ART\[slot\]/);
+  for(const assetPath of ["/assets/seljuk-center.svg","/assets/buildings/barracks.svg","/assets/buildings/stable.svg","/assets/buildings/blacksmith.svg","/assets/buildings/school.svg","/assets/buildings/lumberjack.svg","/assets/buildings/temple.svg","/assets/buildings/market.svg","/assets/buildings/archery.svg"]){
+    const buildingAsset=await fetch(base+assetPath);
+    assert.equal(buildingAsset.status,200,assetPath);
+    assert.match(buildingAsset.headers.get("content-type"),/image\/svg\+xml/);
+    assert.match(await buildingAsset.text(),/<svg\b/);
+  }
   assert.match(appScript,/node\.querySelector\("\.building-label"\)/);
   assert.match(appScript,/node\.querySelector\("\.building-index"\)/);
   assert.match(appScript,/building\.upgrade\?\.targetLevel/);
