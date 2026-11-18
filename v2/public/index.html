@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101a13">
   <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
   <title>Umaykut Online 2 · V2</title>
-  <link rel="stylesheet" href="/app.css?v=20261118-neutral-conquest-3">
+  <link rel="stylesheet" href="/app.css?v=20261118-battle-reports-1">
   <link rel="stylesheet" href="/factions.css?v=20261117-founding-flow-2">
 </head>
 <body>
@@ -201,7 +201,8 @@
       <button class="active" type="button" data-screen="village"><span>🏰</span>Köy</button>
       <button type="button" data-action="army"><span>⚔️</span>Ordu</button>
       <button type="button" data-screen="map"><span>🗺️</span>Harita</button>
-      <button type="button"><span>🎒</span>Envanter</button>
+      <button type="button" data-action="inventory"><span>🎒</span>Envanter</button>
+      <button type="button" data-action="battle-reports" aria-haspopup="dialog" aria-controls="battle-reports-dialog"><span>📜</span>Savaş Raporu</button>
       <button type="button" data-action="settings" aria-haspopup="dialog" aria-controls="settings-dialog"><span>⚙️</span>Ayarlar</button>
     </nav>
     <dialog id="army-dialog" class="army-dialog" aria-labelledby="army-dialog-title">
@@ -215,7 +216,13 @@
   </section>
   <p id="army-message" class="army-message" role="status" aria-live="polite"></p>
 </dialog>
-\n    <dialog id="neutral-region-dialog" class="army-dialog neutral-region-dialog" aria-labelledby="neutral-region-title">
+\n    <dialog id="battle-reports-dialog" class="army-dialog battle-reports-dialog" aria-labelledby="battle-reports-title">
+      <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · TARİHÇE</small><h2 id="battle-reports-title">Savaş Raporları</h2></div><button id="battle-reports-close" type="button" aria-label="Kapat">×</button></div>
+      <p class="army-message">Katıldığın saldırılar ve savunmalar burada kayıt altında tutulur.</p>
+      <div id="battle-reports-list" class="battle-reports-list"><p>Savaş kayıtları yükleniyor…</p></div>
+      <p id="battle-reports-message" class="army-message" role="status" aria-live="polite"></p>
+    </dialog>
+    <dialog id="neutral-region-dialog" class="army-dialog neutral-region-dialog" aria-labelledby="neutral-region-title">
       <div class="army-dialog-head">
         <div><small>UMAYKUT ONLINE II · TOPRAK FETHİ</small><h2 id="neutral-region-title">Tarafsız Bölge</h2></div>
         <button id="neutral-region-close" type="button" aria-label="Kapat">×</button>
@@ -281,6 +288,6 @@
     </dialog>
   </main>
 
-  <script type="module" src="/app.js?v=20261118-neutral-conquest-3"></script>
+  <script type="module" src="/app.js?v=20261118-battle-reports-1"></script>
 </body>
 </html>
