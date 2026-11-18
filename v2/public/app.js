@@ -1011,8 +1011,8 @@ document.querySelector("#map-zoom-reset")?.addEventListener("click",()=>{
   const own=mapWorldCanvas.querySelector(".map-own-city");
   const x=own?parseFloat(own.style.left||"50"):50,y=own?parseFloat(own.style.top||"50"):50;
   requestAnimationFrame(()=>{
-   mapViewport.scrollLeft=Math.max(0,x/100*mapWorldCanvas.clientWidth-mapViewport.clientWidth/2);
-   mapViewport.scrollTop=Math.max(0,y/100*mapWorldCanvas.clientHeight-mapViewport.clientHeight/2);
+   mapViewport.scrollLeft=Math.max(0,x/100*mapWorldCanvas.clientWidth*mapZoom-mapViewport.clientWidth/2);
+   mapViewport.scrollTop=Math.max(0,y/100*mapWorldCanvas.clientHeight*mapZoom-mapViewport.clientHeight/2);
   });
  }
 });
