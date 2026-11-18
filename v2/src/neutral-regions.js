@@ -43,7 +43,7 @@ export function createNeutralClaim({ playerId, factionId, now = new Date(), dura
   };
 }
 
-export function resolveNeutralBattle({ attackingTroops, defendingTroops, guardTroops = {}, now = new Date(), claimExpiresAt }) {
+export function resolveNeutralBattle({ attackingTroops, defendingTroops, guardTroops = {}, now = new Date(), claimExpiresAt, ownedRegion = false }) {
   const attack = countTroops(attackingTroops);
   const defense = countTroops(defendingTroops) + countTroops(guardTroops);
   const victory = attack > 0 && attack >= Math.max(1, Math.ceil(defense * 1.25));
@@ -63,7 +63,7 @@ export function resolveNeutralBattle({ attackingTroops, defendingTroops, guardTr
     attackerSurvivors,
     defenderLosses,
     defendersSurvivors,
-    canCapture: Boolean(victory && inWindow)
+    canCapture: Boolean(victory && (inWindow || ownedRegion))
   };
 }
 
