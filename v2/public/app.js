@@ -979,7 +979,7 @@ let selectedNeutralRegion=null,neutralRegionMode="garrison",neutralRegionTimer=n
 
 const mapWorldCanvas=document.querySelector("#map-world-canvas");
 const mapViewport=document.querySelector(".world-map");
-let mapZoom=0.82;
+let mapZoom=0.55;
 const MAP_ZOOM_MIN=0.55,MAP_ZOOM_MAX=1.6,MAP_ZOOM_STEP=0.15;
 function applyMapZoom(nextZoom,preserveCenter=true){
  if(!mapWorldCanvas||!mapViewport)return;
@@ -1004,7 +1004,7 @@ function applyMapZoom(nextZoom,preserveCenter=true){
 document.querySelector("#map-zoom-in")?.addEventListener("click",()=>applyMapZoom(mapZoom+MAP_ZOOM_STEP));
 document.querySelector("#map-zoom-out")?.addEventListener("click",()=>applyMapZoom(mapZoom-MAP_ZOOM_STEP));
 document.querySelector("#map-zoom-reset")?.addEventListener("click",()=>{
- applyMapZoom(0.82,false);
+ applyMapZoom(0.55,false);
  if(mapViewport&&mapWorldCanvas){
   const own=mapWorldCanvas.querySelector(".map-own-city");
   const x=own?parseFloat(own.style.left||"50"):50,y=own?parseFloat(own.style.top||"50"):50;
