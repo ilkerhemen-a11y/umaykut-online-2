@@ -308,6 +308,26 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         }catch(error){console.error("V2 scout launch failed",{message:String(error.message||"").slice(0,160)});return sendJson(res,500,{error:"Casus emri gönderilemedi."});}
       }
       if(req.method==="GET" && url.pathname==="/api/game/players"){
+        // Existing accounts also receive their five starter resources on first map visit.
+        // This insert is idempotent and never moves or resets previously placed resources.
+        await pool.query(
+          `INSERT INTO umaykut_v2.world_resource_nodes
+             (id,resource_type,world_x,world_y,yield_level,owner_player_id)
+           SELECT nextval('umaykut_v2.world_resource_node_id_seq'),v.resource_type,
+                  GREATEST(1,LEAST(99,s.world_x+v.dx)),GREATEST(1,LEAST(99,s.world_y+v.dy)),
+                  5,s.player_id::text
+           FROM umaykut_v2.player_game_state s
+           CROSS JOIN (VALUES
+             ('stone'::varchar,-1.15::double precision,-1.05::double precision),
+             ('wood'::varchar,1.15::double precision,-1.05::double precision),
+             ('iron'::varchar,-1.15::double precision,1.05::double precision),
+             ('gold'::varchar,1.15::double precision,1.05::double precision),
+             ('grain'::varchar,0.00::double precision,1.65::double precision)
+           ) AS v(resource_type,dx,dy)
+           WHERE s.player_id=$1
+             AND NOT EXISTS(SELECT 1 FROM umaykut_v2.world_resource_nodes n WHERE n.owner_player_id=s.player_id::text)`,
+          [session.id]
+        );
         const [result,own,nodes]=await Promise.all([
           pool.query(
             `SELECT p.id,p.username,p.village_name,s.faction_id,s.world_x,s.world_y
