@@ -1178,7 +1178,7 @@ function renderWorldMap(data){
  const resourceNodes=(data.resourceNodes||[]).filter(node=>mineTypes[node.resource_type]);
  const canvasWidth=mapWorldCanvas.clientWidth||1476,canvasHeight=mapWorldCanvas.clientHeight||984;
  const ownPixelX=ownX/100*canvasWidth,ownPixelY=ownY/100*canvasHeight;
- const safeVillageDistance=74;
+ const safeVillageDistance=132;
  resourceNodes.forEach((node,index)=>{
   const type=mineTypes[node.resource_type];if(!type)return;
   let displayX=Number(node.world_x),displayY=Number(node.world_y);
