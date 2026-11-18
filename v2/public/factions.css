@@ -68,7 +68,7 @@
 .map-legend span{display:flex;align-items:center;gap:4px;white-space:nowrap}
 .map-legend i{font-style:normal;font-size:14px}
 .world-map{position:relative;width:100%;aspect-ratio:4/5;max-height:610px;min-height:390px;overflow:hidden;border:1px solid var(--faction-main);border-radius:13px;background:#708b50;box-shadow:0 6px 22px #0008,inset 0 0 0 2px #f1dfa522}
-.map-landscape{position:absolute;inset:0;width:100%;height:100%;display:block}
+.map-landscape{position:absolute;inset:0;width:100%;height:100%;display:block}.map-terrain-image{object-fit:cover;object-position:center;user-select:none;-webkit-user-drag:none;pointer-events:none}.map-geography-overlay{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible}.map-geography-overlay .map-state-borders{filter:drop-shadow(0 2px 2px rgba(0,0,0,.7))}.map-geography-overlay .map-rivers,.map-geography-overlay .map-roads{filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}.map-geography-overlay .map-mountains,.map-geography-overlay .map-forests{opacity:.9}
 .map-region-label{position:absolute;padding:3px 6px;border:1px solid #d6d0a266;border-radius:5px;background:#17261a88;color:#f1e4bd;font:7px Arial,sans-serif;letter-spacing:1px;pointer-events:none}
 .map-region-label.north{top:7%;left:7%}
 .map-region-label.south{bottom:6%;left:7%}
@@ -177,20 +177,61 @@
 .world-map:focus-visible{outline:2px solid var(--faction-light);outline-offset:3px}
 @media(max-width:420px){.map-world-canvas{width:1500px;height:1000px}.world-map{height:470px}}
 
+.live-army-route{fill:none;stroke:#ffe09a;stroke-width:5;stroke-linecap:round;stroke-dasharray:13 12;opacity:.9;filter:drop-shadow(0 2px 3px rgba(0,0,0,.8));pointer-events:none}
+.live-army-route.incoming{stroke:#ff9b82}
+.map-army-marker{position:absolute;z-index:7;display:grid;place-items:center;width:36px;height:36px;border:2px solid #ffe09a;border-radius:50%;background:linear-gradient(145deg,#674b22,#172018);box-shadow:0 0 0 4px #151e18aa,0 4px 12px #000b;font:20px Arial,sans-serif;pointer-events:none;transform:translate(-50%,-50%);offset-anchor:center;animation-name:map-army-march;animation-timing-function:linear;animation-iteration-count:1;animation-fill-mode:forwards}
+@keyframes map-army-march{from{offset-distance:0%}to{offset-distance:100%}}
 
-/* Isometric-feel battlefield map: terrain, borders, neutral settlements and layered relief. */
-.map-world-canvas{background:#71834d}
-.map-world-canvas .map-landscape{filter:saturate(.9) contrast(1.04)}
-.map-region-label{z-index:1;letter-spacing:1.4px;text-shadow:0 2px 4px #000}
-.map-region-label.east{top:47%;right:7%;left:auto}
-.map-neutral-village{position:absolute;z-index:2;transform:translate(-50%,-50%);display:grid;justify-items:center;gap:2px;pointer-events:none;filter:drop-shadow(0 3px 4px #0009)}
-.map-neutral-village>span{display:grid;place-items:center;width:43px;height:43px;border:2px solid #d9c89a;border-radius:12px;background:linear-gradient(145deg,#786348,#332b20);font-size:24px;box-shadow:0 0 0 3px #171d16aa}
-.map-neutral-village b,.map-neutral-village small{padding:3px 7px;border:1px solid #bca87899;border-radius:5px;background:#171d17eF;color:#f7e9c6;font:700 10px Georgia,serif;white-space:nowrap}
-.map-neutral-village small{font:8px Arial,sans-serif;color:#d5c49c}
-.map-territory-label{position:absolute;z-index:1;transform:translate(-50%,-50%);padding:5px 10px;border:1px solid #e6cf8b77;border-radius:5px;background:#1d2419a8;color:#f2dfac;font:700 11px Georgia,serif;letter-spacing:2px;text-shadow:0 2px 3px #000;pointer-events:none}
-.map-legend{flex-wrap:wrap;justify-content:flex-start;gap:8px 14px;padding:9px 11px;background:linear-gradient(145deg,#1b281d,#111912);border-color:#8b7543}
-.map-heading h1{font-family:Georgia,serif;letter-spacing:.3px}
-.world-map{border-color:#c4a35d;box-shadow:0 9px 28px #0009,inset 0 0 0 3px #e4d19a33}
-.map-mine-point>span{box-shadow:0 3px 9px #000c,0 0 0 3px #30291a99}
-.map-player-point>span{box-shadow:0 3px 10px #000d,0 0 0 3px #14252a99}
-@media(max-width:600px){.map-neutral-village>span{width:36px;height:36px;font-size:20px}.map-neutral-village b{font-size:9px}.map-territory-label{font-size:9px;letter-spacing:1px}}
+
+/* Expanded world view: more visible terrain, compact home-village marker. */
+.world-map{
+ height:clamp(540px,74vh,860px);
+ min-height:540px;
+ max-height:none;
+}
+.map-own-city img{
+ width:38px;
+ height:38px;
+ object-fit:cover;
+ border:1.5px solid var(--faction-light);
+ border-radius:50%;
+ box-shadow:0 0 0 3px #14231888,0 3px 8px #000a;
+}
+.map-own-city b{font-size:8px;padding:2px 4px}
+.map-own-city small{font-size:7px;padding:1px 4px}
+@media(max-width:600px){
+ .world-map{height:70vh;min-height:520px;max-height:760px}
+ .map-own-city img{width:34px;height:34px}
+}
+
+
+/* Floating zoom controls for the shared world map. */
+.world-map{position:relative}
+.map-zoom-controls{
+ position:absolute;z-index:12;top:12px;right:12px;
+ display:flex;align-items:center;gap:5px;padding:5px;
+ border:1px solid #c6a45c99;border-radius:11px;
+ background:#101a16eF;box-shadow:0 4px 14px #0009;
+ backdrop-filter:blur(7px);
+}
+.map-zoom-controls button{
+ display:grid;place-items:center;width:36px;height:36px;
+ border:1px solid #9b8048;border-radius:8px;
+ background:linear-gradient(145deg,#314333,#142018);
+ color:#fff0c6;font:700 22px/1 Arial,sans-serif;
+ cursor:pointer;touch-action:manipulation;
+}
+.map-zoom-controls button:active{transform:scale(.94)}
+.map-zoom-controls button:focus-visible{outline:2px solid #ffe39a;outline-offset:2px}
+.map-zoom-controls span{min-width:38px;text-align:center;color:#f2dfad;font:10px Arial,sans-serif}
+
+
+/* Neutral settlements are exploration targets; ownership remains unassigned until conquest rules are implemented. */
+.map-neutral-village>span{
+ width:34px;height:34px;border-color:#d9c58b;
+ background:linear-gradient(145deg,#66502b,#211b13);
+ font-size:19px;box-shadow:0 2px 8px #000b,0 0 0 2px #392d1b99;
+}
+.map-neutral-village small{border-color:#d9bd78;background:#201b12ed;color:#fff0c6}
+.map-neutral-village b{border-color:#c5a65d;background:#2a2114ed;color:#f6d78e}
+.map-neutral-village:focus-visible>span{outline:2px solid #ffe8a8;outline-offset:3px}

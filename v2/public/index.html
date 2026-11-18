@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#101a13">
   <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
   <title>Umaykut Online 2 · V2</title>
-  <link rel="stylesheet" href="/app.css?v=20261117-instant-troops-2">
-  <link rel="stylesheet" href="/factions.css?v=20261117-isometric-war-map-1">
+  <link rel="stylesheet" href="/app.css?v=20261118-battle-reports-2">
+  <link rel="stylesheet" href="/factions.css?v=20261117-founding-flow-2">
 </head>
 <body>
   <section id="auth-screen" class="auth-screen" aria-label="Umaykut Online II giriş ve kayıt">
@@ -122,69 +122,55 @@
         <div class="worker-summary"><span>👷</span><strong id="workers-available">1.800</strong><small>Boştaki işçi</small><em id="workers-assigned-total">0 görevde</em></div>
       </div>
       <div class="map-legend" aria-label="Harita işaretleri">
-        <span><i>🏰</i> Yurtlar</span><span><i>⛏️</i> Demir</span><span><i>🪨</i> Taş</span><span><i>🪙</i> Altın</span><span><i>🌲</i> Orman</span>
+        <span><i>🏰</i> Yurtlar</span><span><i>🏘️</i> Tarafsız köyler</span><span><i>⛏️</i> Demir</span><span><i>🪨</i> Taş</span><span><i>🪙</i> Altın</span><span><i>🌲</i> Orman</span>
       </div>
       <div class="world-map" aria-label="Gezilebilir ortak dünya haritası. Kaydırarak haritada ilerleyebilirsin." tabindex="0">
+        <div class="map-zoom-controls" role="group" aria-label="Harita yakınlaştırma kontrolleri"><button type="button" id="map-zoom-out" aria-label="Haritayı uzaklaştır" title="Uzaklaştır">−</button><button type="button" id="map-zoom-reset" aria-label="Harita görünümünü sıfırla" title="Görünümü sıfırla">⤢</button><button type="button" id="map-zoom-in" aria-label="Haritayı yakınlaştır" title="Yakınlaştır">+</button><span id="map-zoom-level" aria-live="polite">82%</span></div>
         <div class="map-world-canvas" id="map-world-canvas">
-        <svg class="map-landscape" viewBox="0 0 1800 1200" preserveAspectRatio="none" aria-hidden="true">
+        <img class="map-landscape map-terrain-image" src="/assets/IMG-20261117-WA7167.jpg" alt="" aria-hidden="true" fetchpriority="high">
+        <svg class="map-geography-overlay" viewBox="0 0 1800 1200" preserveAspectRatio="none" aria-hidden="true">
           <defs>
-            <linearGradient id="map-ground" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#82945a"/><stop offset=".42" stop-color="#71844c"/><stop offset="1" stop-color="#465d3c"/></linearGradient>
-            <linearGradient id="map-water" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a2d0ce"/><stop offset=".48" stop-color="#4f969b"/><stop offset="1" stop-color="#28636f"/></linearGradient>
-            <linearGradient id="mountain" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#d4c7a4"/><stop offset=".38" stop-color="#8f8c77"/><stop offset="1" stop-color="#4b5949"/></linearGradient>
-            <pattern id="terrain-grain" width="44" height="38" patternUnits="userSpaceOnUse"><path d="M3 28l8-8 7 8m8-17 7-6 8 7" fill="none" stroke="#d8d1a1" stroke-width="1.2" opacity=".18"/></pattern>
-            <filter id="terrain-shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7"/></filter>
+            <linearGradient id="world-river" x1="0" y1="0" x2="0.8" y2="1"><stop stop-color="#a9d8dc" stop-opacity=".9"/><stop offset="1" stop-color="#3c8793" stop-opacity=".9"/></linearGradient>
+            <g id="world-pine"><path d="M0 0L-17 25H-7L-22 43H22L7 25H17Z" fill="#173b2b" stroke="#c1d0a0" stroke-opacity=".45" stroke-width="2"/><path d="M0 39V52" stroke="#71583b" stroke-width="5"/></g>
+            <g id="world-peak"><path d="M-62 52L-8 -38L20 2L47 -22L83 52Z" fill="#6e7567" stroke="#e4ddc6" stroke-width="5" stroke-linejoin="round"/><path d="M-8 -38L-20 1L-4 -8L8 8L20 2Z" fill="#eee8d5"/><path d="M47 -22L34 10L48 2L59 14L68 8Z" fill="#e5dfcc"/></g>
           </defs>
-          <rect width="1800" height="1200" fill="url(#map-ground)"/>
-          <path d="M0 0H1800V250Q1450 360 1130 245T520 265T0 220Z" fill="#a4aa6b" opacity=".28"/>
-          <path d="M0 870Q350 760 690 890T1260 865T1800 930V1200H0Z" fill="#344d35" opacity=".34"/>
-          <path d="M0 0H1800V1200H0Z" fill="url(#terrain-grain)"/>
-          <!-- mountain ridges -->
-          <g opacity=".96">
-            <path d="M90 170l120-118 95 62 115-91 112 123 92-48 118 128-94 100-180-35-142 62-156-48z" fill="#3b493d" opacity=".55" filter="url(#terrain-shadow)"/>
-            <path d="M70 150l132-112 72 75 106-88 118 128 93-47 122 123-110 73-156-37-142 48-158-49z" fill="url(#mountain)" stroke="#d1c49d" stroke-width="5"/>
-            <path d="M202 38l-36 94 54-27 54 8 0-0-72-75 72 75 35 33-48-7-41 24-18-31-40 0zM380 25l-54 91 55-21 42 22 0-0-43-92 43 92 54 48-79-14-52 28-25-42-45 2z" fill="#e2dcc4" opacity=".78"/>
-            <path d="M1250 160l110-106 96 50 93-80 125 113 72-36 96 103-98 92-164-20-145 55-150-55z" fill="#3b493d" opacity=".5" filter="url(#terrain-shadow)"/>
-            <path d="M1230 145l126-105 82 71 111-88 126 124 75-38 105 109-110 78-154-32-148 48-154-51z" fill="url(#mountain)" stroke="#c6bd9b" stroke-width="5"/>
-            <path d="M1356 40l-45 88 49-20 47 15-51-83 51 83 45 38-72-12-42 25-30-39-44 1zM1649 23l-52 88 52-17 42 18-42-89 42 89 48 43-76-13-44 25-24-42-43 4z" fill="#e2dcc4" opacity=".72"/>
-            <path d="M590 1010l92-95 81 39 86-75 104 110 85-38 95 105-88 70-142-18-128 43-124-51z" fill="url(#mountain)" stroke="#bdb28d" stroke-width="4" opacity=".8"/>
+          <g class="map-rivers" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1380 -40C1300 120 1470 190 1360 340S1210 510 1320 650S1450 900 1290 1240" stroke="#173f48" stroke-opacity=".55" stroke-width="34"/>
+            <path d="M1380 -40C1300 120 1470 190 1360 340S1210 510 1320 650S1450 900 1290 1240" stroke="url(#world-river)" stroke-width="22"/>
+            <path d="M250 260C420 330 510 420 690 405S930 450 1090 580" stroke="#244d50" stroke-opacity=".55" stroke-width="22"/>
+            <path d="M250 260C420 330 510 420 690 405S930 450 1090 580" stroke="#8fc6c6" stroke-opacity=".82" stroke-width="13"/>
           </g>
-          <!-- forests -->
-          <g fill="#203f2e" stroke="#45633d" stroke-width="5">
-            <path d="M120 430l50-75 48 75zM185 465l58-91 55 91zM270 430l48-72 48 72zM350 470l55-86 54 86zM420 425l46-70 47 70z"/>
-            <path d="M1080 450l55-85 55 85zM1150 490l62-94 58 94zM1240 448l50-77 52 77zM1320 492l60-92 58 92zM1410 450l50-78 54 78z"/>
-            <path d="M240 850l58-90 58 90zM320 900l64-98 61 98zM420 850l53-80 55 80zM1470 850l60-92 58 92zM1550 900l63-98 63 98zM1640 850l53-80 54 80z"/>
+          <g class="map-roads" fill="none" stroke-linecap="round">
+            <path d="M-30 820C280 720 460 830 720 700S1170 710 1830 470" stroke="#463d2d" stroke-opacity=".7" stroke-width="24"/>
+            <path d="M-30 820C280 720 460 830 720 700S1170 710 1830 470" stroke="#d6c49a" stroke-opacity=".78" stroke-width="14"/>
+            <path d="M400 -30C470 210 620 340 850 480S1110 780 1180 1230" stroke="#4a402e" stroke-opacity=".65" stroke-width="17"/>
+            <path d="M400 -30C470 210 620 340 850 480S1110 780 1180 1230" stroke="#cdbb91" stroke-opacity=".78" stroke-width="9"/>
           </g>
-          <g fill="#66824a" opacity=".9"><circle cx="190" cy="420" r="13"/><circle cx="270" cy="435" r="14"/><circle cx="405" cy="438" r="12"/><circle cx="1160" cy="455" r="14"/><circle cx="1280" cy="440" r="13"/><circle cx="1370" cy="475" r="14"/><circle cx="350" cy="865" r="14"/><circle cx="1570" cy="865" r="13"/></g>
-          <!-- river with banks -->
-          <path d="M820 -40C700 120 930 205 805 350S650 565 835 700 1060 890 930 1240" fill="none" stroke="#d3c58c" stroke-width="92" opacity=".45"/>
-          <path d="M820 -40C700 120 930 205 805 350S650 565 835 700 1060 890 930 1240" fill="none" stroke="url(#map-water)" stroke-width="68"/>
-          <path d="M800 -30C680 120 910 205 785 350S630 565 815 700 1040 890 910 1240" fill="none" stroke="#d5eeee" stroke-width="5" opacity=".5"/>
-          <!-- branching stream -->
-          <path d="M805 350C1000 330 1110 250 1260 300S1510 350 1830 250" fill="none" stroke="#5d9da0" stroke-width="24" opacity=".8"/>
-          <!-- old trade roads -->
-          <g fill="none" stroke-linecap="round">
-            <path d="M-40 690C300 610 430 760 690 655S1110 510 1420 620 1690 680 1840 570" stroke="#4b4030" stroke-width="34" opacity=".45"/>
-            <path d="M-40 690C300 610 430 760 690 655S1110 510 1420 620 1690 680 1840 570" stroke="#d4bd85" stroke-width="22"/>
-            <path d="M-40 690C300 610 430 760 690 655S1110 510 1420 620 1690 680 1840 570" stroke="#f0dfb2" stroke-width="2.5" stroke-dasharray="18 19" opacity=".8"/>
-            <path d="M420 1240C500 1000 560 850 690 655S900 330 1040 -40" stroke="#4b4030" stroke-width="24" opacity=".35"/>
-            <path d="M420 1240C500 1000 560 850 690 655S900 330 1040 -40" stroke="#c9b17c" stroke-width="15"/>
+          <g class="map-state-borders" fill="none" stroke="#f0d58d" stroke-width="5" stroke-dasharray="18 15" stroke-linecap="round" opacity=".8">
+            <path d="M80 110C330 190 470 120 650 230S970 290 1130 180S1500 130 1720 250"/>
+            <path d="M80 110C160 380 110 560 280 700S410 980 330 1140"/>
+            <path d="M1130 180C1190 420 1110 570 1290 760S1490 990 1700 1080"/>
+            <path d="M330 1140C650 1020 880 1080 1110 970S1480 990 1700 1080"/>
           </g>
-          <!-- territorial borders -->
-          <path d="M40 315Q330 250 570 365T980 320 1370 360 1770 285M40 315Q10 600 230 890T650 1170M980 320Q1120 520 1080 770T1270 1160" fill="none" stroke="#e9d28c" stroke-width="5" stroke-dasharray="18 15" opacity=".82"/>
-          <path d="M60 318Q330 253 570 368T980 323 1370 363 1740 290" fill="none" stroke="#352b1d" stroke-width="2" stroke-dasharray="18 15" opacity=".65"/>
-          <!-- meadow and rocky clearings -->
-          <path d="M500 430q130-95 255-20t130 150q-110 95-255 55t-130-185M1110 760q120-90 255-20t105 160q-120 85-260 35t-100-175" fill="#a6a16b" opacity=".26"/>
-          <path d="M40 0H1800V1200H0Z" fill="none" stroke="#d5c28c" stroke-width="18" opacity=".25"/>
+          <g class="map-mountains">
+            <use href="#world-peak" transform="translate(300 170) scale(1.15)"/>
+            <use href="#world-peak" transform="translate(420 145) scale(.82)"/>
+            <use href="#world-peak" transform="translate(545 205) scale(1.05)"/>
+            <use href="#world-peak" transform="translate(1550 340) scale(1.25)"/>
+            <use href="#world-peak" transform="translate(1660 390) scale(.85)"/>
+            <use href="#world-peak" transform="translate(280 1010) scale(1.05)"/>
+            <use href="#world-peak" transform="translate(420 1060) scale(.8)"/>
+          </g>
+          <g class="map-forests">
+            <use href="#world-pine" transform="translate(170 430) scale(1.1)"/><use href="#world-pine" transform="translate(220 470)"/>
+            <use href="#world-pine" transform="translate(290 445) scale(.9)"/><use href="#world-pine" transform="translate(1580 760) scale(1.1)"/>
+            <use href="#world-pine" transform="translate(1640 810)"/><use href="#world-pine" transform="translate(1700 760) scale(.9)"/>
+            <use href="#world-pine" transform="translate(930 1020)"/><use href="#world-pine" transform="translate(990 1050) scale(1.1)"/>
+          </g>
         </svg>
-        <div class="map-region-label north">KUZEY DAĞLARI</div>
-        <div class="map-region-label south">GÜNEY BOZKIRI</div>
-        <div class="map-region-label east">DOĞU ORMANLARI</div>
+        <div class="map-region-label north">KUZEY ORMANLARI</div>
+        <div class="map-region-label south">GÜNEY TAŞLIĞI</div>
         <div class="map-compass" aria-label="Kuzey">N<br>▲</div>
-        <div class="map-neutral-village" style="left:17%;top:63%"><span>🏘️</span><b>Akpınar</b><small>Tarafsız köy</small></div>
-        <div class="map-neutral-village" style="left:83%;top:43%"><span>🏘️</span><b>Taşhisar</b><small>Tarafsız köy</small></div>
-        <div class="map-neutral-village" style="left:57%;top:83%"><span>🏘️</span><b>Gökova</b><small>Tarafsız köy</small></div>
-        <div class="map-territory-label" style="left:28%;top:24%">BATI BEYLİĞİ</div>
-        <div class="map-territory-label" style="left:73%;top:76%">DOĞU SINIR BÖLGESİ</div>
         <button class="map-point resource-grain" type="button" data-resource="grain" aria-pressed="false" style="left:23%;top:29%"><span>🌾</span><small>Tahıl Ovası</small><b id="assigned-grain">0 işçi</b></button>
         <button class="map-point resource-wood" type="button" data-resource="wood" aria-pressed="false" style="left:76%;top:28%"><span>🌲</span><small>Orman</small><b id="assigned-wood">0 işçi</b></button>
         <button class="map-point resource-stone" type="button" data-resource="stone" aria-pressed="false" style="left:75%;top:72%"><span>🪨</span><small>Taş Ocağı</small><b id="assigned-stone">0 işçi</b></button>
@@ -206,7 +192,7 @@
         <div class="world-players-heading"><div><small>ORTAK DÜNYA</small><h2 id="world-players-title">Diğer oyuncu köyleri</h2></div><button id="refresh-world-players" type="button">Yenile</button></div>
         <div id="world-player-list"><p>Oyuncu köyleri yükleniyor…</p></div>
         <h3>⚔️ Seferler ve savaş raporları</h3><div id="active-raids-list"><p>Aktif sefer bulunmuyor.</p></div>
-        <h3>🕵️ Casus raporları</h3><div id="scout-reports-list"><p>Henüz casus görevi bulunmuyor.</p></div>
+        <h3 class="scout-section-title"><img src="/assets/IMG-20261117-WA9037.jpg" alt="" aria-hidden="true"> Casus raporları</h3><div id="scout-reports-list"><p>Henüz casus görevi bulunmuyor.</p></div>
       </section>
       <p class="map-prototype-note">Ortak dünya haritası · Kaydırarak gez, maden yataklarına ve diğer oyuncuların yurtlarına dokun.</p>
     </section>
@@ -215,7 +201,8 @@
       <button class="active" type="button" data-screen="village"><span>🏰</span>Köy</button>
       <button type="button" data-action="army"><span>⚔️</span>Ordu</button>
       <button type="button" data-screen="map"><span>🗺️</span>Harita</button>
-      <button type="button"><span>🎒</span>Envanter</button>
+      <button type="button" data-action="inventory"><span>🎒</span>Envanter</button>
+      <button type="button" data-action="battle-reports" aria-haspopup="dialog" aria-controls="battle-reports-dialog"><span>📜</span>Savaş Raporu</button>
       <button type="button" data-action="settings" aria-haspopup="dialog" aria-controls="settings-dialog"><span>⚙️</span>Ayarlar</button>
     </nav>
     <dialog id="army-dialog" class="army-dialog" aria-labelledby="army-dialog-title">
@@ -229,7 +216,32 @@
   </section>
   <p id="army-message" class="army-message" role="status" aria-live="polite"></p>
 </dialog>
-\n    <dialog id="attack-dialog" class="army-dialog" aria-labelledby="attack-dialog-title">
+\n    <dialog id="battle-reports-dialog" class="army-dialog battle-reports-dialog" aria-labelledby="battle-reports-title">
+      <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · TARİHÇE</small><h2 id="battle-reports-title">Savaş Raporları</h2></div><button id="battle-reports-close" type="button" aria-label="Kapat">×</button></div>
+      <p class="army-message">Katıldığın saldırılar ve savunmalar burada kayıt altında tutulur.</p>
+      <div id="battle-reports-list" class="battle-reports-list"><p>Savaş kayıtları yükleniyor…</p></div>
+      <p id="battle-reports-message" class="army-message" role="status" aria-live="polite"></p>
+    </dialog>
+    <dialog id="neutral-region-dialog" class="army-dialog neutral-region-dialog" aria-labelledby="neutral-region-title">
+      <div class="army-dialog-head">
+        <div><small>UMAYKUT ONLINE II · TOPRAK FETHİ</small><h2 id="neutral-region-title">Tarafsız Bölge</h2></div>
+        <button id="neutral-region-close" type="button" aria-label="Kapat">×</button>
+      </div>
+      <div class="neutral-region-stats">
+        <div><small>MUHAFIZ</small><strong id="neutral-guard-count">0</strong></div>
+        <div><small>GARNİZON</small><strong id="neutral-garrison-count">0 / 100.000</strong></div>
+      </div>
+      <p id="neutral-region-owner" class="army-message">Tarafsız bölge</p>
+      <p id="neutral-region-countdown" class="neutral-region-countdown" aria-live="polite">İlk garnizon dört saatlik mücadeleyi başlatır.</p>
+      <section id="neutral-region-troop-section">
+        <h3>Gönderilecek birlikler</h3>
+        <div id="neutral-region-unit-list"></div>
+      </section>
+      <p id="neutral-region-message" class="army-message" role="status" aria-live="polite"></p>
+      <button id="neutral-region-action" class="founding-submit" type="button">⚔️ Garnizon kur</button>
+      <button id="neutral-region-challenge" class="founding-submit" type="button" hidden>⚔️ Muhafızlara saldır ve fethet</button>
+    </dialog>
+    <dialog id="attack-dialog" class="army-dialog" aria-labelledby="attack-dialog-title">
       <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · SEFER HAZIRLIĞI</small><h2 id="attack-dialog-title">Saldırı Ordusu</h2></div><button id="attack-close" type="button" aria-label="Kapat">×</button></div>
       <p id="attack-target-name" class="army-message">Hedef köy</p>
       <section><h3>Gönderilecek birlikler</h3><div id="attack-unit-list"></div></section>
@@ -276,6 +288,6 @@
     </dialog>
   </main>
 
-  <script type="module" src="/app.js?v=20261117-isometric-war-map-1"></script>
+  <script type="module" src="/app.js?v=20261118-battle-reports-2"></script>
 </body>
 </html>
