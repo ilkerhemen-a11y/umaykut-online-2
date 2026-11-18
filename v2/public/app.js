@@ -870,7 +870,9 @@ function renderBattleReports(attacks){
   const card=document.createElement("article");card.className="battle-report-card";
   const heading=document.createElement("div");heading.className="battle-report-heading";
   const title=document.createElement("strong");
-  title.textContent=(raid.direction==="outgoing"?"⚔️ Saldırı: ":"🛡️ Savunma: ")+(raid.direction==="outgoing"?raid.defender_village:raid.attacker_village);
+  title.textContent=raid.neutralRegion
+   ? (raid.battle_type==="guard_challenge"?"🏘️ Tarafsız köy: ":"🏰 Bölge savaşı: ")+raid.region_name
+   : (raid.direction==="outgoing"?"⚔️ Saldırı: ":"🛡️ Savunma: ")+(raid.direction==="outgoing"?raid.defender_village:raid.attacker_village);
   const outcome=document.createElement("span");outcome.className="battle-report-outcome";
   outcome.textContent=report.winner===(raid.direction==="outgoing"?"attacker":"defender")?"Zafer":"Mağlubiyet";
   heading.append(title,outcome);card.append(heading);
@@ -898,9 +900,29 @@ async function openBattleReports(){
  battleReportsList.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Raporlar yükleniyor…"}));
  battleReportsDialog.showModal();
  try{
-  const data=await authRequest("/api/game/attacks",{token:authToken});
-  renderBattleReports(data.attacks||[]);
-  battleReportsMessage.textContent=(data.attacks||[]).filter(raid=>raid.battle_report).length+" savaş kaydı bulundu.";
+  const [playerData,regionData]=await Promise.all([
+   authRequest("/api/game/attacks",{token:authToken}),
+   authRequest("/api/game/neutral-regions/reports",{token:authToken})
+  ]);
+  const regionReports=(regionData.reports||[]).map(item=>{
+   const report=item.battle_report||{};
+   return {
+    id:"region-"+item.id,direction:item.direction,
+    attacker_village:item.direction==="outgoing"?"Senin ordun":item.actor_village,
+    defender_village:item.direction==="outgoing"?(item.opponent_village||item.region_name):"Senin bölgen",
+    arrives_at:item.created_at,status:"resolved",neutralRegion:true,region_name:item.region_name,
+    battle_type:item.battle_type,
+    battle_report:{
+     ...report,
+     attackerLostCount:report.attackerLosses||0,
+     defenderLostCount:report.defenderLosses||0,
+     outcomeText:report.outcomeText||"Bölge savaşı tamamlandı."
+    }
+   };
+  });
+  const allReports=[...(playerData.attacks||[]),...regionReports].sort((a,b)=>Date.parse(b.arrives_at)-Date.parse(a.arrives_at));
+  renderBattleReports(allReports);
+  battleReportsMessage.textContent=allReports.filter(raid=>raid.battle_report).length+" savaş kaydı bulundu.";
  }catch(error){
   battleReportsList.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Savaş raporları yüklenemedi."}));
   battleReportsMessage.textContent="Bağlantını kontrol edip yeniden dene.";
