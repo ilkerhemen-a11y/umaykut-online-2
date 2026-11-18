@@ -1017,6 +1017,41 @@ document.querySelector("#map-zoom-reset")?.addEventListener("click",()=>{
 window.addEventListener("resize",()=>applyMapZoom(mapZoom,false));
 applyMapZoom(mapZoom,false);
 
+// Two-finger pinch zoom for touch devices. Keep the point between the fingers
+// stationary while the world canvas grows or shrinks around it.
+if(mapViewport&&mapWorldCanvas){
+ let pinchStartDistance=0,pinchStartZoom=mapZoom,pinchWorldX=0,pinchWorldY=0;
+ const touchDistance=(a,b)=>Math.hypot(b.clientX-a.clientX,b.clientY-a.clientY);
+ mapViewport.addEventListener("touchstart",event=>{
+  if(event.touches.length!==2)return;
+  const a=event.touches[0],b=event.touches[1];
+  const rect=mapViewport.getBoundingClientRect();
+  const midpointX=(a.clientX+b.clientX)/2-rect.left;
+  const midpointY=(a.clientY+b.clientY)/2-rect.top;
+  pinchStartDistance=Math.max(1,touchDistance(a,b));
+  pinchStartZoom=mapZoom;
+  pinchWorldX=(mapViewport.scrollLeft+midpointX)/(mapWorldCanvas.clientWidth||1);
+  pinchWorldY=(mapViewport.scrollTop+midpointY)/(mapWorldCanvas.clientHeight||1);
+ },{passive:true});
+ mapViewport.addEventListener("touchmove",event=>{
+  if(event.touches.length!==2||!pinchStartDistance)return;
+  event.preventDefault();
+  const a=event.touches[0],b=event.touches[1];
+  const rect=mapViewport.getBoundingClientRect();
+  const midpointX=(a.clientX+b.clientX)/2-rect.left;
+  const midpointY=(a.clientY+b.clientY)/2-rect.top;
+  const nextZoom=pinchStartZoom*touchDistance(a,b)/pinchStartDistance;
+  applyMapZoom(nextZoom,false);
+  requestAnimationFrame(()=>{
+   mapViewport.scrollLeft=Math.max(0,pinchWorldX*mapWorldCanvas.clientWidth-midpointX);
+   mapViewport.scrollTop=Math.max(0,pinchWorldY*mapWorldCanvas.clientHeight-midpointY);
+  });
+ },{passive:false});
+ const endPinch=event=>{if(event.touches.length<2)pinchStartDistance=0;};
+ mapViewport.addEventListener("touchend",endPinch,{passive:true});
+ mapViewport.addEventListener("touchcancel",endPinch,{passive:true});
+}
+
 
 function neutralClaimIsActive(region){
  return Boolean(region?.claimed_by_player_id&&region.claim_expires_at&&!region.claim_expired&&Date.parse(region.claim_expires_at)>Date.now());
