@@ -21,6 +21,7 @@ const config = loadConfig();
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(here, "../public");
 const assetRoot = resolve(here, "../public/assets");
+const legacyAssetRoot = resolve(here, "../../public/assets");
 const INITIAL_RESOURCES = Object.freeze({gold:1650,wood:6900,food:9350,stone:7480,iron:8040,horses:100});
 const INITIAL_BUILDINGS = Object.freeze({
   "1": {type:"center",level:1},
@@ -1036,7 +1037,20 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
     }
 
     if (pathname.startsWith("/assets/")) {
-      return sendStatic(res, assetRoot, pathname.slice("/assets/".length));
+      const relativeAsset = pathname.slice("/assets/".length);
+      const primaryTarget = resolve(assetRoot, relativeAsset);
+      const legacyTarget = resolve(legacyAssetRoot, relativeAsset);
+      for (const [root, target] of [[assetRoot, primaryTarget], [legacyAssetRoot, legacyTarget]]) {
+        if (target !== root && !target.startsWith(root + sep)) {
+          return sendJson(res, 400, { error: "Geçersiz dosya yolu." });
+        }
+      }
+      try {
+        await readFile(primaryTarget);
+        return sendStatic(res, assetRoot, relativeAsset);
+      } catch {
+        return sendStatic(res, legacyAssetRoot, relativeAsset);
+      }
     }
     return sendStatic(res, webRoot, pathname === "/" ? "index.html" : pathname.slice(1));
   });
