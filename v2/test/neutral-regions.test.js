@@ -63,3 +63,20 @@ test('a decisive victory removes the defending guards', () => {
   assert.equal(result.defendersSurvivors,0);
   assert.equal(result.canCapture,true);
 });
+
+test('owned regions can be recaptured after the temporary claim window', () => {
+  const result = resolveNeutralBattle({
+    attackingTroops:{infantry:100000},defendingTroops:{infantry:20000},guardTroops:{},
+    now:new Date('2026-11-18T20:00:00.000Z'),ownedRegion:true
+  });
+  assert.equal(result.victory,true);
+  assert.equal(result.canCapture,true);
+});
+test('owned region capture still requires a decisive victory', () => {
+  const result = resolveNeutralBattle({
+    attackingTroops:{infantry:10000},defendingTroops:{infantry:20000},guardTroops:{},
+    now:new Date('2026-11-18T20:00:00.000Z'),ownedRegion:true
+  });
+  assert.equal(result.victory,false);
+  assert.equal(result.canCapture,false);
+});
