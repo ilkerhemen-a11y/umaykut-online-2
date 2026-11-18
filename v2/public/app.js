@@ -854,6 +854,84 @@ async function openArmyDialog(){
 document.querySelector('[data-action="army"]').addEventListener("click",openArmyDialog);
 document.querySelector("#army-close").addEventListener("click",()=>{armyDialog.close();if(armyRefreshTimer)clearInterval(armyRefreshTimer);});
 armyDialog.addEventListener("click",event=>{if(event.target===armyDialog)armyDialog.close();});
+const battleReportsDialog=document.querySelector("#battle-reports-dialog");
+const battleReportsList=document.querySelector("#battle-reports-list");
+const battleReportsMessage=document.querySelector("#battle-reports-message");
+function reportNumber(value){return new Intl.NumberFormat("tr-TR").format(Number(value)||0);}
+function renderBattleReports(attacks){
+ battleReportsList.replaceChildren();
+ const completed=attacks.filter(raid=>raid.battle_report&&["resolved","returned"].includes(raid.status));
+ if(!completed.length){
+  battleReportsList.append(Object.assign(document.createElement("p"),{textContent:"Henüz tamamlanmış bir savaş raporun yok. Saldırı veya savunma yaptığında raporların burada görünecek."}));
+  return;
+ }
+ completed.forEach(raid=>{
+  const report=raid.battle_report;
+  const card=document.createElement("article");card.className="battle-report-card"+(raid.neutralRegion?" territory":"");
+  const heading=document.createElement("div");heading.className="battle-report-heading";
+  const title=document.createElement("strong");
+  title.textContent=raid.neutralRegion
+   ? (raid.battle_type==="guard_challenge"?"🏘️ Tarafsız köy: ":"🏰 Bölge savaşı: ")+raid.region_name
+   : (raid.direction==="outgoing"?"⚔️ Saldırı: ":"🛡️ Savunma: ")+(raid.direction==="outgoing"?raid.defender_village:raid.attacker_village);
+  const outcome=document.createElement("span");outcome.className="battle-report-outcome";
+  outcome.textContent=report.winner===(raid.direction==="outgoing"?"attacker":"defender")?"Zafer":"Mağlubiyet";
+  heading.append(title,outcome);card.append(heading);
+  const date=document.createElement("small");date.className="battle-report-date";
+  date.textContent=new Date(raid.arrives_at).toLocaleString("tr-TR");card.append(date);
+  const ownLoss=raid.direction==="outgoing"?report.attackerLostCount:report.defenderLostCount;
+  const enemyLoss=raid.direction==="outgoing"?report.defenderLostCount:report.attackerLostCount;
+  const stats=document.createElement("div");stats.className="battle-report-stats";
+  [["Senin kayıpların",ownLoss],["Rakip kayıpları",enemyLoss],["Savunma gücü",report.defenderPower],["Sur engeli","%"+(report.wallDefensePercent||0)]].forEach(([label,value])=>{
+   const item=document.createElement("div"),strong=document.createElement("strong"),small=document.createElement("small");
+   strong.textContent=reportNumber(value);small.textContent=label;item.append(strong,small);stats.append(item);
+  });
+  card.append(stats);
+  const detail=document.createElement("p");detail.textContent=report.outcomeText||"Savaş tamamlandı.";card.append(detail);
+  if(raid.direction==="outgoing"&&raid.loot){
+   const loot=Object.entries(raid.loot).filter(([,count])=>Number(count)>0);
+   if(loot.length){const lootLine=document.createElement("small");lootLine.className="battle-report-loot";lootLine.textContent="Ganimet: "+loot.map(([key,count])=>key+" "+reportNumber(count)).join(" · ");card.append(lootLine);}
+  }
+  battleReportsList.append(card);
+ });
+}
+async function openBattleReports(){
+ if(!authToken)return;
+ battleReportsMessage.textContent="Savaş kayıtların getiriliyor…";
+ battleReportsList.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Raporlar yükleniyor…"}));
+ battleReportsDialog.showModal();
+ try{
+  const [playerData,regionData]=await Promise.all([
+   authRequest("/api/game/attacks",{token:authToken}),
+   authRequest("/api/game/neutral-regions/reports",{token:authToken})
+  ]);
+  const regionReports=(regionData.reports||[]).map(item=>{
+   const report=item.battle_report||{};
+   return {
+    id:"region-"+item.id,direction:item.direction,
+    attacker_village:item.direction==="outgoing"?"Senin ordun":item.actor_village,
+    defender_village:item.direction==="outgoing"?(item.opponent_village||item.region_name):"Senin bölgen",
+    arrives_at:item.created_at,status:"resolved",neutralRegion:true,region_name:item.region_name,
+    battle_type:item.battle_type,
+    battle_report:{
+     ...report,
+     attackerLostCount:report.attackerLosses||0,
+     defenderLostCount:report.defenderLosses||0,
+     outcomeText:report.outcomeText||"Bölge savaşı tamamlandı."
+    }
+   };
+  });
+  const allReports=[...(playerData.attacks||[]),...regionReports].sort((a,b)=>Date.parse(b.arrives_at)-Date.parse(a.arrives_at));
+  renderBattleReports(allReports);
+  battleReportsMessage.textContent=allReports.filter(raid=>raid.battle_report).length+" savaş kaydı bulundu.";
+ }catch(error){
+  battleReportsList.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Savaş raporları yüklenemedi."}));
+  battleReportsMessage.textContent="Bağlantını kontrol edip yeniden dene.";
+ }
+}
+document.querySelector('[data-action="battle-reports"]').addEventListener("click",openBattleReports);
+document.querySelector("#battle-reports-close").addEventListener("click",()=>battleReportsDialog.close());
+battleReportsDialog.addEventListener("click",event=>{if(event.target===battleReportsDialog)battleReportsDialog.close();});
+
 armyCatalogNode.addEventListener("click",event=>{
  const button=event.target.closest("[data-select-unit]");
  if(button)renderArmyUnitDetail(button.dataset.selectUnit);
@@ -886,8 +964,123 @@ const attackDialog=document.querySelector("#attack-dialog");
 const attackUnitList=document.querySelector("#attack-unit-list");
 const attackMessage=document.querySelector("#attack-message");
 const attackTargetName=document.querySelector("#attack-target-name");
+
+const neutralRegionDialog=document.querySelector("#neutral-region-dialog");
+const neutralRegionTitle=document.querySelector("#neutral-region-title");
+const neutralGuardCount=document.querySelector("#neutral-guard-count");
+const neutralGarrisonCount=document.querySelector("#neutral-garrison-count");
+const neutralRegionOwner=document.querySelector("#neutral-region-owner");
+const neutralRegionCountdown=document.querySelector("#neutral-region-countdown");
+const neutralRegionUnitList=document.querySelector("#neutral-region-unit-list");
+const neutralRegionTroopSection=document.querySelector("#neutral-region-troop-section");
+const neutralRegionMessage=document.querySelector("#neutral-region-message");
+const neutralRegionAction=document.querySelector("#neutral-region-action");
+let selectedNeutralRegion=null,neutralRegionMode="garrison",neutralRegionTimer=null;
+
 const mapWorldCanvas=document.querySelector("#map-world-canvas");
 const mapViewport=document.querySelector(".world-map");
+let mapZoom=0.82;
+const MAP_ZOOM_MIN=0.55,MAP_ZOOM_MAX=1.6,MAP_ZOOM_STEP=0.15;
+function applyMapZoom(nextZoom,preserveCenter=true){
+ if(!mapWorldCanvas||!mapViewport)return;
+ const oldWidth=mapWorldCanvas.clientWidth||1800,oldHeight=mapWorldCanvas.clientHeight||1200;
+ const centerX=mapViewport.scrollLeft+mapViewport.clientWidth/2;
+ const centerY=mapViewport.scrollTop+mapViewport.clientHeight/2;
+ const ratioX=centerX/oldWidth,ratioY=centerY/oldHeight;
+ mapZoom=Math.max(MAP_ZOOM_MIN,Math.min(MAP_ZOOM_MAX,Math.round(nextZoom*100)/100));
+ const mobile=window.matchMedia("(max-width: 420px)").matches;
+ const baseWidth=mobile?1500:1800,baseHeight=mobile?1000:1200;
+ mapWorldCanvas.style.width=Math.round(baseWidth*mapZoom)+"px";
+ mapWorldCanvas.style.height=Math.round(baseHeight*mapZoom)+"px";
+ const label=document.querySelector("#map-zoom-level");
+ if(label)label.textContent=Math.round(mapZoom*100)+"%";
+ if(preserveCenter){
+  requestAnimationFrame(()=>{
+   mapViewport.scrollLeft=Math.max(0,ratioX*mapWorldCanvas.clientWidth-mapViewport.clientWidth/2);
+   mapViewport.scrollTop=Math.max(0,ratioY*mapWorldCanvas.clientHeight-mapViewport.clientHeight/2);
+  });
+ }
+}
+document.querySelector("#map-zoom-in")?.addEventListener("click",()=>applyMapZoom(mapZoom+MAP_ZOOM_STEP));
+document.querySelector("#map-zoom-out")?.addEventListener("click",()=>applyMapZoom(mapZoom-MAP_ZOOM_STEP));
+document.querySelector("#map-zoom-reset")?.addEventListener("click",()=>{
+ applyMapZoom(0.82,false);
+ if(mapViewport&&mapWorldCanvas){
+  const own=mapWorldCanvas.querySelector(".map-own-city");
+  const x=own?parseFloat(own.style.left||"50"):50,y=own?parseFloat(own.style.top||"50"):50;
+  requestAnimationFrame(()=>{
+   mapViewport.scrollLeft=Math.max(0,x/100*mapWorldCanvas.clientWidth-mapViewport.clientWidth/2);
+   mapViewport.scrollTop=Math.max(0,y/100*mapWorldCanvas.clientHeight-mapViewport.clientHeight/2);
+  });
+ }
+});
+window.addEventListener("resize",()=>applyMapZoom(mapZoom,false));
+applyMapZoom(mapZoom,false);
+
+
+function neutralClaimIsActive(region){
+ return Boolean(region?.claimed_by_player_id&&region.claim_expires_at&&!region.claim_expired&&Date.parse(region.claim_expires_at)>Date.now());
+}
+function renderNeutralRegionCountdown(){
+ if(!selectedNeutralRegion||!neutralRegionCountdown)return;
+ if(!neutralClaimIsActive(selectedNeutralRegion)){
+  neutralRegionCountdown.textContent=selectedNeutralRegion.owner_faction_id?"Bölge kalıcı olarak fethedilmiş.":"İlk garnizon dört saatlik mücadeleyi başlatır.";
+  return;
+ }
+ const left=Math.max(0,Date.parse(selectedNeutralRegion.claim_expires_at)-Date.now());
+ const seconds=Math.floor(left/1000),hours=Math.floor(seconds/3600),minutes=Math.floor((seconds%3600)/60),rest=seconds%60;
+ neutralRegionCountdown.textContent="Hâkimiyet süresinin bitmesine: "+hours+" sa "+minutes+" dk "+rest+" sn";
+}
+function fillNeutralTroopChoices(){
+ neutralRegionUnitList.replaceChildren();
+ if(!armyState)return;
+ armyState.catalog.forEach(unit=>{
+  const owned=Number(armyState.troops?.[unit.id]||0);if(owned<=0)return;
+  const label=document.createElement("label");label.className="attack-unit-row";
+  const name=document.createElement("span");name.textContent=unit.icon+" "+unit.name+" · Mevcut "+armyNumber(owned);
+  const input=document.createElement("input");input.type="number";input.min="0";input.max=String(owned);input.value="0";input.dataset.neutralUnit=unit.id;input.setAttribute("aria-label",unit.name+" gönderilecek sayısı");
+  label.append(name,input);neutralRegionUnitList.append(label);
+ });
+}
+function renderNeutralRegionDialog(region){
+ selectedNeutralRegion=region;
+ neutralRegionTitle.textContent=region.region_name||"Tarafsız Bölge";
+ const guards=Object.values(region.guard_troops||{}).reduce((sum,value)=>sum+Number(value||0),0);
+ neutralGuardCount.textContent=armyNumber(guards);
+ neutralGarrisonCount.textContent=armyNumber(region.garrison_count||0)+" / 100.000";
+ const factionNames={gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"};
+ const owned=Boolean(region.owner_faction_id);
+ const active=neutralClaimIsActive(region);
+ const mine=active&&region.claimed_by_player_id===currentPlayer?.id;
+ const rival=active&&!mine;
+ neutralRegionOwner.textContent=owned
+  ?(factionNames[region.owner_faction_id]||"Bir devlet")+" hâkimiyetinde · "+(region.owner_player_id===currentPlayer?.id?"Senin bölgen":"Fethedilmiş bölge")
+  :mine?"Geçici hâkimiyet sende · Muhafızları yenerek kalıcı fetih yap."
+  :rival?"Geçici hâkimiyet: başka bir oyuncuda · Rakip devletler saldırabilir."
+  :"Tarafsız toprak · İlk garnizon dört saatlik mücadeleyi başlatır.";
+ neutralRegionMode=owned?"owned":mine?"reinforce":rival?"attack":"garrison";
+ neutralRegionTroopSection.hidden=owned;
+ fillNeutralTroopChoices();
+ neutralRegionAction.hidden=owned;
+ neutralRegionAction.disabled=false;
+ neutralRegionAction.textContent=mine?"➕ Garnizona asker takviyesi":rival?"⚔️ Rakip garnizona saldır":"🏕️ İlk garnizonu kur · 4 saat başlat";
+ const challengeButton=document.querySelector("#neutral-region-challenge");
+ challengeButton.hidden=!mine;
+ challengeButton.disabled=false;
+ neutralRegionMessage.textContent=owned?"Bu bölge şu anda fethedilmiş durumda.":mine?"Garnizonuna yeni asker gönderebilir veya mevcut garnizonla muhafızlara saldırabilirsin.":rival?"Göndereceğin ordu, muhafızlar ve mevcut garnizona karşı savaşacak.":"İlk gönderdiğin birlikler garnizon olur. Dört saat içinde muhafızları yenmelisin.";
+ renderNeutralRegionCountdown();
+}
+async function openNeutralRegionDialog(region){
+ try{
+  if(!armyState)await loadArmyState();
+  const latest=(window.__umaykutNeutralRegions||[]).find(item=>String(item.id)===String(region.id))||region;
+  renderNeutralRegionDialog(latest);
+  if(neutralRegionTimer)clearInterval(neutralRegionTimer);
+  neutralRegionTimer=setInterval(renderNeutralRegionCountdown,1000);
+  neutralRegionDialog.showModal();
+ }catch(error){window.alert(error.message||"Bölge bilgileri yüklenemedi.");}
+}
+
 let selectedAttackTarget=null;
 let cachedWorldPlayers=[];
 function renderWorldMap(data){
@@ -904,6 +1097,23 @@ function renderWorldMap(data){
   stone:{icon:"🪨",name:"Taş Madeni"},
   gold:{icon:"🪙",name:"Altın Madeni"}
  };
+
+ const neutralVillages=Array.isArray(data.neutralRegions)?data.neutralRegions:[];
+ neutralVillages.forEach(village=>{
+  const marker=document.createElement("button");marker.type="button";
+  marker.className="map-point map-neutral-village dynamic-world-marker";
+  marker.dataset.neutralVillage=String(village.id);
+  marker.style.left=Number(village.world_x)+"%";marker.style.top=Number(village.world_y)+"%";
+  const factionColors={gokturk:"#2587b8",hun:"#b94343",seljuk:"#d4a83e"};
+  const color=factionColors[village.owner_faction_id]||factionColors[(neutralClaimIsActive(village)?village.claimed_faction_id:null)]||"#b99b61";
+  marker.style.borderColor=color;marker.style.boxShadow="0 0 0 2px "+color+"55,0 3px 12px #000b";
+  marker.setAttribute("aria-label",village.region_name+", "+(village.owner_faction_id?"fethedilmiş bölge":"tarafsız köy"));
+  const icon=document.createElement("span");icon.textContent=village.owner_faction_id?"🏰":"🏘️";
+  const name=document.createElement("small");name.textContent=village.region_name;
+  const status=document.createElement("b");
+  status.textContent=village.owner_faction_id?({gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"}[village.owner_faction_id]+" hâkimiyeti"):(neutralClaimIsActive(village)?(({gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"}[village.claimed_faction_id]||"Geçici")+" geçici hâkimiyeti"):"Tarafsız");
+  marker.append(icon,name,status);mapWorldCanvas.append(marker);
+ });
  (data.resourceNodes||[]).forEach(node=>{
   const type=mineTypes[node.resource_type];if(!type)return;
   const marker=document.createElement("button");marker.type="button";
@@ -946,6 +1156,13 @@ mapWorldCanvas?.addEventListener("click",async event=>{
   }
   return;
  }
+
+ const neutralMarker=event.target.closest("[data-neutral-village]");
+ if(neutralMarker){
+  const region=(window.__umaykutNeutralRegions||[]).find(item=>String(item.id)===neutralMarker.dataset.neutralVillage);
+  if(region)openNeutralRegionDialog(region);
+  return;
+ }
  const playerMarker=event.target.closest("[data-world-player]");
  if(!playerMarker)return;
  const target=cachedWorldPlayers.find(player=>player.id===playerMarker.dataset.worldPlayer);
@@ -953,17 +1170,72 @@ mapWorldCanvas?.addEventListener("click",async event=>{
  try{if(!armyState)await loadArmyState();openAttackDialog(target);}
  catch(error){window.alert(error.message||"Oyuncu bilgisi alınamadı.");}
 });
+
+function renderMarchingArmies(playersData,raidsData){
+ if(!mapWorldCanvas)return;
+ const overlay=mapWorldCanvas.querySelector(".map-geography-overlay");
+ if(!overlay)return;
+ overlay.querySelectorAll(".live-army-route").forEach(route=>route.remove());
+ mapWorldCanvas.querySelectorAll(".map-army-marker").forEach(marker=>marker.remove());
+ const own=playersData.world||{world_x:50,world_y:50};
+ const ownX=Math.max(0,Math.min(100,Number(own.world_x)||50));
+ const ownY=Math.max(0,Math.min(100,Number(own.world_y)||50));
+ const players=Array.isArray(playersData.players)?playersData.players:[];
+ const now=Date.parse(raidsData.serverNow)||Date.now();
+ (raidsData.attacks||[]).filter(raid=>raid.status==="marching").forEach(raid=>{
+  const outgoing=raid.direction==="outgoing";
+  const targetId=outgoing?raid.defender_id:raid.attacker_id;
+  const target=players.find(player=>player.id===targetId);
+  if(!target)return;
+  const targetX=Math.max(0,Math.min(100,Number(target.world_x)||50));
+  const targetY=Math.max(0,Math.min(100,Number(target.world_y)||50));
+  const startX=outgoing?ownX:targetX,startY=outgoing?ownY:targetY;
+  const endX=outgoing?targetX:ownX,endY=outgoing?targetY:ownY;
+  const x1=startX*18,y1=startY*12,x2=endX*18,y2=endY*12;
+  const dx=x2-x1,dy=y2-y1;
+  const cx=dx/2-dy*.12,cy=dy/2+dx*.12;
+  const path=document.createElementNS("http://www.w3.org/2000/svg","path");
+  path.setAttribute("d","M "+x1+" "+y1+" Q "+(x1+cx)+" "+(y1+cy)+" "+x2+" "+y2);
+  path.setAttribute("class","live-army-route "+(outgoing?"outgoing":"incoming"));
+  overlay.append(path);
+  const marker=document.createElement("div");
+  marker.className="map-army-marker";
+  marker.textContent="⚔️";
+  marker.title=(outgoing?"Giden ordu: ":"Gelen ordu: ")+(target.village_name||"Rakip yurdu");
+  marker.setAttribute("aria-label",marker.title);
+  const departed=Date.parse(raid.departed_at),arrives=Date.parse(raid.arrives_at);
+  const total=Math.max(1000,arrives-departed);
+  const elapsed=Math.max(0,Math.min(total,now-departed));
+  const duration=total/1000;
+  marker.style.animationDuration=duration+"s";
+  marker.style.animationDelay=(-elapsed/1000)+"s";
+  if(typeof CSS!=="undefined"&&CSS.supports("offset-path",'path("M 0 0 L 1 1")')){
+   marker.style.left=startX+"%";marker.style.top=startY+"%";
+   marker.style.offsetPath='path("M 0px 0px Q '+cx+'px '+cy+'px '+dx+'px '+dy+'px")';
+   marker.style.offsetRotate="auto";
+  }else{
+   const progress=elapsed/total;
+   marker.style.left=(startX+(endX-startX)*progress)+"%";
+   marker.style.top=(startY+(endY-startY)*progress)+"%";
+  }
+  mapWorldCanvas.append(marker);
+ });
+}
+
 async function loadWorldPlayers(){
  if(!authToken||!worldPlayerList)return;
  worldPlayerList.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Köyler aranıyor…"}));
  try{
-  const [playersData,raidsData,scoutData]=await Promise.all([
+  const [playersData,raidsData,scoutData,neutralData]=await Promise.all([
    authRequest("/api/game/players",{token:authToken}),
    authRequest("/api/game/attacks",{token:authToken}),
-   authRequest("/api/game/scouting",{token:authToken})
+   authRequest("/api/game/scouting",{token:authToken}),
+   authRequest("/api/game/neutral-regions",{token:authToken})
   ]);
   window.__umaykutWorldNodes=playersData.resourceNodes||[];
-  renderWorldMap(playersData);
+  window.__umaykutNeutralRegions=neutralData.regions||[];
+  renderWorldMap({...playersData,neutralRegions:window.__umaykutNeutralRegions});
+  renderMarchingArmies(playersData,raidsData);
   worldPlayerList.replaceChildren();
   if(!playersData.players.length)worldPlayerList.append(Object.assign(document.createElement("p"),{textContent:"Henüz başka bir oyuncu köy kurmamış."}));
   playersData.players.forEach(player=>{
@@ -1006,19 +1278,22 @@ async function loadWorldPlayers(){
   scoutReportsList.replaceChildren();
   if(!scoutData.missions.length)scoutReportsList.append(Object.assign(document.createElement("p"),{textContent:"Henüz casus görevi bulunmuyor."}));
   scoutData.missions.forEach(mission=>{
-   const card=document.createElement("article");card.className="world-raid-card";
+   const card=document.createElement("article");card.className="world-raid-card scout-report-card";
+   const portrait=document.createElement("img");portrait.className="scout-portrait";portrait.src="/assets/IMG-20261117-WA9037.jpg";portrait.alt="Casus";
+   const content=document.createElement("div");content.className="scout-report-content";
    const title=document.createElement("strong"),status=document.createElement("small");
    title.textContent=mission.defender_report?"Köyüne casus geldi: "+mission.attacker_village:"Casus: "+mission.defender_village;
    const arrival=Date.parse(mission.arrives_at)-Date.now(),returning=mission.return_at?Date.parse(mission.return_at)-Date.now():0;
    status.textContent=mission.defender_report?"Savunma bildirimi · Gelen casus: "+mission.defender_report.incomingScouts+" · Kaybedilen casus: "+mission.defender_report.ownScoutsLost+" · Kalan: "+mission.defender_report.ownScoutsRemaining:mission.status==="marching"?"Hedefe varış: "+Math.max(0,Math.ceil(arrival/60000))+" dk":mission.status==="resolved"?"Casus tamamlandı · dönüş: "+Math.max(0,Math.ceil(returning/60000))+" dk":"Casus birliği köye döndü";
-   card.append(title,status);
+   content.append(title,status);
    if(mission.scout_report){
     const report=mission.scout_report,detail=document.createElement("small");
     const resources=Object.entries(report.resources||{}).map(([key,value])=>key+": "+value).join(" · ");
     const troops=Object.entries(report.troops||{}).map(([key,value])=>key+": "+value).join(" · ")||"Asker bulunamadı";
     detail.textContent=report.informationGathered===false?"Casus başarısız. Casusların tamamı kaybedildi.": "Kaynaklar: "+resources+" · Savunma ordusu: "+troops+" · Geri dönecek casus: "+Number(report.attackerSurvivors||0);
-    card.append(detail);
+    content.append(detail);
    }
+   card.append(portrait,content);
    scoutReportsList.append(card);
   });
  }catch(error){worldPlayerList.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Oyuncu köyleri yüklenemedi."}));}
@@ -1063,6 +1338,43 @@ worldPlayerList.addEventListener("click",async event=>{
  }catch(error){attackMessage.textContent=error.message||"Hedef köy seçilemedi.";}
 });
 document.querySelector("#refresh-world-players").addEventListener("click",loadWorldPlayers);
+
+document.querySelector("#neutral-region-close").addEventListener("click",()=>{
+ if(neutralRegionTimer)clearInterval(neutralRegionTimer);
+ neutralRegionDialog.close();
+});
+async function submitNeutralRegionAction(endpoint){
+ if(!selectedNeutralRegion||neutralRegionMode==="owned")return;
+ let troops={};
+ if(endpoint!=="challenge"){
+  neutralRegionUnitList.querySelectorAll("[data-neutral-unit]").forEach(input=>{
+   const amount=Number(input.value);
+   if(Number.isSafeInteger(amount)&&amount>0)troops[input.dataset.neutralUnit]=amount;
+  });
+  if(!Object.keys(troops).length){neutralRegionMessage.textContent="En az bir asker seçmelisin.";return;}
+ }
+ const button=endpoint==="challenge"?document.querySelector("#neutral-region-challenge"):neutralRegionAction;
+ button.disabled=true;
+ neutralRegionMessage.textContent=endpoint==="garrison"?"Garnizona asker gönderiliyor…":endpoint==="challenge"?"Muhafızlarla savaş başlıyor…":"Rakip garnizona saldırı gönderiliyor…";
+ try{
+  const result=await authRequest("/api/game/neutral-regions/"+endpoint,{
+   method:"POST",token:authToken,body:{regionId:selectedNeutralRegion.id,troops}
+  });
+  neutralRegionMessage.textContent=result.message||"Bölge işlemi tamamlandı.";
+  await loadArmyState();
+  await loadWorldPlayers();
+  const updated=(window.__umaykutNeutralRegions||[]).find(item=>String(item.id)===String(selectedNeutralRegion.id));
+  if(updated)renderNeutralRegionDialog(updated);
+  if(result.captured)neutralRegionMessage.textContent=result.message+" Kayıplar: "+armyNumber(result.attackerLosses||0)+" · Sağ kalan: "+armyNumber(result.attackerSurvivors||0)+".";
+ }catch(error){
+  neutralRegionMessage.textContent=error.message||"Bölge işlemi tamamlanamadı.";
+ }finally{
+  button.disabled=false;
+ }
+}
+neutralRegionAction.addEventListener("click",()=>submitNeutralRegionAction(neutralRegionMode==="attack"?"attack":"garrison"));
+document.querySelector("#neutral-region-challenge").addEventListener("click",()=>submitNeutralRegionAction("challenge"));
+
 document.querySelector("#attack-close").addEventListener("click",()=>attackDialog.close());
 document.querySelector("#send-attack").addEventListener("click",async()=>{
  if(!selectedAttackTarget)return;

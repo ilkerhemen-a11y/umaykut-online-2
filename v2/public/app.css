@@ -190,3 +190,48 @@
 .attack-unit-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.1);color:#f3e8d4}
 .attack-unit-row input{width:76px;min-height:40px;border:1px solid #9c814f;border-radius:9px;background:#111b1d;color:#fff;text-align:center}
 #attack-dialog{max-width:min(94vw,520px);max-height:85vh;overflow:auto}
+
+.scout-section-title{display:flex;align-items:center;gap:9px}
+.scout-section-title img{width:34px;height:34px;object-fit:cover;border-radius:8px;border:1px solid rgba(202,165,91,.55)}
+.scout-report-card{justify-content:flex-start;align-items:flex-start;gap:11px}
+.scout-portrait{width:48px;height:48px;flex:0 0 48px;object-fit:cover;border-radius:9px;border:1px solid rgba(202,165,91,.6);box-shadow:0 3px 10px rgba(0,0,0,.25)}
+.scout-report-content{min-width:0;flex:1}
+.scout-report-content small{overflow-wrap:anywhere}
+
+
+/* Neutral region conquest dialog */
+.neutral-region-dialog{width:min(92vw,470px);max-height:86dvh;overflow:auto;border:1px solid rgba(202,165,91,.55);border-radius:18px;background:linear-gradient(160deg,#18251f,#0d1717);color:#f6ead1;box-shadow:0 22px 70px #000b}
+.neutral-region-dialog::backdrop{background:rgba(3,8,8,.78);backdrop-filter:blur(4px)}
+.neutral-region-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.neutral-region-stats>div{display:grid;gap:5px;padding:11px;border:1px solid rgba(202,165,91,.3);border-radius:11px;background:rgba(8,14,13,.55)}
+.neutral-region-stats small{font:700 9px Arial,sans-serif;letter-spacing:.12em;color:#c7a35e}
+.neutral-region-stats strong{font:700 19px Georgia,serif;color:#f4d58c}
+.neutral-region-countdown{margin:8px 0;padding:10px;border-radius:9px;background:rgba(202,165,91,.1);color:#f2d89d;font-size:12px}
+#neutral-region-dialog section h3{margin:12px 0 6px;font-size:13px;color:#ead09a}
+#neutral-region-unit-list{display:grid;grid-template-columns:1fr;gap:2px;max-height:28dvh;overflow:auto}
+#neutral-region-unit-list .attack-unit-row{padding:7px 2px;font-size:12px}
+#neutral-region-action{width:100%;margin-top:8px}
+#neutral-region-action:disabled{opacity:.55;cursor:not-allowed}
+.neutral-region-dialog .army-dialog-head button{border:0;background:transparent;color:#f4e5c7;font-size:25px}
+
+/* Dedicated battle history entry next to inventory */
+.bottom-nav{grid-template-columns:repeat(6,minmax(0,1fr))}
+.bottom-nav button{font-size:8px;padding-left:1px;padding-right:1px}
+.bottom-nav button span{font-size:19px}
+.battle-reports-dialog{width:min(94vw,520px);max-height:min(88dvh,760px)}
+.battle-reports-list{display:grid;gap:9px;max-height:62dvh;overflow:auto;padding:2px}
+.battle-report-card{padding:12px;border:1px solid #806b42;border-radius:12px;background:linear-gradient(145deg,#1b2b20,#101812);box-shadow:inset 0 0 0 1px #e6c87812}
+.battle-report-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.battle-report-heading strong{font-size:13px;color:#f2dfad}
+.battle-report-outcome{padding:4px 7px;border:1px solid #9c7d45;border-radius:20px;font:700 9px Arial,sans-serif;color:#e9cb82;white-space:nowrap}
+.battle-report-date{display:block;margin-top:5px;font:10px Arial,sans-serif;color:#aaa184}
+.battle-report-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px}
+.battle-report-stats>div{display:grid;gap:3px;padding:7px;border-radius:8px;background:#090f0b88}
+.battle-report-stats strong{font-size:15px;color:#f4d88e}
+.battle-report-stats small,.battle-report-card p,.battle-report-loot{font:11px/1.45 Arial,sans-serif;color:#c8bea1}
+.battle-report-card p{margin:9px 0 0}
+.battle-report-loot{display:block;margin-top:7px;color:#e2c477}
+@media(min-width:600px){.bottom-nav button{font-size:10px}.bottom-nav button span{font-size:22px}}
+
+.battle-report-card[data-kind="territory"]{border-color:#b18d4b}
+.battle-report-kind{display:inline-block;margin-top:7px;color:#e3c77f;font:700 9px Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase}
