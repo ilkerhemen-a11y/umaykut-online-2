@@ -1175,12 +1175,24 @@ function renderWorldMap(data){
   status.textContent=village.owner_faction_id?({gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"}[village.owner_faction_id]+" hâkimiyeti"):(neutralClaimIsActive(village)?(({gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"}[village.claimed_faction_id]||"Geçici")+" geçici hâkimiyeti"):"Tarafsız");
   marker.append(icon,name,status);mapWorldCanvas.append(marker);
  });
- (data.resourceNodes||[]).forEach(node=>{
+ const resourceNodes=(data.resourceNodes||[]).filter(node=>mineTypes[node.resource_type]);
+ const canvasWidth=mapWorldCanvas.clientWidth||1476,canvasHeight=mapWorldCanvas.clientHeight||984;
+ const ownPixelX=ownX/100*canvasWidth,ownPixelY=ownY/100*canvasHeight;
+ const safeVillageDistance=74;
+ resourceNodes.forEach((node,index)=>{
   const type=mineTypes[node.resource_type];if(!type)return;
+  let displayX=Number(node.world_x),displayY=Number(node.world_y);
+  const nodePixelX=displayX/100*canvasWidth,nodePixelY=displayY/100*canvasHeight;
+  const offsetX=nodePixelX-ownPixelX,offsetY=nodePixelY-ownPixelY;
+  if(Math.hypot(offsetX,offsetY)<safeVillageDistance){
+   const angle=(-Math.PI/2)+(index/resourceNodes.length)*Math.PI*2;
+   displayX=Math.max(2,Math.min(98,(ownPixelX+Math.cos(angle)*safeVillageDistance)/canvasWidth*100));
+   displayY=Math.max(2,Math.min(98,(ownPixelY+Math.sin(angle)*safeVillageDistance)/canvasHeight*100));
+  }
   const marker=document.createElement("button");marker.type="button";
   marker.className="map-point map-mine-point resource-node-marker resource-node-"+node.resource_type+" dynamic-world-marker";
   marker.dataset.worldMine=String(node.id);
-  marker.style.left=Number(node.world_x)+"%";marker.style.top=Number(node.world_y)+"%";
+  marker.style.left=displayX+"%";marker.style.top=displayY+"%";
   const schoolLevel=Math.max(1,Math.min(5,Number(gameBuildings["5"]?.level)||1));
   const range=2+(schoolLevel-1)*2;
   const dx=(Number(node.world_x)-ownX)*18,dy=(Number(node.world_y)-ownY)*12;
@@ -1189,7 +1201,7 @@ function renderWorldMap(data){
   marker.classList.toggle("mine-out-of-range",!inRange);
   marker.title=type.name+" · Verim "+node.yield_level+"/9 · "+(inRange?"Mavi alan içinde":"Mavi alan dışında");
   marker.setAttribute("aria-label",type.name+", verim "+node.yield_level+" / 9, "+(inRange?"mavi alan içinde":"mavi alan dışında"));
-  const icon=document.createElement("img");icon.src="/assets/resources/"+type.asset;icon.alt="";icon.width=42;icon.height=42;icon.loading="lazy";icon.decoding="async";
+  const icon=document.createElement("img");icon.src="/assets/resources/"+type.asset;icon.alt="";icon.width=32;icon.height=32;icon.loading="lazy";icon.decoding="async";
   const name=document.createElement("small");name.textContent=type.name;
   const yieldLabel=document.createElement("b");yieldLabel.textContent="Verim "+node.yield_level+"/9";
   marker.append(icon,name,yieldLabel);mapWorldCanvas.append(marker);
