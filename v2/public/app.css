@@ -287,7 +287,7 @@
 @media(max-width:420px){.map-view{padding-left:7px;padding-right:7px}.map-heading h1{font-size:17px}.world-map{min-height:390px;height:64dvh}.map-point>small{font-size:7px}.map-own-city img{width:42px;height:42px}}
 
 
-/* Circular village presentation: remove the rectangular frame. */
-.city-frame{width:min(100%,min(67dvh,760px));aspect-ratio:1/1;max-height:none;min-height:0;border:0;border-radius:50%;background:transparent;box-shadow:none;}
-.city-stage{width:100%;height:100%;max-width:none;max-height:none;overflow:hidden;border-radius:50%;}
-.city-art{border-radius:50%;object-fit:cover;}
+/* World-map village marker: circular artwork without a rectangular card. */
+.map-own-city{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;gap:3px;}
+.map-own-city img{width:58px;height:58px;border:2px solid #e0c27c;border-radius:50%;object-fit:cover;box-shadow:0 3px 10px #0009;}
+.map-own-city b,.map-own-city small{text-shadow:0 1px 4px #000,0 1px 8px #000;}
