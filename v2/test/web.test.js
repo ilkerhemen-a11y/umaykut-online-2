@@ -42,6 +42,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(stageEnd>stageStart);
   const stageHtml=html.slice(stageStart,stageEnd);
   assert.ok(stageHtml.includes('<img class="city-art"') && stageHtml.includes('<div class="building-numbers"'));
+  const stageMarkupEnd=html.indexOf('\n        </div>\n        <div class="village-camera-controls"',stageStart);
+  assert.ok(stageMarkupEnd>stageStart,"camera controls stay outside the zoomed artwork layer");
   assert.ok(stageHtml.includes('id="village-zoom-in"') && stageHtml.includes('id="village-zoom-out"') && stageHtml.includes('id="village-zoom-reset"'));
   assert.match(stageHtml,/aria-label="Köy görünümü yakınlaştırma kontrolleri"/);
   assert.match(stageHtml,/id="village-zoom-label" aria-live="polite">100%/);
