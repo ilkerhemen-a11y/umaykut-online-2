@@ -313,3 +313,20 @@
 .map-mine-point.resource-node-marker.mine-out-of-range{opacity:.72;filter:saturate(.65)}
 .map-mine-point.resource-node-marker:not(.mine-out-of-range){box-shadow:0 0 0 2px #62dfff99,0 0 16px #4ccfffaa,0 4px 12px #000b}
 @media(max-width:420px){.map-mine-point.resource-node-marker{width:34px;min-width:34px;height:34px}.map-mine-point.resource-node-marker>img{width:29px;height:29px}}
+
+
+/* Touch-first village camera: zoom scales the artwork and all building markers together. */
+.city-frame{touch-action:pan-y;overscroll-behavior:contain}
+.city-frame.is-zoomed{touch-action:none}
+.city-stage{will-change:transform}
+.village-camera-controls{position:absolute;z-index:5;top:8px;right:8px;display:flex;align-items:center;gap:4px;padding:4px;border:1px solid #b99551;border-radius:10px;background:#101b16e8;box-shadow:0 3px 12px #0009;backdrop-filter:blur(8px);touch-action:manipulation}
+.village-camera-controls button{display:grid;place-items:center;min-width:32px;height:32px;padding:0 7px;border:1px solid #9c7a42;border-radius:7px;background:linear-gradient(145deg,#49391f,#1b261d);color:#f5dfa4;font:700 16px Arial,sans-serif;cursor:pointer}
+.village-camera-controls button:last-child{font-size:9px;letter-spacing:.2px}
+.village-camera-controls button:disabled{opacity:.42;cursor:default}
+.village-camera-controls button:focus-visible{outline:2px solid #ffe5a1;outline-offset:2px}
+.village-camera-controls span{min-width:38px;color:#f5dfa4;font:700 10px Arial,sans-serif;text-align:center;font-variant-numeric:tabular-nums}
+@media(max-width:420px){
+ .village-camera-controls{top:6px;right:6px;gap:3px;padding:3px}
+ .village-camera-controls button{min-width:29px;height:29px;padding:0 5px}
+ .village-camera-controls span{min-width:34px;font-size:9px}
+}

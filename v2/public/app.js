@@ -1,3 +1,4 @@
+import { clampVillageZoom, clampVillagePan, calculateVillagePinch, calculateVillagePan } from "./village-camera.js";
 const factions={
  hun:{name:"Hun Devleti",themeColor:"#7b2528",short:"Kızıl Bozkır",trait:"Atlı birlikler ve hızlı akınlar",description:"Hareketli süvari ordusu, baskın ve sefer odaklı oyun tarzı."},
  seljuk:{name:"Selçuklu Devleti",themeColor:"#8d6a2d",short:"Altın Hâkimiyet",trait:"Ticaret ve şehirleşme",description:"Üretim, ticaret, güçlü surlar ve düzenli şehir gelişimi odaklı oyun tarzı."},
@@ -79,6 +80,97 @@ function updateVillageName(name){
 const villageFrame=document.querySelector(".city-frame");
 const villageStage=document.querySelector(".city-stage");
 const villageImage=document.querySelector(".city-art");
+const villageZoomIn=document.querySelector("#village-zoom-in");
+const villageZoomOut=document.querySelector("#village-zoom-out");
+const villageZoomReset=document.querySelector("#village-zoom-reset");
+const villageZoomLabel=document.querySelector("#village-zoom-label");
+let villageZoom=1,villagePanX=0,villagePanY=0;
+const villagePointers=new Map();
+let villagePinchStart=null,villageDragStart=null;
+function renderVillageCamera(){
+ if(!villageFrame||!villageStage)return;
+ const rect=villageFrame.getBoundingClientRect();
+ villagePanX=clampVillagePan(villagePanX,rect.width,villageZoom,villageStage.offsetWidth||rect.width);
+ villagePanY=clampVillagePan(villagePanY,rect.height,villageZoom,villageStage.offsetHeight||rect.height);
+ villageStage.style.transform="translate(calc(-50% + "+villagePanX+"px), calc(-50% + "+villagePanY+"px)) scale("+villageZoom+")";
+ villageFrame.classList.toggle("is-zoomed",villageZoom>1.001);
+ if(villageZoomLabel)villageZoomLabel.textContent=Math.round(villageZoom*100)+"%";
+ if(villageZoomIn)villageZoomIn.disabled=villageZoom>=2.2;
+ if(villageZoomOut)villageZoomOut.disabled=villageZoom<=1;
+}
+function setVillageZoom(nextZoom){
+ if(!villageFrame||!villageStage)return;
+ const rect=villageFrame.getBoundingClientRect();
+ const contentWidth=villageStage.offsetWidth||rect.width,contentHeight=villageStage.offsetHeight||rect.height;
+ const next=clampVillageZoom(nextZoom);
+ const worldX=-villagePanX/villageZoom,worldY=-villagePanY/villageZoom;
+ villageZoom=next;
+ villagePanX=clampVillagePan(-worldX*next,rect.width,next,contentWidth);
+ villagePanY=clampVillagePan(-worldY*next,rect.height,next,contentHeight);
+ renderVillageCamera();
+}
+function villagePointerDistance(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+function villagePointerMidpoint(a,b){return {x:(a.x+b.x)/2,y:(a.y+b.y)/2};}
+function finishVillagePointer(event){
+ villagePointers.delete(event.pointerId);
+ villagePinchStart=null;
+ villageDragStart=null;
+ if(villagePointers.size===1&&villageZoom>1.001){
+  const [pointerId,point]=Array.from(villagePointers.entries())[0];
+  villageDragStart={pointerId,startX:point.x,startY:point.y,startPanX:villagePanX,startPanY:villagePanY};
+ }
+}
+if(villageFrame&&villageStage){
+ villageFrame.addEventListener("pointerdown",event=>{
+  if(event.target.closest("button"))return;
+  if(event.pointerType==="mouse"&&event.button!==0)return;
+  villagePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+  if(villagePointers.size===1){
+   if(villageZoom>1.001){
+    villageDragStart={pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,startPanX:villagePanX,startPanY:villagePanY};
+    try{villageFrame.setPointerCapture(event.pointerId);}catch{}
+   }
+   return;
+  }
+  if(villagePointers.size!==2)return;
+  villageDragStart=null;
+  const points=Array.from(villagePointers.values()),rect=villageFrame.getBoundingClientRect(),mid=villagePointerMidpoint(points[0],points[1]);
+  villagePinchStart={zoom:villageZoom,panX:villagePanX,panY:villagePanY,distance:Math.max(1,villagePointerDistance(points[0],points[1])),centerX:mid.x-rect.left,centerY:mid.y-rect.top};
+  for(const [pointerId] of villagePointers){try{villageFrame.setPointerCapture(pointerId);}catch{}}
+ });
+ villageFrame.addEventListener("pointermove",event=>{
+  if(!villagePointers.has(event.pointerId))return;
+  villagePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+  const rect=villageFrame.getBoundingClientRect();
+  if(villagePointers.size===2&&villagePinchStart){
+   const points=Array.from(villagePointers.values()),mid=villagePointerMidpoint(points[0],points[1]);
+   const camera=calculateVillagePinch({
+    startZoom:villagePinchStart.zoom,startPanX:villagePinchStart.panX,startPanY:villagePinchStart.panY,
+    startDistance:villagePinchStart.distance,currentDistance:villagePointerDistance(points[0],points[1]),
+    startCenterX:villagePinchStart.centerX,startCenterY:villagePinchStart.centerY,
+    currentCenterX:mid.x-rect.left,currentCenterY:mid.y-rect.top,
+    viewportWidth:rect.width,viewportHeight:rect.height,
+    contentWidth:villageStage.offsetWidth||rect.width,contentHeight:villageStage.offsetHeight||rect.height
+   });
+   villageZoom=camera.zoom;villagePanX=camera.panX;villagePanY=camera.panY;renderVillageCamera();
+   return;
+  }
+  if(villagePointers.size===1&&villageDragStart&&villageDragStart.pointerId===event.pointerId&&villageZoom>1.001){
+   const camera=calculateVillagePan({
+    startPanX:villageDragStart.startPanX,startPanY:villageDragStart.startPanY,
+    deltaX:event.clientX-villageDragStart.startX,deltaY:event.clientY-villageDragStart.startY,
+    viewportWidth:rect.width,viewportHeight:rect.height,
+    contentWidth:villageStage.offsetWidth||rect.width,contentHeight:villageStage.offsetHeight||rect.height,zoom:villageZoom
+   });
+   villagePanX=camera.panX;villagePanY=camera.panY;renderVillageCamera();
+  }
+ });
+ villageFrame.addEventListener("pointerup",finishVillagePointer);
+ villageFrame.addEventListener("pointercancel",finishVillagePointer);
+ villageZoomIn?.addEventListener("click",()=>setVillageZoom(villageZoom+0.15));
+ villageZoomOut?.addEventListener("click",()=>setVillageZoom(villageZoom-0.15));
+ villageZoomReset?.addEventListener("click",()=>{villageZoom=1;villagePanX=0;villagePanY=0;renderVillageCamera();});
+}
 function fitVillageImage(){
  if(!villageFrame||!villageStage||!villageImage||!villageImage.naturalWidth||!villageImage.naturalHeight)return;
  const frameWidth=villageFrame.clientWidth;
@@ -87,6 +179,7 @@ function fitVillageImage(){
  const scale=Math.min(frameWidth/villageImage.naturalWidth,frameHeight/villageImage.naturalHeight);
  villageStage.style.width=Math.round(villageImage.naturalWidth*scale)+"px";
  villageStage.style.height=Math.round(villageImage.naturalHeight*scale)+"px";
+ renderVillageCamera();
 }
 if(villageImage){
  if(villageImage.complete)fitVillageImage();
@@ -98,6 +191,7 @@ if(villageImage){
   window.addEventListener("resize",fitVillageImage,{passive:true});
  }
 }
+renderVillageCamera();
 
 const DEFAULT_RESOURCES={gold:1650,wood:6900,food:9350,stone:7480,iron:8040,horses:100};
 const BUILDING_TYPES={

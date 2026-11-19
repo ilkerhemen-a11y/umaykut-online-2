@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101a13">
   <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
   <title>Umaykut Online 2 · V2</title>
-  <link rel="stylesheet" href="/app.css?v=20261118-resource-art-1">
+  <link rel="stylesheet" href="/app.css?v=20261119-village-camera-1">
   <link rel="stylesheet" href="/factions.css?v=20261117-founding-flow-2">
 </head>
 <body>
@@ -66,6 +66,12 @@
           <button class="building-number" type="button" data-building-slot="8" style="left:37.46%;top:33.92%" aria-label="8 numaralı Pazar"><span class="building-index">8</span><span class="building-label">Pazar</span></button>
           <button class="building-number" type="button" data-building-slot="9" style="left:76.55%;top:21.87%" aria-label="9 numaralı Okçu"><span class="building-index">9</span><span class="building-label">Okçu</span></button>
           <button class="wall-number" id="wall-position-marker" type="button" style="left:50.3%;top:75.3%" aria-label="Sur / Sığınak bilgilerini aç" title="Sur / Sığınak"><span>1</span><small>Sur / Sığınak</small></button>
+          </div>
+          <div class="village-camera-controls" role="group" aria-label="Köy görünümü yakınlaştırma kontrolleri">
+            <button id="village-zoom-out" type="button" aria-label="Köyü uzaklaştır" disabled>−</button>
+            <span id="village-zoom-label" aria-live="polite">100%</span>
+            <button id="village-zoom-in" type="button" aria-label="Köyü yakınlaştır">+</button>
+            <button id="village-zoom-reset" type="button" aria-label="Köy görünümünü sıfırla">Sıfırla</button>
           </div>
         </div>
       </div>
@@ -250,6 +256,6 @@
     </dialog>
   </main>
 
-  <script type="module" src="/app.js?v=20261118-resource-art-1"></script>
+  <script type="module" src="/app.js?v=20261119-village-camera-1"></script>
 </body>
 </html>

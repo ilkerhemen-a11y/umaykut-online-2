@@ -35,13 +35,16 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261118-building-art-1"/);
-  assert.ok(html.includes('src="/app.js?v=20261118-building-art-1"'));
+  assert.match(html,/href="\/app\.css\?v=20261119-village-camera-1"/);
+  assert.ok(html.includes('src="/app.js?v=20261119-village-camera-1"'));
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n      <section id="building-upgrade-tracker"',stageStart);
   assert.ok(stageEnd>stageStart);
   const stageHtml=html.slice(stageStart,stageEnd);
   assert.ok(stageHtml.includes('<img class="city-art"') && stageHtml.includes('<div class="building-numbers"'));
+  assert.ok(stageHtml.includes('id="village-zoom-in"') && stageHtml.includes('id="village-zoom-out"') && stageHtml.includes('id="village-zoom-reset"'));
+  assert.match(stageHtml,/aria-label="Köy görünümü yakınlaştırma kontrolleri"/);
+  assert.match(stageHtml,/id="village-zoom-label" aria-live="polite">100%/);
   assert.match(stageHtml,/class="wall-number" id="wall-position-marker"/);
   assert.match(stageHtml,/left:50\.3%;top:75\.3%/);
   assert.match(stageHtml,/Sur \/ Sığınak/);
@@ -69,13 +72,15 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
 
   // Building markers must overlay the image itself, not flow after it.
-  const styles=await fetch(base+"/app.css?v=20261118-battle-reports-2");
+  const styles=await fetch(base+"/app.css?v=20261119-village-camera-1");
   assert.equal(styles.status,200);
   const css=await styles.text();
   assert.ok(css.includes(".city-frame{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
   assert.ok(css.includes(".city-stage{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:100%;height:100%;"));
   assert.ok(css.includes(".city-art{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:fill;"));
   
+  assert.ok(css.includes(".city-frame.is-zoomed{touch-action:none}"));
+  assert.ok(css.includes(".village-camera-controls{position:absolute;z-index:5;"));
   assert.ok(css.includes(".building-numbers{position:absolute;inset:0;pointer-events:none}"));
   assert.match(css,/\.wall-number\{[^}]*left:50%[^}]*top:7%/);
   assert.ok(css.includes(".building-number{position:absolute;transform:translate(-50%,-50%);"));
@@ -95,7 +100,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,3);
 
-  const script=await fetch(base+"/app.js?v=20261118-battle-reports-2");
+  const script=await fetch(base+"/app.js?v=20261119-village-camera-1");
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.match(appScript,/data-faction-choice/);
@@ -103,6 +108,11 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/function openBattleReports\(\)/);
   assert.match(appScript,/api\/game\/attacks/);
   assert.match(appScript,/neutral-regions\/reports/);
+  assert.ok(appScript.includes('from "./village-camera.js"'));
+  assert.match(appScript,/pointerdown/);
+  assert.match(appScript,/pointermove/);
+  assert.match(appScript,/calculateVillagePinch/);
+  assert.match(appScript,/function renderVillageCamera\(\)/);
   assert.ok(appScript.includes("function fitVillageImage()"));
   assert.ok(appScript.includes("villageImage.naturalWidth"));
   assert.ok(appScript.includes("new ResizeObserver(fitVillageImage)"));
