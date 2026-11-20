@@ -74,7 +74,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
 
   // Building markers must overlay the image itself, not flow after it.
-  const styles=await fetch(base+"/app.css?v=20261119-village-camera-1");
+  const styles=await fetch(base+"/app.css?v=20261120-resource-icons-1");
   assert.equal(styles.status,200);
   const css=await styles.text();
   assert.ok(css.includes(".city-frame{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
@@ -186,4 +186,26 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(Number(asset.headers.get("content-length")) > 1_000_000);
   const bytes=new Uint8Array(await asset.arrayBuffer());
   assert.deepEqual(Array.from(bytes.slice(0,3)),[0xff,0xd8,0xff]);
+});
+
+test("resource bar uses the six matching isometric SVG icons and serves each asset", async (t) => {
+  const server=createServer({ pool: null });
+  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+  t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const base=`http://127.0.0.1:${server.address().port}`;
+  const page=await fetch(base+"/");
+  assert.equal(page.status,200);
+  const html=await page.text();
+  const resources=[
+    ["gold","resource-gold"],["wood","resource-wood"],["food","resource-food"],
+    ["stone","resource-stone"],["iron","resource-iron"],["horses","resource-horses"]
+  ];
+  for(const [asset,id] of resources){
+    assert.match(html,new RegExp(`<span class="resource-icon" aria-hidden="true"><img src="/assets/resources/${asset}\\.svg" alt="" width="24" height="20"`));
+    assert.match(html,new RegExp(`id="${id}"`));
+    const response=await fetch(base+`/assets/resources/${asset}.svg`);
+    assert.equal(response.status,200,`${asset} SVG must be served`);
+    assert.match(response.headers.get("content-type")||"",/image\\/svg\\+xml/);
+    assert.match(await response.text(),/<svg\\b/);
+  }
 });
