@@ -330,3 +330,6 @@
  .village-camera-controls button{min-width:29px;height:29px;padding:0 5px}
  .village-camera-controls span{min-width:34px;font-size:9px}
 }
+
+/* Consistent isometric resource illustrations */
+.resource-icon{display:grid;place-items:center;width:24px;height:22px;overflow:visible;line-height:0}.resource-icon img{display:block;width:24px;height:20px;object-fit:contain;filter:drop-shadow(0 1px 2px #0009)}
