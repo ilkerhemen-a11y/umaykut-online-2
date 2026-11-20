@@ -205,7 +205,7 @@ test("resource bar uses the six matching isometric SVG icons and serves each ass
     assert.match(html,new RegExp(`id="${id}"`));
     const response=await fetch(base+`/assets/resources/${asset}.svg`);
     assert.equal(response.status,200,`${asset} SVG must be served`);
-    assert.match(response.headers.get("content-type")||"",/image\\/svg\\+xml/);
-    assert.match(await response.text(),/<svg\\b/);
+    assert.ok((response.headers.get("content-type")||"").includes("image/svg+xml"));
+    assert.ok((await response.text()).includes("<svg"));
   }
 });
