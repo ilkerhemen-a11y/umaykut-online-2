@@ -333,3 +333,13 @@
 
 /* Consistent isometric resource illustrations */
 .resource-icon{display:grid;place-items:center;width:24px;height:22px;overflow:visible;line-height:0}.resource-icon img{display:block;width:24px;height:20px;object-fit:contain;filter:drop-shadow(0 1px 2px #0009)}
+
+/* Isometric building miniatures: type-specific art stays attached to each live level marker. */
+.building-number{width:clamp(34px,8.4vw,46px);height:clamp(30px,7.5vw,40px);border:0;border-radius:0;background:transparent;color:transparent;text-shadow:none;box-shadow:none;overflow:visible}
+.building-number.is-center{width:clamp(48px,11vw,60px);height:clamp(40px,9vw,50px);background:transparent}
+.building-marker-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 3px #071008c9);pointer-events:none}
+.building-index{position:absolute;top:-3px;right:-3px;z-index:3;display:grid;place-items:center;width:16px;height:16px;border:1px solid #fff0b5;border-radius:50%;background:radial-gradient(circle at 35% 25%,#fff0b4,#c88e32 62%,#75501e);color:#fff8dc;text-shadow:0 1px 2px #54320c;font:bold 10px Georgia,serif;box-shadow:0 1px 4px #000b}
+.building-label{top:calc(100% + 1px);max-width:86px}
+.wall-number{width:clamp(34px,8vw,44px);height:clamp(30px,7vw,38px);border:0;border-radius:0;background:transparent;color:transparent;text-shadow:none;box-shadow:none}
+.wall-marker-art{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 3px #071008c9);pointer-events:none}
+.wall-number>span{position:absolute;top:-2px;right:-2px;z-index:3;display:grid;place-items:center;width:16px;height:16px;border:1px solid #fff0b5;border-radius:50%;background:radial-gradient(circle at 35% 25%,#fff0b4,#c88e32 62%,#75501e);color:#fff8dc;text-shadow:0 1px 2px #54320c;font:bold 10px Georgia,serif;box-shadow:0 1px 4px #000b}
