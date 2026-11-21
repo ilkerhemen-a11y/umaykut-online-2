@@ -35,7 +35,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261120-resource-icons-1"/);
+  assert.match(html,/href="\/app\.css\?v=20261121-building-marker-art-1"/);
   assert.ok(html.includes('src="/app.js?v=20261121-building-marker-art-1"'));
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n      <section id="building-upgrade-tracker"',stageStart);
@@ -51,7 +51,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(stageHtml,/left:50\.3%;top:75\.3%/);
   assert.match(stageHtml,/Sur \/ Sığınak/);
   assert.match(html,/id="wall-dialog"/);
-  assert.match(html,/class="dialog-emblem wall-dialog-emblem" src="\\/assets\\/buildings\\/wall\\.svg"/);
+  assert.ok(html.includes('class="dialog-emblem wall-dialog-emblem" src="/assets/buildings/wall.svg"'));
   assert.match(html,/id="wall-defense"/);
   assert.match(html,/id="wall-shelter"/);
   assert.doesNotMatch(html,/wall-position-(?:toggle|confirm|status)|wall-position-tools/);
@@ -67,14 +67,14 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
     assert.ok(html.slice(markerStart,markerEnd).includes('class="building-label">'+name+'</span>'));
   }
 
-  const expectedBuildingArt=[["1","/assets/seljuk-center.svg"],["2","/assets/buildings/barracks.svg"],["3","/assets/buildings/stable.svg"],["4","/assets/buildings/blacksmith.svg"],["5","/assets/buildings/school.svg"],["6","/assets/buildings/lumberjack.svg"],["7","/assets/buildings/temple.svg"],["8","/assets/buildings/market.svg"],["9","/assets/buildings/archery.svg","/assets/buildings/wall.svg"]];
+  const expectedBuildingArt=[["1","/assets/seljuk-center.svg"],["2","/assets/buildings/barracks.svg"],["3","/assets/buildings/stable.svg"],["4","/assets/buildings/blacksmith.svg"],["5","/assets/buildings/school.svg"],["6","/assets/buildings/lumberjack.svg"],["7","/assets/buildings/temple.svg"],["8","/assets/buildings/market.svg"],["9","/assets/buildings/archery.svg"]];
   for(const [slot,asset] of expectedBuildingArt){
     const markerStart=stageHtml.indexOf('data-building-slot="'+slot+'"');
     const markerEnd=stageHtml.indexOf("</button>",markerStart);
     const marker=stageHtml.slice(markerStart,markerEnd);
     assert.ok(marker.includes('class="building-marker-art" src="'+asset+'"'),"slot "+slot+" uses its own isometric building asset");
   }
-  assert.match(stageHtml,/class="wall-marker-art" src="\/assets\/buildings\/wall\.svg"/);
+  assert.ok(stageHtml.includes('class="wall-marker-art" src="/assets/buildings/wall.svg"'));
 
   const expectedPositions=[["1",50,45],["2",41.82,33.31],["3",66.68,52.21],["4",23.79,40.14],["5",72.58,28.4],["6",28.35,24.67],["7",58.59,14.65],["8",37.46,33.92],["9",76.55,21.87]];
   for(const [slot,x,y] of expectedPositions){
@@ -100,8 +100,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(css.includes(".wall-number{pointer-events:auto!important"));
   assert.ok(!css.includes(".wall-position-editing"));
   assert.ok(css.includes(".building-label{position:absolute;"));
-  assert.match(css,/\\.building-marker-art\\{[^}]*object-fit:contain/);
-  assert.match(css,/\\.building-index\\{[^}]*position:absolute/);
+  assert.ok(css.includes(".building-marker-art{") && css.includes("object-fit:contain"));
+  assert.ok(css.includes(".building-index{position:absolute;"));
   assert.ok(css.includes("font:700 7px/1.2 Arial,sans-serif"));
   assert.ok(!css.includes(".city-frame{max-height:700px}"));
   assert.ok(!css.includes(".city-frame{min-height:360px;max-height:58dvh}"));
@@ -150,7 +150,9 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/BUILDING_SLOT_TYPES/);
   assert.match(appScript,/const BUILDING_ART=\{/);
   assert.match(appScript,/buildingEmblem\.src=BUILDING_ART\[slot\]/);
-  for(const assetPath of ["/assets/seljuk-center.svg","/assets/buildings/barracks.svg","/assets/buildings/stable.svg","/assets/buildings/blacksmith.svg","/assets/buildings/school.svg","/assets/buildings/lumberjack.svg","/assets/buildings/temple.svg","/assets/buildings/market.svg","/assets/buildings/archery.svg"]){
+  assert.match(appScript,/const art=node\.querySelector\("\.building-marker-art"\)/);
+  assert.match(appScript,/art\.src=BUILDING_ART\[slot\]/);
+  for(const assetPath of ["/assets/seljuk-center.svg","/assets/buildings/barracks.svg","/assets/buildings/stable.svg","/assets/buildings/blacksmith.svg","/assets/buildings/school.svg","/assets/buildings/lumberjack.svg","/assets/buildings/temple.svg","/assets/buildings/market.svg","/assets/buildings/archery.svg","/assets/buildings/wall.svg"]){
     const buildingAsset=await fetch(base+assetPath);
     assert.equal(buildingAsset.status,200,assetPath);
     assert.match(buildingAsset.headers.get("content-type"),/image\/svg\+xml/);
