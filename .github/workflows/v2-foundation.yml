@@ -1,0 +1,34 @@
+name: V2 Foundation Tests
+
+on:
+  push:
+    branches:
+      - "rebuild/**"
+      - "feature/umaykut-world-map-casus-20261117"
+    paths:
+      - "v2/**"
+      - ".github/workflows/v2-foundation.yml"
+  pull_request:
+    paths:
+      - "v2/**"
+      - ".github/workflows/v2-foundation.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm test
+      - run: node --check src/server.js
+      - run: node --check src/army.js
+      - run: node --check src/config.js
+      - run: node --check src/neutral-regions.js
+      - run: node --check src/neutral-regions-api.js
+      - run: node --check public/app.js
