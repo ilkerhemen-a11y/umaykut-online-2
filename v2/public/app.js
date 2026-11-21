@@ -254,6 +254,8 @@ function renderBuildingMarkers(){
   const definition=BUILDING_TYPES[type]||BUILDING_TYPES.center;
   const label=node.querySelector(".building-label");
   const levelBadge=node.querySelector(".building-index");
+  const art=node.querySelector(".building-marker-art");
+  if(art)art.src=BUILDING_ART[slot]||"/assets/keep.svg";
   const displayedLevel=Number(building.upgrade?.targetLevel)||Number(building.level)||1;
   if(label)label.textContent=definition.shortName||definition.name;
   if(levelBadge)levelBadge.textContent=String(displayedLevel);
