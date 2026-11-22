@@ -343,3 +343,10 @@
 .wall-number{width:clamp(34px,8vw,44px);height:clamp(30px,7vw,38px);border:0;border-radius:0;background:transparent;color:transparent;text-shadow:none;box-shadow:none}
 .wall-marker-art{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 3px #071008c9);pointer-events:none}
 .wall-dialog-emblem{display:block;width:88px;height:70px;object-fit:contain;margin:0 auto 8px}.wall-number>span{position:absolute;top:-2px;right:-2px;z-index:3;display:grid;place-items:center;width:16px;height:16px;border:1px solid #fff0b5;border-radius:50%;background:radial-gradient(circle at 35% 25%,#fff0b4,#c88e32 62%,#75501e);color:#fff8dc;text-shadow:0 1px 2px #54320c;font:bold 10px Georgia,serif;box-shadow:0 1px 4px #000b}
+
+
+/* Persistent, accessible focus for the last opened village building. */
+.building-number.is-selected::before{content:"";position:absolute;inset:-7px;z-index:0;border:1px solid #ffe39a;border-radius:50%;background:radial-gradient(circle,#f8d77a55 0%,#d6a34b22 58%,transparent 72%);box-shadow:0 0 0 2px #f4d27c66,0 0 13px #ffd979aa;pointer-events:none}
+.building-number.is-selected .building-marker-art{z-index:1;transform:translateY(-2px) scale(1.08);filter:drop-shadow(0 0 6px #ffd875) drop-shadow(0 2px 3px #071008c9)}
+.building-number.is-selected .building-index{border-color:#fff8d6;box-shadow:0 0 0 2px #8a622b,0 0 9px #ffe6a0}
+.building-number.is-selected .building-label{border-color:#ffe39a;background:#46351def;color:#fff5cf}
