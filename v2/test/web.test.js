@@ -1,6 +1,23 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "../src/server.js";
+import { applyVillageSelection } from "../public/village-selection.js";
+
+test("village building selection updates only the active marker and its accessible pressed state", () => {
+  const makeMarker=(slot)=>{
+    const classes=new Set();
+    return {dataset:{buildingSlot:String(slot)},classes,attributes:{},classList:{toggle(name,force){if(force)classes.add(name);else classes.delete(name);}},setAttribute(name,value){this.attributes[name]=value;}};
+  };
+  const markers=[makeMarker(1),makeMarker(2),makeMarker(8)];
+  applyVillageSelection(markers,"8");
+  assert.equal(markers[0].classes.has("is-selected"),false);
+  assert.equal(markers[1].attributes["aria-pressed"],"false");
+  assert.equal(markers[2].classes.has("is-selected"),true);
+  assert.equal(markers[2].attributes["aria-pressed"],"true");
+  applyVillageSelection(markers,null);
+  assert.equal(markers[2].classes.has("is-selected"),false);
+  assert.equal(markers[2].attributes["aria-pressed"],"false");
+});
 
 test("V2 serves the Göktürk village image with nine compact building numbers", async (t) => {
   const server=createServer({ pool: null });
@@ -35,8 +52,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261121-building-marker-art-1"/);
-  assert.ok(html.includes('src="/app.js?v=20261121-building-marker-art-1"'));
+  assert.match(html,/href="\/app\.css\?v=20261122-building-selection-1"/);
+  assert.ok(html.includes('src="/app.js?v=20261122-building-selection-1"'));
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n      <section id="building-upgrade-tracker"',stageStart);
   assert.ok(stageEnd>stageStart);
@@ -84,7 +101,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
 
   // Building markers must overlay the image itself, not flow after it.
-  const styles=await fetch(base+"/app.css?v=20261121-building-marker-art-1");
+  const styles=await fetch(base+"/app.css?v=20261122-building-selection-1");
   assert.equal(styles.status,200);
   const css=await styles.text();
   assert.ok(css.includes(".city-frame{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
@@ -101,6 +118,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(!css.includes(".wall-position-editing"));
   assert.ok(css.includes(".building-label{position:absolute;"));
   assert.ok(css.includes(".building-marker-art{") && css.includes("object-fit:contain"));
+  assert.ok(css.includes(".building-number.is-selected::before"));
+  assert.ok(css.includes(".building-number.is-selected .building-marker-art"));
   assert.ok(css.includes(".building-index{position:absolute;"));
   assert.ok(css.includes("font:700 7px/1.2 Arial,sans-serif"));
   assert.ok(!css.includes(".city-frame{max-height:700px}"));
@@ -114,7 +133,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,3);
 
-  const script=await fetch(base+"/app.js?v=20261121-building-marker-art-1");
+  const script=await fetch(base+"/app.js?v=20261122-building-selection-1");
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.match(appScript,/data-faction-choice/);
@@ -123,6 +142,12 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/api\/game\/attacks/);
   assert.match(appScript,/neutral-regions\/reports/);
   assert.ok(appScript.includes('from "./village-camera.js"'));
+  assert.ok(appScript.includes('from "./village-selection.js"'));
+  assert.ok(appScript.includes('applyVillageSelection(document.querySelectorAll("[data-building-slot]"), null)'));
+  assert.ok(appScript.includes('applyVillageSelection(document.querySelectorAll("[data-building-slot]"),slot)'));
+  const selectionModule=await fetch(base+"/village-selection.js");
+  assert.equal(selectionModule.status,200);
+  assert.match(await selectionModule.text(),/export function applyVillageSelection/);
   assert.match(appScript,/pointerdown/);
   assert.match(appScript,/pointermove/);
   assert.match(appScript,/calculateVillagePinch/);

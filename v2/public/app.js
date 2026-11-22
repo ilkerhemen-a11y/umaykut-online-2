@@ -1,4 +1,7 @@
 import { clampVillageZoom, clampVillagePan, calculateVillagePinch, calculateVillagePan } from "./village-camera.js";
+import { applyVillageSelection } from "./village-selection.js";
+
+applyVillageSelection(document.querySelectorAll("[data-building-slot]"), null);
 const factions={
  hun:{name:"Hun Devleti",themeColor:"#7b2528",short:"Kızıl Bozkır",trait:"Atlı birlikler ve hızlı akınlar",description:"Hareketli süvari ordusu, baskın ve sefer odaklı oyun tarzı."},
  seljuk:{name:"Selçuklu Devleti",themeColor:"#8d6a2d",short:"Altın Hâkimiyet",trait:"Ticaret ve şehirleşme",description:"Üretim, ticaret, güçlü surlar ve düzenli şehir gelişimi odaklı oyun tarzı."},
@@ -393,6 +396,7 @@ function updateBuildingDialog(){
 }
 function openBuildingDialog(slot){
  selectedBuildingSlot=Number(slot);
+ applyVillageSelection(document.querySelectorAll("[data-building-slot]"),slot);
  buildingMessage.textContent="";
  updateBuildingDialog();
  if(typeof buildingDialog.showModal==="function")buildingDialog.showModal();
