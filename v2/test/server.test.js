@@ -90,7 +90,7 @@ test("game state is returned only to a valid V2 player session", async (t) => {
             "6": { type: "lumberyard", level: 1 },
             "7": { type: "temple", level: 1 },
             "8": { type: "market", level: 1 },
-            "9": { type: "warehouse", level: 4 }
+            "9": { type: "warehouse", level: 4, upgrade: { targetLevel: 5, startedAt: "2026-11-23T10:00:00.000Z", completesAt: "2026-11-23T11:00:00.000Z" } }
           },
           updated_at: "2026-11-17T12:00:00.000Z"
         }], rowCount: 1 };
@@ -113,8 +113,10 @@ test("game state is returned only to a valid V2 player session", async (t) => {
   assert.equal(state.buildings["2"].level, 2);
   assert.equal(state.buildings["9"].type, "archery", "legacy slot 9 must be normalized to the Okçu building type");
   assert.equal(state.buildings["9"].level, 4, "legacy slot 9 level must be preserved");
+  assert.equal(state.buildings["9"].upgrade.targetLevel, 5, "legacy Okçu upgrade must be preserved");
   assert.equal(migratedBuildings["9"].type, "archery", "legacy building type must be persisted as archery");
   assert.equal(migratedBuildings["9"].level, 4, "migration must preserve the existing Okçu level");
+  assert.equal(migratedBuildings["9"].upgrade.targetLevel, 5, "migration must preserve the active Okçu upgrade");
   assert.ok(Number.isFinite(Date.parse(state.serverNow)), "state response must include authoritative server time");
   assert.equal(Object.keys(state.buildings).length, 9);
 });
