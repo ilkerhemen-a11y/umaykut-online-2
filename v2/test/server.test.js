@@ -5,6 +5,7 @@ import { loadConfig } from "../src/config.js";
 import { createSessionToken } from "../src/auth.js";
 import { getWallProtection, resolveVillageDamage, resolveProtectedLoot, resolveBattle } from "../src/combat.js";
 import { getTroopCatalog } from "../src/army.js";
+import { settleEconomy } from "../src/economy.js";
 
 function createGameStatePool({ playerId, row, onUpdate = () => {} }) {
   return {
@@ -45,6 +46,39 @@ function createMarketPool({playerId,row,onUpdate=()=>{}}){
   })
  };
 }
+
+
+test("lumberyard level increases wood production without changing other resources", () => {
+  const base = settleEconomy({
+    resources:{gold:0,wood:0,food:0,stone:0,iron:0},
+    workerAssignments:{wood:10,grain:10},
+    buildings:{"1":{type:"center",level:1},"6":{type:"lumberyard",level:1},"7":{type:"temple",level:1},"9":{type:"warehouse",level:1}},
+    lastResourceTick:new Date(0),now:3600000
+  });
+  const upgraded = settleEconomy({
+    resources:{gold:0,wood:0,food:0,stone:0,iron:0},
+    workerAssignments:{wood:10,grain:10},
+    buildings:{"1":{type:"center",level:1},"6":{type:"lumberyard",level:5},"7":{type:"temple",level:1},"9":{type:"warehouse",level:1}},
+    lastResourceTick:new Date(0),now:3600000
+  });
+  assert.equal(base.productionPerHour.wood,105);
+  assert.equal(upgraded.productionPerHour.wood,125);
+  assert.equal(base.productionPerHour.food,120);
+  assert.equal(upgraded.productionPerHour.food,120);
+  assert.equal(upgraded.lumberyardBonusPercent,25);
+});
+
+test("blacksmith level increases troop attack and defense stats", () => {
+  const basic = getTroopCatalog("gokturk",{"2":{type:"barracks",level:1},"3":{type:"stable",level:1},"4":{type:"blacksmith",level:1}});
+  const upgraded = getTroopCatalog("gokturk",{"2":{type:"barracks",level:1},"3":{type:"stable",level:1},"4":{type:"blacksmith",level:5}});
+  const baseInfantry = basic.find(unit=>unit.id==="infantry");
+  const upgradedInfantry = upgraded.find(unit=>unit.id==="infantry");
+  assert.equal(baseInfantry.blacksmithBonusPercent,2);
+  assert.equal(upgradedInfantry.blacksmithBonusPercent,10);
+  assert.ok(upgradedInfantry.attack>baseInfantry.attack);
+  assert.ok(upgradedInfantry.infantryDefense>baseInfantry.infantryDefense);
+  assert.ok(upgradedInfantry.cavalryDefense>baseInfantry.cavalryDefense);
+});
 
 test("config uses safe defaults", () => {
   const config = loadConfig({});
