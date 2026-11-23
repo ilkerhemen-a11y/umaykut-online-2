@@ -1373,6 +1373,36 @@ worldPlayerList.addEventListener("click",async event=>{
  }catch(error){attackMessage.textContent=error.message||"Hedef köy seçilemedi.";}
 });
 document.querySelector("#refresh-world-players").addEventListener("click",loadWorldPlayers);
+async function loadRankings(){
+ const list=document.querySelector("#ranking-list");
+ if(!authToken||!list)return;
+ list.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Sıralama hesaplanıyor…"}));
+ try{
+  const data=await authRequest("/api/game/rankings",{token:authToken});
+  list.replaceChildren();
+  if(!data.rankings.length){list.append(Object.assign(document.createElement("p"),{textContent:"Henüz sıralamaya girecek oyuncu bulunmuyor."}));return;}
+  data.rankings.forEach(player=>{
+   const card=document.createElement("article");card.className="ranking-card";
+   const position=document.createElement("strong");position.className="ranking-position";position.textContent="#"+player.rank;
+   const identity=document.createElement("div");identity.className="ranking-identity";
+   const name=document.createElement("strong");name.textContent=player.username;
+   const village=document.createElement("small");village.textContent=player.villageName+" · "+(factions[player.factionId]?.name||"Devlet");
+   identity.append(name,village);
+   const overall=document.createElement("strong");overall.className="ranking-total";overall.textContent=reportNumber(player.overall)+" puan";
+   card.append(position,identity,overall);
+   const details=document.createElement("div");details.className="ranking-details";
+   [["Bina",player.buildingDevelopment],["Ordu",player.armyStrength],["Bölge",player.territorialControl],["Ekonomi",player.economy]].forEach(([label,value])=>{
+    const item=document.createElement("span");item.textContent=label+" "+reportNumber(value);details.append(item);
+   });
+   card.append(details);
+   if(player.playerId===data.currentPlayerId)card.classList.add("is-current-player");
+   list.append(card);
+  });
+ }catch(error){
+  list.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Sıralama yüklenemedi."}));
+ }
+}
+document.querySelector("#refresh-rankings").addEventListener("click",loadRankings);
 
 document.querySelector("#neutral-region-close").addEventListener("click",()=>{
  if(neutralRegionTimer)clearInterval(neutralRegionTimer);
