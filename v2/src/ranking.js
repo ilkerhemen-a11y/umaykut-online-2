@@ -30,7 +30,8 @@ export function calculateBuildingDevelopmentScore(buildings = {}) {
   let totalLevels = 0;
   for (const [slot, expectedType] of Object.entries(FIXED_BUILDING_TYPES)) {
     const building = buildings[slot];
-    if (!building || building.type !== expectedType) continue;
+    const legacyOkcu = slot === "9" && building?.type === "warehouse";
+    if (!building || (building.type !== expectedType && !legacyOkcu)) continue;
     const level = Number(building.level);
     if (Number.isSafeInteger(level) && level >= 1 && level <= MAX_BUILDING_LEVEL) totalLevels += level;
   }
