@@ -201,8 +201,8 @@ const DEFAULT_RESOURCES={gold:1650,wood:6900,food:9350,stone:7480,iron:8040,hors
 const BUILDING_TYPES={
  center:{name:"Merkez Binası",shortName:"Merkez",icon:"🏰",description:"Yurdunun kalbi. Diğer yapıların gelişimini yönetir."},
  barracks:{name:"Kışla",shortName:"Kışla",icon:"⚔️",description:"Piyade ve savunma birliklerinin yetiştirileceği yapı."},
- lumberyard:{name:"Keresteci",shortName:"Keresteci",icon:"🪵",description:"Ormanlardan elde edilen odun üretimini geliştirir."},
- blacksmith:{name:"Demirci",shortName:"Demirci",icon:"⚒️",description:"Demir işçiliğini ve silah üretimini geliştirir."},
+ lumberyard:{name:"Keresteci",shortName:"Keresteci",icon:"🪵",description:"Her seviye odun üretimine +%5 bonus kazandırır."},
+ blacksmith:{name:"Demirci",shortName:"Demirci",icon:"⚒️",description:"Her seviye tüm askerlerin saldırı ve savunmasına +%2 bonus kazandırır."},
  school:{name:"Okul",shortName:"Okul",icon:"📚",description:"Eğitim ve araştırma çalışmalarını geliştirir."},
  temple:{name:"Tapınak",shortName:"Tapınak",icon:"🛕",description:"İnanç, birlik ve halkın moralini güçlendirir."},
  quarry:{name:"Taş Ocağı",shortName:"Taş Ocağı",icon:"🪨",description:"Taş üretimini geliştirecek yapı."},
