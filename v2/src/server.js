@@ -4,6 +4,7 @@ import { dirname, extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig } from "./config.js";
 import { resolveBattle, resolveScoutClash } from "./combat.js";
+import { processDueRaids, startRaidWorker } from "./raid-worker.js";
 import { handleNeutralRegionRequest } from "./neutral-regions-api.js";
 import { handleRankingRequest } from "./ranking-api.js";
 import { createPool } from "./database.js";
@@ -416,100 +417,8 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         });
       }
       if(req.method==="GET" && url.pathname==="/api/game/attacks"){
-        // Complete returning marches exactly once; the raid row lock prevents duplicate refunds.
-      const returning=await pool.query(
-        "SELECT id FROM umaykut_v2.player_raids WHERE status='resolved' AND return_at<=NOW() AND attacker_id=$1 ORDER BY return_at ASC LIMIT 20",
-        [session.id]);
-      for(const item of returning.rows){
-        const client=await pool.connect();let inTx=false;
-        try{
-          await client.query("BEGIN");inTx=true;
-          const raidResult=await client.query(
-            "SELECT id,attacker_id,battle_report,status FROM umaykut_v2.player_raids WHERE id=$1 FOR UPDATE",
-            [item.id]);
-          const raid=raidResult.rows[0];
-          if(!raid||raid.status!=="resolved"){
-            await client.query("ROLLBACK");inTx=false;continue;
-          }
-          const report=typeof raid.battle_report==="string"?JSON.parse(raid.battle_report):(raid.battle_report||{});
-          const state=await client.query(
-            "SELECT troops,resources FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",
-            [raid.attacker_id]);
-          if(!state.rowCount)throw new Error("Dönen ordunun köy verisi bulunamadı.");
-          const parse=(value,fallback)=>typeof value==="string"?JSON.parse(value||JSON.stringify(fallback)):(value??fallback);
-          const troops=parse(state.rows[0].troops,{});
-          const resources=parse(state.rows[0].resources,{});
-          for(const [unitId,count] of Object.entries(report.attackerSurvivors||{}))
-            troops[unitId]=Number(troops[unitId]||0)+Number(count||0);
-          for(const [key,count] of Object.entries(report.loot||{}))
-            resources[key]=Number(resources[key]||0)+Number(count||0);
-          await client.query(
-            "UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb,resources=$3::jsonb,updated_at=NOW() WHERE player_id=$1",
-            [raid.attacker_id,JSON.stringify(troops),JSON.stringify(resources)]);
-          await client.query("UPDATE umaykut_v2.player_raids SET status='returned' WHERE id=$1",[raid.id]);
-          await client.query("COMMIT");inTx=false;
-        }catch(error){
-          if(inTx){try{await client.query("ROLLBACK");}catch{}}
-          console.error("V2 returning march failed",{raidId:item.id,message:String(error.message||"").slice(0,180)});
-        }finally{client.release();}
-      }
-      const due=await pool.query(
-          "SELECT id FROM umaykut_v2.player_raids WHERE status='marching' AND arrives_at<=NOW() AND (attacker_id=$1 OR defender_id=$1) ORDER BY arrives_at ASC LIMIT 10",
-          [session.id]);
-        for(const item of due.rows){
-          const client=await pool.connect();let inTx=false;
-          try{
-            await client.query("BEGIN");inTx=true;
-            const raidResult=await client.query("SELECT * FROM umaykut_v2.player_raids WHERE id=$1 FOR UPDATE",[item.id]);
-            const raid=raidResult.rows[0];
-            if(!raid||raid.status!=="marching"||new Date(raid.arrives_at)>new Date()){
-              await client.query("ROLLBACK");inTx=false;continue;
-            }
-            const ids=[raid.attacker_id,raid.defender_id].sort();
-            const states=await client.query(
-              `SELECT p.id,p.village_name,s.faction_id,s.resources,s.buildings,s.troops,s.wall
-               FROM umaykut_v2.players p JOIN umaykut_v2.player_game_state s ON s.player_id=p.id
-               WHERE p.id=ANY($1::uuid[]) ORDER BY p.id FOR UPDATE OF s`,[ids]);
-            if(states.rowCount!==2)throw new Error("Savaş taraflarının köy verisi bulunamadı.");
-            const attacker=states.rows.find(row=>row.id===raid.attacker_id);
-            const defender=states.rows.find(row=>row.id===raid.defender_id);
-            const parse=(value,fallback)=>typeof value==="string"?JSON.parse(value||JSON.stringify(fallback)):(value??fallback);
-            const attackerTroops=parse(raid.troops,{});
-            const defenderTroops=parse(defender.troops,{});
-            const attackerBuildings=parse(attacker.buildings,{});
-            const defenderBuildings=parse(defender.buildings,{});
-            const attackerCatalog=getTroopCatalog(attacker.faction_id,attackerBuildings);
-            const defenderCatalog=getTroopCatalog(defender.faction_id,defenderBuildings);
-            const wall=settleWallUpgrade(defender.wall||{});
-            const outcome=resolveBattle({
-              attackerTroops,defenderTroops,attackerCatalog,defenderCatalog,
-              defenderResources:parse(defender.resources,{}),wallLevel:wall.level
-            });
-            const defenderArmy=outcome.defenderSurvivors;
-            const report={
-              resolvedAt:new Date().toISOString(),attackerVillage:raid.attacker_village,defenderVillage:raid.defender_village,
-              winner:outcome.winner,resultCode:outcome.resultCode,outcomeText:outcome.outcomeText,
-              attackerPower:outcome.attackPower,defenderPower:outcome.defensePower,
-              wallLevel:wall.level,wallDefensePercent:outcome.wallDefensePercent,
-              damageBeforeWall:outcome.damageBeforeWall,damageAfterWall:outcome.damageAfterWall,
-              damagePreventedByWall:outcome.damagePreventedByWall,
-              attackerLosses:outcome.attackerLosses,attackerLostCount:outcome.attackerLostCount,
-              attackerSurvivors:outcome.attackerSurvivors,
-              defenderLosses:outcome.defenderLosses,defenderLostCount:outcome.defenderLostCount,
-              defenderSurvivors:outcome.defenderSurvivors,
-              shelterProtected:outcome.protectedResources,loot:outcome.loot,carryCapacity:outcome.carryCapacity
-            };
-            await client.query("UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb,resources=$3::jsonb,wall=$4::jsonb,updated_at=NOW() WHERE player_id=$1",
-              [raid.defender_id,JSON.stringify(defenderArmy),JSON.stringify(outcome.defenderRemainingResources),JSON.stringify(wall)]);
-            await client.query(
-              "UPDATE umaykut_v2.player_raids SET status='resolved',battle_report=$2::jsonb,loot=$3::jsonb,return_at=NOW()+(arrives_at-departed_at) WHERE id=$1",
-              [raid.id,JSON.stringify(report),JSON.stringify(outcome.loot)]);
-            await client.query("COMMIT");inTx=false;
-          }catch(error){
-            if(inTx){try{await client.query("ROLLBACK");}catch{}}
-            console.error("V2 battle resolution failed",{raidId:item.id,message:String(error.message||"").slice(0,180)});
-          }finally{client.release();}
-        }
+        // Resolve due battles and completed return journeys before showing this player's records.
+        await processDueRaids(pool,{playerId:session.id});
         const result=await pool.query(
           `SELECT r.id,r.attacker_id,r.defender_id,r.attacker_village,r.defender_village,
                   r.troops,r.attack_power,r.departed_at,r.arrives_at,r.return_at,r.status,r.battle_report,r.loot,
@@ -1290,10 +1199,12 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   const pool = createPool();
   const server = createServer({ pool });
+  const raidWorker = startRaidWorker(pool);
   server.listen(config.port, "0.0.0.0", () => {
     process.stdout.write(`Umaykut Online 2 V2 ${config.version} ${config.port} portunda hazır.\n`);
   });
   const shutdown = async () => {
+    raidWorker.stop();
     server.close();
     if (pool) await pool.end();
     process.exit(0);
