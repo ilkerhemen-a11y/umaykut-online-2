@@ -1458,12 +1458,12 @@ function attackDetailCard(raid,direction){
  }
  return card;
 }
-async function openAttackList(direction){
- if(!authToken)return;
+let attackListRefreshTimer=null;
+let attackListRefreshDirection=null;
+async function refreshAttackList(direction){
  const dialog=direction==="incoming"?incomingAttacksDialog:outgoingAttacksDialog;
+ if(!dialog.open||!authToken)return;
  const list=document.querySelector("#"+direction+"-attacks-list"),message=document.querySelector("#"+direction+"-attacks-message");
- list.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Saldırı kayıtları yükleniyor…"}));message.textContent="";
- dialog.showModal();
  try{
   const data=await authRequest("/api/game/attacks",{token:authToken});
   const raids=(data.attacks||[]).filter(raid=>raid.direction===direction).sort((a,b)=>Date.parse(b.departed_at||b.arrives_at)-Date.parse(a.departed_at||a.arrives_at));
@@ -1471,11 +1471,34 @@ async function openAttackList(direction){
   if(!raids.length){list.append(Object.assign(document.createElement("p"),{textContent:direction==="incoming"?"Köyüne gelen saldırı bulunmuyor.":"Henüz bir saldırı göndermedin."}));}
   else raids.forEach(raid=>list.append(attackDetailCard(raid,direction)));
   message.textContent=raids.length+" kayıt bulundu.";
- }catch(error){list.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Saldırı kayıtları yüklenemedi."}));message.textContent="Bağlantını kontrol edip yeniden dene.";}
+ }catch(error){
+  if(!list.children.length)list.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Saldırı kayıtları yüklenemedi."}));
+  message.textContent="Güncelleme yapılamadı; yeniden denenecek.";
+ }
+}
+function stopAttackListRefresh(){
+ if(attackListRefreshTimer)clearInterval(attackListRefreshTimer);
+ attackListRefreshTimer=null;
+ attackListRefreshDirection=null;
+}
+async function openAttackList(direction){
+ if(!authToken)return;
+ const dialog=direction==="incoming"?incomingAttacksDialog:outgoingAttacksDialog;
+ const list=document.querySelector("#"+direction+"-attacks-list"),message=document.querySelector("#"+direction+"-attacks-message");
+ stopAttackListRefresh();
+ list.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Saldırı kayıtları yükleniyor…"}));message.textContent="";
+ dialog.showModal();
+ attackListRefreshDirection=direction;
+ await refreshAttackList(direction);
+ attackListRefreshTimer=setInterval(()=>{
+  if(attackListRefreshDirection===direction)void refreshAttackList(direction);
+ },5000);
 }
 document.querySelector('[data-action="incoming-attacks"]').addEventListener("click",()=>openAttackList("incoming"));
 document.querySelector('[data-action="outgoing-attacks"]').addEventListener("click",()=>openAttackList("outgoing"));
-document.querySelectorAll("[data-close-attack-list]").forEach(button=>button.addEventListener("click",()=>{(button.dataset.closeAttackList==="incoming"?incomingAttacksDialog:outgoingAttacksDialog).close();}));
+document.querySelectorAll("[data-close-attack-list]").forEach(button=>button.addEventListener("click",()=>{(button.dataset.closeAttackList==="incoming"?incomingAttacksDialog:outgoingAttacksDialog).close();stopAttackListRefresh();}));
+incomingAttacksDialog.addEventListener("close",stopAttackListRefresh);
+outgoingAttacksDialog.addEventListener("close",stopAttackListRefresh);
 
 document.querySelector('[data-action="battle-reports"]').addEventListener("click",openBattleReports);
 document.querySelector("#battle-reports-close").addEventListener("click",()=>battleReportsDialog.close());
