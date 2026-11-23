@@ -201,8 +201,8 @@ const DEFAULT_RESOURCES={gold:1650,wood:6900,food:9350,stone:7480,iron:8040,hors
 const BUILDING_TYPES={
  center:{name:"Merkez Binası",shortName:"Merkez",icon:"🏰",description:"Yurdunun kalbi. Diğer yapıların gelişimini yönetir."},
  barracks:{name:"Kışla",shortName:"Kışla",icon:"⚔️",description:"Piyade ve savunma birliklerinin yetiştirileceği yapı."},
- lumberyard:{name:"Keresteci",shortName:"Keresteci",icon:"🪵",description:"Her seviye odun üretimine +%5 bonus kazandırır."},
- blacksmith:{name:"Demirci",shortName:"Demirci",icon:"⚒️",description:"Her seviye tüm askerlerin saldırı ve savunmasına +%2 bonus kazandırır."},
+ lumberyard:{name:"Keresteci",shortName:"Keresteci",icon:"🪵",description:"Her yükseltme seviyesi odun üretimine +%5 bonus kazandırır."},
+ blacksmith:{name:"Demirci",shortName:"Demirci",icon:"⚒️",description:"Her yükseltme seviyesi tüm askerlerin saldırı ve savunmasına +%2 bonus kazandırır."},
  school:{name:"Okul",shortName:"Okul",icon:"📚",description:"Eğitim ve araştırma çalışmalarını geliştirir."},
  temple:{name:"Tapınak",shortName:"Tapınak",icon:"🛕",description:"İnanç, birlik ve halkın moralini güçlendirir."},
  quarry:{name:"Taş Ocağı",shortName:"Taş Ocağı",icon:"🪨",description:"Taş üretimini geliştirecek yapı."},
@@ -691,7 +691,7 @@ function renderProductionDialog(){
  const warehouseLevel=Number(gameBuildings["9"]?.level)||1;
  const lumberyardLevel=Number(gameBuildings["6"]?.level)||1;
  const centerBonus=(centerLevel-1)*5;
- const lumberyardBonus=lumberyardLevel*5;
+ const lumberyardBonus=(lumberyardLevel-1)*5;
  const nodeBonus=gameProductionBreakdown.some(item=>item.nodeId);
  productionEffectsList.replaceChildren();
  const effects=[
@@ -998,7 +998,7 @@ function renderArmySummary(){
  if(!armyState)return;
  document.querySelector("#army-total-units").textContent=armyNumber(armyState.totalUnits);
  document.querySelector("#army-total-power").textContent=armyNumber(armyState.armyPower);
- document.querySelector("#army-faction-name").textContent=armyState.factionName+" · Demirci +%"+(armyState.catalog[0]?.blacksmithBonusPercent||2);
+ document.querySelector("#army-faction-name").textContent=armyState.factionName+" · Demirci +%"+(armyState.catalog[0]?.blacksmithBonusPercent||0);
  const strip=document.querySelector("#army-units");
  if(strip){
   strip.replaceChildren();
