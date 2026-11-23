@@ -523,6 +523,7 @@ applySettings();
 
 const WORKER_POOL=1800;
 let currentWorkerPool=WORKER_POOL;
+let workerProductionPerHour=25;
 const WORKER_STORAGE_KEY="umaykut-worker-state-v3";
 const RESOURCE_KEYS=["grain","wood","stone","gold","iron"];
 const resourceInfo={
@@ -754,6 +755,12 @@ async function authRequest(path,{method="GET",body,token}={}){
 
 function applyProductionState(state){
  if(Number.isFinite(Number(state.workerPool)))currentWorkerPool=Math.max(WORKER_POOL,Number(state.workerPool));
+ if(Number.isFinite(Number(state.workerProductionPerHour)))workerProductionPerHour=Number(state.workerProductionPerHour);
+ const totalLabel=document.querySelector("#workers-total-count");
+ const hourlyLabel=document.querySelector("#workers-hourly-production");
+ if(totalLabel)totalLabel.textContent="Toplam işçi: "+formatNumber(currentWorkerPool);
+ if(hourlyLabel)hourlyLabel.textContent="+"+formatNumber(workerProductionPerHour)+" işçi/saat";
+ updateWorkerSummary();
  gameProductionPerHour={...gameProductionPerHour,...(state.productionPerHour||{})};
  gameProductionBreakdown=Array.isArray(state.productionBreakdown)?state.productionBreakdown:[];
  gameResourceNodes=Array.isArray(state.resourceNodes)?state.resourceNodes:[];
