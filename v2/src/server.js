@@ -662,7 +662,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         try{
           await client.query("BEGIN");inTransaction=true;
           await client.query("INSERT INTO umaykut_v2.player_game_state(player_id) VALUES($1) ON CONFLICT(player_id) DO NOTHING",[session.id]);
-          const result=await client.query("SELECT resources,buildings FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",[session.id]);
+          const result=await client.query("SELECT resources,buildings,storage_capacity FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",[session.id]);
           const row=result.rows[0]||{};
           const resources=typeof row.resources==="string"?JSON.parse(row.resources||"{}"):{...(row.resources||{})};
           const buildings=typeof row.buildings==="string"?JSON.parse(row.buildings||"{}"):(row.buildings||{});
@@ -674,7 +674,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           const goldDelta=lots*(side==="buy"?-goldPerLot:rates[resource]);
           if(side==="sell"&&Number(resources[resource]||0)<amount){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,409,{error:"Satış için yeterli kaynak bulunmuyor.",resources});}
           if(side==="buy"&&Number(resources.gold||0)<lots*goldPerLot){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,409,{error:"Alış için yeterli altın bulunmuyor.",requiredGold:lots*goldPerLot,resources});}
-          const storageCapacity=15000;
+          const storageCapacity=Math.max(15000,Number(row.storage_capacity)||15000);
           if(side==="buy"&&Number(resources[resource]||0)+amount>storageCapacity){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,409,{error:"Depo kapasitesi bu alış için yeterli değil.",storageCapacity});}
           if(side==="sell"){resources[resource]=Number(resources[resource]||0)-amount;resources.gold=Number(resources.gold||0)+lots*resourcePerLot/2;}
           else{resources[resource]=Number(resources[resource]||0)+amount;resources.gold=Number(resources.gold||0)-lots*goldPerLot;}
@@ -976,7 +976,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             const state = await client.query(
               `SELECT p.village_name, s.faction_id, s.worker_pool, s.worker_assignments,
                       s.worker_state_initialized, s.resources, s.buildings, s.wall, s.updated_at,
-                      s.last_resource_tick, s.production_remainders
+                      s.last_resource_tick, s.production_remainders, s.storage_capacity
                FROM umaykut_v2.players p
                JOIN umaykut_v2.player_game_state s ON s.player_id = p.id
                WHERE p.id = $1
@@ -1000,7 +1000,8 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
               resourceNodes: nodes.rows,
               lastResourceTick: row.last_resource_tick,
               productionRemainders: row.production_remainders,
-              workerPool: row.worker_pool
+              workerPool: row.worker_pool,
+              storedStorageCapacity: row.storage_capacity
             });
             await client.query(
               `UPDATE umaykut_v2.player_game_state
