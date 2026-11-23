@@ -210,7 +210,7 @@ const BUILDING_TYPES={
  farm:{name:"Çiftlik",shortName:"Çiftlik",icon:"🌾",description:"Yiyecek üretimini geliştirecek yapı."},
  stable:{name:"Ahır",shortName:"Ahır",icon:"🐎",description:"Atlı birlikler için gerekli altyapı."},
  market:{name:"Pazar",shortName:"Pazar",icon:"🏪",description:"Kaynak ve ticaret işlemlerinin merkezi."},
- warehouse:{name:"Okçu",shortName:"Okçu",icon:"🏹",description:"Okçu birliklerinin eğitildiği ve hazırlandığı yapı."}
+ warehouse:{name:"Depo",shortName:"Depo",icon:"🏚️",description:"Kaynakların güvenle saklandığı ve kapasitenin artırıldığı yapı."}
 };
 const BUILDING_SLOT_TYPES={
  "1":"center","2":"barracks","3":"stable","4":"blacksmith",
@@ -689,11 +689,14 @@ function renderProductionDialog(){
  }
  const centerLevel=Number(gameBuildings["1"]?.level)||1;
  const warehouseLevel=Number(gameBuildings["9"]?.level)||1;
+ const lumberyardLevel=Number(gameBuildings["6"]?.level)||1;
  const centerBonus=(centerLevel-1)*5;
+ const lumberyardBonus=lumberyardLevel*5;
  const nodeBonus=gameProductionBreakdown.some(item=>item.nodeId);
  productionEffectsList.replaceChildren();
  const effects=[
   "Merkez seviyesi "+centerLevel+": üretime +%"+centerBonus+" bonus",
+  "Keresteci seviyesi "+lumberyardLevel+": odun üretimine +%"+lumberyardBonus+" bonus",
   "Depo seviyesi "+warehouseLevel+": her kaynak için "+formatNumber(gameStorageCapacity)+" kapasite",
   nodeBonus?"Kaynak noktası verimi: her seviye temel üretime +%10 katkı sağlar.":"Kaynak noktalarına işçi gönderildiğinde verim seviyesi üretime bonus sağlar."
  ];
@@ -995,7 +998,7 @@ function renderArmySummary(){
  if(!armyState)return;
  document.querySelector("#army-total-units").textContent=armyNumber(armyState.totalUnits);
  document.querySelector("#army-total-power").textContent=armyNumber(armyState.armyPower);
- document.querySelector("#army-faction-name").textContent=armyState.factionName;
+ document.querySelector("#army-faction-name").textContent=armyState.factionName+" · Demirci +%"+(armyState.catalog[0]?.blacksmithBonusPercent||2);
  const strip=document.querySelector("#army-units");
  if(strip){
   strip.replaceChildren();
