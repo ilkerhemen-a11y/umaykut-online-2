@@ -37,7 +37,7 @@ export function settleEconomy({
   const safePreviousTick = Number.isFinite(previousTick) ? previousTick : now;
   const elapsedMs = Math.max(0, Math.min(now - safePreviousTick, MAX_OFFLINE_HOURS * 3600000));
   const elapsedHours = elapsedMs / 3600000;
-  const lastTick = safePreviousTick + elapsedMs;
+  const lastTick = now;
   const productionPerHour = Object.fromEntries(RESOURCE_KEYS.map(key => [key, 0]));
   const nodeById = new Map(resourceNodes.map(node => [String(node.id), node]));
 
