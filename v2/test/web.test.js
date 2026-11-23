@@ -132,7 +132,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/node\.querySelector\("\.building-index"\)/);
   assert.match(appScript,/building\.upgrade\?\.targetLevel/);
   assert.match(appScript,/levelBadge\.textContent=String\(displayedLevel\)/);
-  assert.match(appScript,/"9":"warehouse"/);
+  assert.match(appScript,/"9":"archery"/);
   assert.match(appScript,/umaykut-faction-v2/);
   assert.ok(appScript.includes('"/api/player/profile"'));
   assert.ok(appScript.includes('node.addEventListener("click",()=>openBuildingDialog(node.dataset.buildingSlot))'));
