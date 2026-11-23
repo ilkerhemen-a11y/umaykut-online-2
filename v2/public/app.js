@@ -1266,9 +1266,9 @@ let selectedNeutralRegion=null,neutralRegionMode="garrison",neutralRegionTimer=n
 
 const mapWorldCanvas=document.querySelector("#map-world-canvas");
 const mapViewport=document.querySelector(".world-map");
-let mapZoom=0.055;
+let mapZoom=0.46;
 const WORLD_MAP_WIDTH=18000,WORLD_MAP_HEIGHT=12000;
-const MAP_ZOOM_MIN=0.035,MAP_ZOOM_MAX=0.16,MAP_ZOOM_STEP=0.015;
+const MAP_ZOOM_MIN=0.25,MAP_ZOOM_MAX=0.9,MAP_ZOOM_STEP=0.05;
 function applyMapZoom(nextZoom,preserveCenter=true,focalPoint=null){
  if(!mapWorldCanvas||!mapViewport)return;
  const baseWidth=WORLD_MAP_WIDTH,baseHeight=WORLD_MAP_HEIGHT;
@@ -1293,7 +1293,7 @@ function applyMapZoom(nextZoom,preserveCenter=true,focalPoint=null){
 document.querySelector("#map-zoom-in")?.addEventListener("click",()=>applyMapZoom(mapZoom+MAP_ZOOM_STEP));
 document.querySelector("#map-zoom-out")?.addEventListener("click",()=>applyMapZoom(mapZoom-MAP_ZOOM_STEP));
 document.querySelector("#map-zoom-reset")?.addEventListener("click",()=>{
- applyMapZoom(0.055,false);
+ applyMapZoom(0.46,false);
  if(mapViewport&&mapWorldCanvas){
   const own=mapWorldCanvas.querySelector(".map-own-city");
   const x=own?parseFloat(own.style.left||"50"):50,y=own?parseFloat(own.style.top||"50"):50;
@@ -1338,6 +1338,15 @@ if(mapViewport){
 }
 window.addEventListener("resize",()=>applyMapZoom(mapZoom,false));
 applyMapZoom(mapZoom,false);
+if(mapViewport&&mapWorldCanvas){
+ const own=mapWorldCanvas.querySelector(".map-own-city");
+ const x=own?parseFloat(own.style.left||"50"):50;
+ const y=own?parseFloat(own.style.top||"50"):50;
+ requestAnimationFrame(()=>{
+  mapViewport.scrollLeft=Math.max(0,x/100*mapWorldCanvas.clientWidth*mapZoom-mapViewport.clientWidth/2);
+  mapViewport.scrollTop=Math.max(0,y/100*mapWorldCanvas.clientHeight*mapZoom-mapViewport.clientHeight/2);
+ });
+}
 
 
 function neutralClaimIsActive(region){
