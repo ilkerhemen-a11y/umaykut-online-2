@@ -32,50 +32,31 @@ test("factions receive distinct troop identities and specialties", () => {
   assert.ok(seljuk.find(unit => unit.id === "shield").infantryDefense > gokturk.find(unit => unit.id === "shield").infantryDefense);
 });
 
-test("higher barracks and stable levels shorten training times", () => {
+test("barracks and stable levels do not add training time", () => {
   const low = getTroopCatalog("gokturk", { barracks: { level: 1 }, stable: { level: 1 } });
   const high = getTroopCatalog("gokturk", { barracks: { level: 10 }, stable: { level: 10 } });
-  assert.ok(high.find(unit => unit.id === "infantry").secondsPerUnit < low.find(unit => unit.id === "infantry").secondsPerUnit);
-  assert.ok(high.find(unit => unit.id === "light_cavalry").secondsPerUnit < low.find(unit => unit.id === "light_cavalry").secondsPerUnit);
+  assert.equal("secondsPerUnit" in low.find(unit => unit.id === "infantry"), false);
+  assert.equal("secondsPerUnit" in high.find(unit => unit.id === "light_cavalry"), false);
 });
-
-test("numeric V2 building slots correctly unlock troops and reduce training time", () => {
-  const levelOne = getTroopCatalog("gokturk", {
-    "2": { type: "barracks", level: 1 },
-    "3": { type: "stable", level: 1 }
-  });
+test("numeric V2 building slots unlock troop tiers without training timers", () => {
+  const levelOne = getTroopCatalog("gokturk", { "2": { type: "barracks", level: 1 }, "3": { type: "stable", level: 1 } });
   assert.equal(levelOne.find(unit => unit.id === "archer").unlocked, false);
   assert.equal(levelOne.find(unit => unit.id === "mounted_archer").unlocked, false);
-
-  const levelFive = getTroopCatalog("gokturk", {
-    "2": { type: "barracks", level: 5 },
-    "3": { type: "stable", level: 5 }
-  });
+  const levelFive = getTroopCatalog("gokturk", { "2": { type: "barracks", level: 5 }, "3": { type: "stable", level: 5 } });
   assert.equal(levelFive.find(unit => unit.id === "archer").unlocked, true);
   assert.equal(levelFive.find(unit => unit.id === "shield").unlocked, true);
   assert.equal(levelFive.find(unit => unit.id === "mounted_archer").unlocked, true);
-  assert.ok(levelFive.find(unit => unit.id === "infantry").secondsPerUnit <
-    levelOne.find(unit => unit.id === "infantry").secondsPerUnit);
 });
-
-test("troop training queue completes only when its server timestamp is reached", () => {
+test("legacy training queue entries are converted to instant troops", () => {
   const now = Date.now();
-  const troops = { infantry: 3 };
-  const queue = [
-    { unitId: "infantry", amount: 4, startedAt: new Date(now - 5000).toISOString(), completesAt: new Date(now - 1).toISOString() },
-    { unitId: "archer", amount: 2, startedAt: new Date(now).toISOString(), completesAt: new Date(now + 10000).toISOString() }
-  ];
-  const first = settleTrainingQueue(troops, queue, now);
-  assert.deepEqual(first.troops, { infantry: 7 });
-  assert.equal(first.trainingQueue.length, 1);
-  assert.equal(first.trainingQueue[0].unitId, "archer");
-  assert.equal(first.changed, true);
-
-  const second = settleTrainingQueue(first.troops, first.trainingQueue, now + 11000);
-  assert.deepEqual(second.troops, { infantry: 7, archer: 2 });
-  assert.equal(second.trainingQueue.length, 0);
+  const result = settleTrainingQueue({ infantry: 3 }, [
+    { unitId: "infantry", amount: 4, completesAt: new Date(now + 60000).toISOString() },
+    { unitId: "archer", amount: 2, completesAt: new Date(now + 600000).toISOString() }
+  ], now);
+  assert.deepEqual(result.troops, { infantry: 7, archer: 2 });
+  assert.equal(result.trainingQueue.length, 0);
+  assert.equal(result.changed, true);
 });
-
 test("legacy training entries without timestamps are safely settled", () => {
   const result = settleTrainingQueue({}, [{ unitId: "infantry", amount: 5 }], Date.now());
   assert.deepEqual(result.troops, { infantry: 5 });
