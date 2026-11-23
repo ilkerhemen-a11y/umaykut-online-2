@@ -501,3 +501,24 @@
 .achievement-details strong{font-size:12px;color:#efdaa1}
 .achievement-details small{font:10px/1.35 Arial,sans-serif;color:#c3b99f}
 .achievement-details .achievement-status{color:#d7b96e}
+
+
+/* Single weighted player leaderboard */
+.ranking-dialog{width:min(94vw,560px)}
+.ranking-self-card{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:4px 0 16px;padding:13px;border:1px solid #c6a45e;border-radius:12px;background:linear-gradient(135deg,#3b3522,#172319)}
+.ranking-self-card>div{display:grid;gap:5px;min-width:0}
+.ranking-self-card small{font:9px Arial,sans-serif;letter-spacing:1px;color:#d8c58f}
+.ranking-self-card strong{font:bold 21px Georgia,serif;color:#ffe2a0;overflow-wrap:anywhere}
+.ranking-list-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 1px 8px}
+.ranking-list-heading h3{margin:0;color:#e9ce89;font-size:14px}
+.ranking-list-heading button{padding:7px 11px;border:1px solid #9b804b;border-radius:8px;background:#263326;color:#f5e5bd;font:bold 10px Arial,sans-serif}
+.ranking-list-heading button:disabled{opacity:.5}
+.ranking-list{display:grid;gap:6px}
+.ranking-row{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:9px;padding:9px 10px;border:1px solid #62583d;border-radius:9px;background:#111d15}
+.ranking-row.is-me{border-color:#e2bd68;background:linear-gradient(100deg,#40351d,#172319)}
+.ranking-place{display:grid;place-items:center;min-height:30px;color:#f0d28b;font:bold 12px Georgia,serif}
+.ranking-identity{display:grid;gap:4px;min-width:0}
+.ranking-identity strong{overflow:hidden;color:#f6e8c8;font:bold 12px Arial,sans-serif;text-overflow:ellipsis;white-space:nowrap}
+.ranking-identity small{overflow:hidden;color:#c8bea4;font:9px Arial,sans-serif;text-overflow:ellipsis;white-space:nowrap}
+.ranking-points{color:#f4d68b;font:bold 13px Georgia,serif;white-space:nowrap}
+.ranking-more{margin:7px 0 0;text-align:center;color:#c9bea2;font:10px Arial,sans-serif}
