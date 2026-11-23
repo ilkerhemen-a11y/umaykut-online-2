@@ -1223,3 +1223,15 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
 #village .village-buildings-layer>.placed-building.placed-center::after{content:none!important;display:none!important}
 #village .village-map-camera>canvas,
 #village .village-map-viewport canvas{display:none!important}
+
+
+/* Uploaded-style resource artwork in the resource bar and map markers */
+.resources .resource-icon{display:grid;place-items:center;height:32px;margin:0 auto 2px}
+.resources .resource-icon img{display:block;width:36px;height:32px;object-fit:contain;filter:drop-shadow(0 2px 2px #0009)}
+.resource-map-nodes .resource-node .resource-art{display:block;width:54px;height:48px;object-fit:contain;filter:drop-shadow(0 3px 3px #0009)}
+.village-resource-node .village-resource-art{width:54px;height:48px;object-fit:contain}
+@media(max-width:699px){
+  .resources .resource-icon{height:25px;margin-bottom:1px}
+  .resources .resource-icon img{width:29px;height:25px}
+  .resources b{font-size:9px}
+}
