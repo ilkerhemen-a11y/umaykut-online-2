@@ -195,6 +195,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/data-recruit-unit/);
   assert.match(appScript,/setServerClock\(state.serverNow\)/);
   assert.match(appScript,/function renderProductionDialog\(\)/);
+  assert.match(appScript,/currentWorkerPool/);
+  assert.match(appScript,/await refreshProductionState\(\);/);
   assert.match(appScript,/productionBreakdown/);
   assert.match(appScript,/productionNodeName/);
   assert.match(appScript,/building-upgrade-count/);
