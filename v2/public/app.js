@@ -1023,6 +1023,7 @@ function renderBattleReports(attacks){
 }
 async function openBattleReports(){
  if(!authToken)return;
+ await loadWorldPlayers();
  battleReportsMessage.textContent="Savaş kayıtların getiriliyor…";
  battleReportsList.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Raporlar yükleniyor…"}));
  battleReportsDialog.showModal();
