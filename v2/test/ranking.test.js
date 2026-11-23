@@ -27,7 +27,7 @@ test("building development score is normalized from 0 to 100", () => {
   const maxed = Object.fromEntries(Object.entries(village).map(([slot, building]) =>
     [slot, { ...building, level: 10 }]
   ));
-  assert.equal(calculateBuildingDevelopmentScore(maxed), 100);
+  assert.equal(calculateBuildingDevelopmentScore(maxed, { level: 10 }), 100);
   assert.equal(calculateBuildingDevelopmentScore(village), 10);
 });
 
@@ -36,11 +36,11 @@ test("Okçu slot 9 contributes to development and legacy warehouse data is treat
   delete withoutSlotNine["9"];
   assert.equal(
     Math.round((calculateBuildingDevelopmentScore(village) - calculateBuildingDevelopmentScore(withoutSlotNine)) * 100) / 100,
-    1.11
+    1
   );
   assert.equal(calculateBuildingDevelopmentScore({
     ...village, "9": { type: "warehouse", level: 10 }
-  }), 20);
+  }), 19);
 });
 
 test("army strength includes faction-adjusted attack and defensive values", () => {
