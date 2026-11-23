@@ -364,3 +364,21 @@
  .resource b{font-size:10px}
  .resource small{font-size:7px}
 }
+
+
+/* Mobile world-map decluttering: resource names appear only for the selected mine. */
+.map-mine-point.resource-node-marker{z-index:5;width:38px;min-width:38px;height:38px;padding:2px;border-radius:11px}
+.map-mine-point.resource-node-marker>img{width:32px;height:32px}
+.map-mine-point.resource-node-marker>small,
+.map-mine-point.resource-node-marker>b{display:none}
+.map-mine-point.resource-node-marker.is-selected{z-index:24;width:44px;min-width:44px;height:44px;border:2px solid #ffe39a;box-shadow:0 0 0 3px #54d8ff66,0 0 18px #55dfff,0 5px 14px #000c;overflow:visible}
+.map-mine-point.resource-node-marker.is-selected>img{width:36px;height:36px}
+.map-mine-point.resource-node-marker.is-selected>small{position:absolute;top:calc(100% + 5px);left:50%;transform:translateX(-50%);display:block;max-width:112px;padding:4px 7px;border:1px solid #e0c27c;border-radius:6px;background:#102019f5;color:#fff0c7;font:700 10px Arial,sans-serif;white-space:nowrap;box-shadow:0 3px 9px #000b}
+.map-mine-point.resource-node-marker.is-selected>b{position:absolute;top:calc(100% + 27px);left:50%;transform:translateX(-50%);display:block;padding:2px 6px;border-radius:5px;background:#0c1714ed;color:#d8edc9;font:9px Arial,sans-serif;white-space:nowrap}
+.map-mine-point.resource-node-marker:focus-visible{outline:2px solid #fff4c9;outline-offset:3px}
+@media(max-width:420px){
+ .map-mine-point.resource-node-marker{width:36px;min-width:36px;height:36px}
+ .map-mine-point.resource-node-marker>img{width:30px;height:30px}
+ .map-mine-point.resource-node-marker.is-selected{width:42px;min-width:42px;height:42px}
+ .map-mine-point.resource-node-marker.is-selected>img{width:34px;height:34px}
+}
