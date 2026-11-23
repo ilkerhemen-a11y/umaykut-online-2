@@ -531,6 +531,13 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           {id:"wood_stock_8000",title:"Dolu Ambar",description:"Depoda 8.000 odun biriktir.",reward:{gold:300,stone:500},test:s=>Number(s.resources?.wood||0)>=8000,progress:s=>Math.min(8000,Number(s.resources?.wood||0)),target:8000},
           {id:"army_10",title:"İlk Birlikler",description:"Ordunda toplam 10 asker bulundur.",reward:{gold:500,iron:500},test:s=>Object.values(s.troops||{}).reduce((n,v)=>n+Math.max(0,Number(v)||0),0)>=10,progress:s=>Math.min(10,Object.values(s.troops||{}).reduce((n,v)=>n+Math.max(0,Number(v)||0),0)),target:10}
         ];
+        const achievements=[
+          {id:"center_level_3",title:"Yükselen Yurt",description:"Merkez Binanı 3. seviyeye ulaştır.",test:s=>Number(s.buildings?.["1"]?.level||1)>=3},
+          {id:"lumberyard_level_5",title:"Orman Ustası",description:"Kerestecini 5. seviyeye yükselt.",test:s=>Number(s.buildings?.["6"]?.level||1)>=5},
+          {id:"blacksmith_level_5",title:"Demir Çağı",description:"Demircini 5. seviyeye ulaştır.",test:s=>Number(s.buildings?.["4"]?.level||1)>=5},
+          {id:"army_50",title:"Ordu Komutanı",description:"Ordunu 50 askere ulaştır.",test:s=>Object.values(s.troops||{}).reduce((n,v)=>n+Math.max(0,Number(v)||0),0)>=50},
+          {id:"resource_30000",title:"Bolluk Dönemi",description:"Depolarında toplam 30.000 kaynak bulundur.",test:s=>["wood","food","stone","iron"].reduce((n,key)=>n+Math.max(0,Number(s.resources?.[key])||0),0)>=30000}
+        ];
         if(req.method==="GET"){
           const [stateResult,claimsResult]=await Promise.all([
             pool.query("SELECT resources,buildings,troops FROM umaykut_v2.player_game_state WHERE player_id=$1",[session.id]),
@@ -538,7 +545,15 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           ]);
           const state=stateResult.rows[0]||{};
           const claimed=new Map(claimsResult.rows.map(row=>[row.quest_id,row.claimed_at]));
-          return sendJson(res,200,{quests:definitions.map(q=>({id:q.id,title:q.title,description:q.description,reward:q.reward,progress:q.progress(state),target:q.target,completed:q.test(state),claimed:claimed.has(q.id),claimedAt:claimed.get(q.id)||null}))});
+          for(const achievement of achievements){
+            if(achievement.test(state))await pool.query("INSERT INTO umaykut_v2.player_achievement_unlocks(player_id,achievement_id) VALUES($1,$2) ON CONFLICT(player_id,achievement_id) DO NOTHING",[session.id,achievement.id]);
+          }
+          const unlockedResult=await pool.query("SELECT achievement_id,unlocked_at FROM umaykut_v2.player_achievement_unlocks WHERE player_id=$1",[session.id]);
+          const unlocked=new Map(unlockedResult.rows.map(row=>[row.achievement_id,row.unlocked_at]));
+          return sendJson(res,200,{
+            quests:definitions.map(q=>({id:q.id,title:q.title,description:q.description,reward:q.reward,progress:q.progress(state),target:q.target,completed:q.test(state),claimed:claimed.has(q.id),claimedAt:claimed.get(q.id)||null})),
+            achievements:achievements.map(a=>({id:a.id,title:a.title,description:a.description,unlocked:unlocked.has(a.id),unlockedAt:unlocked.get(a.id)||null}))
+          });
         }
         const input=await readJson(req),quest=definitions.find(item=>item.id===input.questId);
         if(!quest)return sendJson(res,400,{error:"Geçersiz görev."});
