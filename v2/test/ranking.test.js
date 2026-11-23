@@ -1,8 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculateBuildingDevelopmentScore } from "../src/ranking.js";
+import {
+  calculateArmyStrength,
+  calculateArmyStrengthScore,
+  calculateBuildingDevelopmentScore,
+  calculateEconomyScore,
+  calculateOverallRankingScore,
+  calculatePlayerRanking,
+  calculateTerritorialControlScore
+} from "../src/ranking.js";
 
-const levelOneVillage = {
+const village = {
   "1": { type: "center", level: 1 },
   "2": { type: "barracks", level: 1 },
   "3": { type: "stable", level: 1 },
@@ -14,38 +22,73 @@ const levelOneVillage = {
   "9": { type: "archery", level: 1 }
 };
 
-test("building development score is normalized to 100 at nine level-10 buildings", () => {
-  const maxed = Object.fromEntries(Object.entries(levelOneVillage).map(([slot, building]) =>
+test("building development score is normalized from 0 to 100", () => {
+  const maxed = Object.fromEntries(Object.entries(village).map(([slot, building]) =>
     [slot, { ...building, level: 10 }]
   ));
   assert.equal(calculateBuildingDevelopmentScore(maxed), 100);
-  assert.equal(calculateBuildingDevelopmentScore(levelOneVillage), 10);
+  assert.equal(calculateBuildingDevelopmentScore(village), 10);
 });
 
-test("Okçu in slot 9 contributes to building development as a building", () => {
-  const withoutArcherBuilding = { ...levelOneVillage };
-  delete withoutArcherBuilding["9"];
+test("Okçu slot 9 contributes to development, but legacy warehouse does not", () => {
+  const withoutSlotNine = { ...village };
+  delete withoutSlotNine["9"];
   assert.equal(
-    calculateBuildingDevelopmentScore(levelOneVillage) - calculateBuildingDevelopmentScore(withoutArcherBuilding),
+    calculateBuildingDevelopmentScore(village) - calculateBuildingDevelopmentScore(withoutSlotNine),
     1.11
   );
+  assert.equal(calculateBuildingDevelopmentScore({
+    ...village, "9": { type: "warehouse", level: 10 }
+  }), 8.89);
 });
 
-test("legacy warehouse label in slot 9 is not scored as a valid building", () => {
-  const legacy = {
-    ...levelOneVillage,
-    "9": { type: "warehouse", level: 10 }
-  };
-  assert.equal(calculateBuildingDevelopmentScore(legacy), 8.89);
+test("army strength includes faction-adjusted attack and defensive values", () => {
+  const power = calculateArmyStrength({ infantry: 10 }, "gokturk", village);
+  assert.ok(power > 0);
+  assert.equal(calculateArmyStrengthScore(10000), 100);
+  assert.equal(calculateArmyStrengthScore(20000), 100);
+  assert.equal(calculateArmyStrengthScore(0), 0);
+  assert.equal(calculateArmyStrength({}, "gokturk", village), 0);
 });
 
-test("invalid levels and wrong slot types do not inflate the score", () => {
-  const invalid = {
-    ...levelOneVillage,
-    "1": { type: "market", level: 10 },
-    "2": { type: "barracks", level: 99 },
-    "3": { type: "stable", level: -1 }
-  };
-  assert.equal(calculateBuildingDevelopmentScore(invalid), 6.67);
-  assert.throws(() => calculateBuildingDevelopmentScore([]), /Bina verisi/);
+test("territory score counts only the permanent owned-region input and caps at 24", () => {
+  assert.equal(calculateTerritorialControlScore(0), 0);
+  assert.equal(calculateTerritorialControlScore(12), 50);
+  assert.equal(calculateTerritorialControlScore(24), 100);
+  assert.equal(calculateTerritorialControlScore(30), 100);
+});
+
+test("economy score measures resources and has no building/storage multiplier", () => {
+  const fullResources = { gold: 20000, wood: 20000, food: 20000, stone: 20000, iron: 20000, horses: 1000 };
+  assert.equal(calculateEconomyScore(fullResources), 100);
+  assert.equal(calculateEconomyScore({}), 0);
+  assert.equal(calculateEconomyScore({ ...fullResources, horses: 0 }), 83.33);
+  assert.equal(calculateEconomyScore({ ...fullResources, wood: 40000 }), 100);
+});
+
+test("overall ranking is the equal-weighted average of the four categories", () => {
+  assert.equal(calculateOverallRankingScore({
+    buildingDevelopment: 100, armyStrength: 80, territorialControl: 60, economy: 40
+  }), 70);
+  assert.throws(() => calculateOverallRankingScore({
+    buildingDevelopment: 101, armyStrength: 80, territorialControl: 60, economy: 40
+  }), /0 ile 100/);
+});
+
+test("player ranking keeps slot 9 as archery and produces one overall score", () => {
+  const result = calculatePlayerRanking({
+    buildings: village,
+    troops: { archer: 10 },
+    factionId: "gokturk",
+    ownedRegionCount: 2,
+    resources: { gold: 10000 }
+  });
+  assert.equal(result.buildingDevelopment, 10);
+  assert.equal(result.territorialControl, 8.33);
+  assert.equal(result.economy, 8.33);
+  assert.ok(result.armyStrength > 0);
+  assert.equal(result.overall, Math.round((
+    result.buildingDevelopment + result.armyStrength +
+    result.territorialControl + result.economy
+  ) / 4 * 100) / 100);
 });
