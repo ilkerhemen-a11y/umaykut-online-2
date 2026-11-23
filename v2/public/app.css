@@ -439,3 +439,17 @@
 .map-view>.bottom-nav{position:relative;z-index:20;left:auto;bottom:auto;transform:none;width:100%;margin:0 0 12px;padding:7px 8px;border:1px solid #927642;border-radius:13px;box-shadow:0 5px 18px #0007;grid-template-columns:repeat(4,minmax(0,1fr))}
 .map-view>.bottom-nav button{min-height:48px}
 @media(max-width:420px){.map-view>.bottom-nav{gap:5px;margin-bottom:10px}.map-view>.bottom-nav button{min-height:43px;padding:5px 2px}.map-view>.bottom-nav button span{font-size:19px}.map-view>.bottom-nav button{font-size:9px}}
+/* Player inventory */
+.inventory-dialog{width:min(94vw,620px)}
+.inventory-content{display:grid;gap:10px}
+.inventory-section{padding:11px;border:1px solid #75613c;border-radius:11px;background:#101b14}
+.inventory-section h3{margin:0 0 9px;font-size:14px;color:#e9ce89}
+.inventory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.inventory-item{display:flex;align-items:center;gap:9px;min-width:0;padding:9px;border:1px solid #ffffff1c;border-radius:9px;background:#17251b}
+.inventory-item-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:8px;background:#283a2b;font-size:20px}
+.inventory-item-info{display:grid;gap:2px;min-width:0}
+.inventory-item-info strong{font:11px Arial,sans-serif;color:#ead8ae}
+.inventory-item-info b{font:bold 16px Georgia,serif;color:#f4d78d;overflow-wrap:anywhere}
+.inventory-item-info small,.inventory-note,.inventory-empty{font:10px/1.45 Arial,sans-serif;color:#c9bea2}
+.inventory-note,.inventory-empty{margin:0}
+@media(max-width:380px){.inventory-grid{grid-template-columns:1fr}.inventory-item{padding:7px}}
