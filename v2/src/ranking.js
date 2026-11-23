@@ -93,6 +93,19 @@ export function calculateOverallRankingScore(scores) {
   return Math.round(values.reduce((sum, value) => sum + value, 0) / 4 * 100) / 100;
 }
 
+/** Merge home, marching, scouting and regional garrison troop stacks. */
+export function combineTroopStacks(...stacks) {
+  const combined = {};
+  for (const stack of stacks.flat()) {
+    if (!stack || typeof stack !== "object" || Array.isArray(stack)) continue;
+    for (const [id, rawCount] of Object.entries(stack)) {
+      const count = safeCount(rawCount);
+      if (count) combined[id] = (combined[id] || 0) + count;
+    }
+  }
+  return combined;
+}
+
 export function calculatePlayerRanking({ buildings, troops, factionId, ownedRegionCount, resources }) {
   const armyStrength = calculateArmyStrength(troops, factionId, buildings);
   const scores = {
