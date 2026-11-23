@@ -516,6 +516,51 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
       }
     }
 
+    if(url.pathname==="/api/game/quests"){
+      if(!pool)return sendJson(res,503,{error:"Oyun kayıt servisi henüz yapılandırılmadı."});
+      if(!sessionSecret||sessionSecret.length<32)return sendJson(res,503,{error:"Oturum güvenlik ayarı eksik."});
+      if(!["GET","POST"].includes(req.method)){res.setHeader("allow","GET, POST");return sendJson(res,405,{error:"Yöntem desteklenmiyor."});}
+      const token=bearerToken(req),session=verifySessionToken(token,sessionSecret);
+      if(!session)return sendJson(res,401,{error:"Oturum geçersiz veya süresi dolmuş."});
+      try{
+        const valid=await pool.query("SELECT 1 FROM umaykut_v2.player_sessions WHERE player_id=$1 AND token_hash=$2 AND expires_at>NOW()",[session.id,sessionTokenHash(token)]);
+        if(!valid.rowCount)return sendJson(res,401,{error:"Oyuncu oturumu bulunamadı."});
+        const definitions=[
+          {id:"center_level_2",title:"Yurdunu Büyüt",description:"Merkez Binasını 2. seviyeye yükselt.",reward:{gold:250,wood:500},test:s=>Number(s.buildings?.["1"]?.level||1)>=2,progress:s=>Math.min(1,Number(s.buildings?.["1"]?.level||1)-1),target:1},
+          {id:"lumberyard_level_3",title:"Ormanın Bereketi",description:"Kerestecini 3. seviyeye yükselt.",reward:{gold:400,food:1000},test:s=>Number(s.buildings?.["6"]?.level||1)>=3,progress:s=>Math.min(2,Math.max(0,Number(s.buildings?.["6"]?.level||1)-1)),target:2},
+          {id:"wood_stock_8000",title:"Dolu Ambar",description:"Depoda 8.000 odun biriktir.",reward:{gold:300,stone:500},test:s=>Number(s.resources?.wood||0)>=8000,progress:s=>Math.min(8000,Number(s.resources?.wood||0)),target:8000},
+          {id:"army_10",title:"İlk Birlikler",description:"Ordunda toplam 10 asker bulundur.",reward:{gold:500,iron:500},test:s=>Object.values(s.troops||{}).reduce((n,v)=>n+Math.max(0,Number(v)||0),0)>=10,progress:s=>Math.min(10,Object.values(s.troops||{}).reduce((n,v)=>n+Math.max(0,Number(v)||0),0)),target:10}
+        ];
+        if(req.method==="GET"){
+          const [stateResult,claimsResult]=await Promise.all([
+            pool.query("SELECT resources,buildings,troops FROM umaykut_v2.player_game_state WHERE player_id=$1",[session.id]),
+            pool.query("SELECT quest_id,claimed_at FROM umaykut_v2.player_quest_claims WHERE player_id=$1",[session.id])
+          ]);
+          const state=stateResult.rows[0]||{};
+          const claimed=new Map(claimsResult.rows.map(row=>[row.quest_id,row.claimed_at]));
+          return sendJson(res,200,{quests:definitions.map(q=>({id:q.id,title:q.title,description:q.description,reward:q.reward,progress:q.progress(state),target:q.target,completed:q.test(state),claimed:claimed.has(q.id),claimedAt:claimed.get(q.id)||null}))});
+        }
+        const input=await readJson(req),quest=definitions.find(item=>item.id===input.questId);
+        if(!quest)return sendJson(res,400,{error:"Geçersiz görev."});
+        const client=await pool.connect();let inTransaction=false;
+        try{
+          await client.query("BEGIN");inTransaction=true;
+          await client.query("INSERT INTO umaykut_v2.player_game_state(player_id) VALUES($1) ON CONFLICT(player_id) DO NOTHING",[session.id]);
+          const stateResult=await client.query("SELECT resources,buildings,troops FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",[session.id]);
+          const state=stateResult.rows[0]||{};
+          const claimed=await client.query("SELECT quest_id FROM umaykut_v2.player_quest_claims WHERE player_id=$1 AND quest_id=$2 FOR UPDATE",[session.id,quest.id]);
+          if(claimed.rowCount){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,409,{error:"Bu görevin ödülü daha önce alınmış."});}
+          if(!quest.test(state)){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,409,{error:"Görev henüz tamamlanmadı."});}
+          const resources=typeof state.resources==="string"?JSON.parse(state.resources||"{}"):{...(state.resources||{})};
+          for(const [key,value] of Object.entries(quest.reward))resources[key]=Number(resources[key]||0)+value;
+          await client.query("UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb,updated_at=NOW() WHERE player_id=$1",[session.id,JSON.stringify(resources)]);
+          await client.query("INSERT INTO umaykut_v2.player_quest_claims(player_id,quest_id) VALUES($1,$2)",[session.id,quest.id]);
+          await client.query("COMMIT");inTransaction=false;
+          return sendJson(res,200,{success:true,questId:quest.id,reward:quest.reward,resources});
+        }catch(error){if(inTransaction){try{await client.query("ROLLBACK");}catch{}}throw error;}finally{client.release();}
+      }catch(error){console.error("V2 quest request failed",{code:error.code||"UNKNOWN",message:String(error.message||"Quest error").slice(0,180)});return sendJson(res,error.status||500,{error:error.status?error.message:"Görev işlemi tamamlanamadı."});}
+    }
+
     if(url.pathname==="/api/game/market"){
       if(!pool)return sendJson(res,503,{error:"Oyun kayıt servisi henüz yapılandırılmadı."});
       if(!sessionSecret||sessionSecret.length<32)return sendJson(res,503,{error:"Oturum güvenlik ayarı eksik."});
