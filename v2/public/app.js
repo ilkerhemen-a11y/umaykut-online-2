@@ -1299,18 +1299,48 @@ function renderWorldMap(data){
  });
  const resourceNodes=(data.resourceNodes||[]).filter(node=>mineTypes[node.resource_type]);
  const canvasWidth=mapWorldCanvas.clientWidth||1476,canvasHeight=mapWorldCanvas.clientHeight||984;
- const ownPixelX=ownX/100*canvasWidth,ownPixelY=ownY/100*canvasHeight;
- const safeVillageDistance=132;
- resourceNodes.forEach((node,index)=>{
-  const type=mineTypes[node.resource_type];if(!type)return;
-  let displayX=Number(node.world_x),displayY=Number(node.world_y);
-  const nodePixelX=displayX/100*canvasWidth,nodePixelY=displayY/100*canvasHeight;
-  const offsetX=nodePixelX-ownPixelX,offsetY=nodePixelY-ownPixelY;
-  if(Math.hypot(offsetX,offsetY)<safeVillageDistance){
-   const angle=(-Math.PI/2)+(index/resourceNodes.length)*Math.PI*2;
-   displayX=Math.max(2,Math.min(98,(ownPixelX+Math.cos(angle)*safeVillageDistance)/canvasWidth*100));
-   displayY=Math.max(2,Math.min(98,(ownPixelY+Math.sin(angle)*safeVillageDistance)/canvasHeight*100));
+ // Keep the real world coordinates untouched; calculate separate, collision-free display positions.
+ const resourceLayout=resourceNodes.map(node=>({
+  node,
+  x:Math.max(4,Math.min(96,Number(node.world_x)||50))*canvasWidth/100,
+  y:Math.max(5,Math.min(95,Number(node.world_y)||50))*canvasHeight/100
+ }));
+ const fixedMarkers=[...mapWorldCanvas.querySelectorAll(".dynamic-world-marker:not(.resource-node-marker)")].map(marker=>({
+  x:(parseFloat(marker.style.left)||50)*canvasWidth/100,
+  y:(parseFloat(marker.style.top)||50)*canvasHeight/100
+ }));
+ cachedWorldPlayers.forEach(player=>fixedMarkers.push({
+  x:(Number(player.world_x)||50)*canvasWidth/100,
+  y:(Number(player.world_y)||50)*canvasHeight/100
+ }));
+ // A gentle repulsion pass prevents resource icons and village markers from stacking.
+ const minGap=76;
+ for(let pass=0;pass<90;pass++){
+  for(let i=0;i<resourceLayout.length;i++){
+   const a=resourceLayout[i];
+   for(let j=i+1;j<resourceLayout.length;j++){
+    const b=resourceLayout[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+    if(d<minGap){
+     const angle=d<.01?((i*2.399963+j)*1.0):Math.atan2(dy,dx);
+     const push=(minGap-d)*.28,px=Math.cos(angle)*push,py=Math.sin(angle)*push;
+     a.x-=px;a.y-=py;b.x+=px;b.y+=py;
+    }
+   }
+   for(let j=0;j<fixedMarkers.length;j++){
+    const b=fixedMarkers[j],dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy);
+    if(d<minGap+8){
+     const angle=d<.01?(i*2.399963):Math.atan2(dy,dx);
+     const push=(minGap+8-d)*.32;
+     a.x+=Math.cos(angle)*push;a.y+=Math.sin(angle)*push;
+    }
+   }
+   a.x=Math.max(42,Math.min(canvasWidth-42,a.x));
+   a.y=Math.max(42,Math.min(canvasHeight-42,a.y));
   }
+ }
+ resourceLayout.forEach(({node,x,y})=>{
+  const type=mineTypes[node.resource_type];if(!type)return;
+  const displayX=x/canvasWidth*100,displayY=y/canvasHeight*100;
   const marker=document.createElement("button");marker.type="button";
   marker.className="map-point map-mine-point resource-node-marker resource-node-"+node.resource_type+" dynamic-world-marker";
   marker.dataset.worldMine=String(node.id);
@@ -1350,6 +1380,8 @@ function renderWorldMap(data){
 mapWorldCanvas?.addEventListener("click",async event=>{
  const mine=event.target.closest("[data-world-mine]");
  if(mine){
+  mapWorldCanvas.querySelectorAll(".resource-node-marker.is-selected").forEach(item=>item.classList.remove("is-selected"));
+  mine.classList.add("is-selected");
   const node=(window.__umaykutWorldNodes||[]).find(item=>String(item.id)===mine.dataset.worldMine);
   if(node){
    const ownCity=mapWorldCanvas.querySelector(".map-own-city");
