@@ -108,6 +108,48 @@ test("market rejects trades above the building capacity without changing resourc
  assert.equal(response.status,400);assert.equal(updated,false);
 });
 
+test("quest rewards are granted once after server-side completion validation",async t=>{
+ const secret="test-session-secret-with-at-least-32-characters",playerId="8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+ const token=createSessionToken(playerId,secret);let state={resources:{gold:100,wood:0},buildings:{"1":{type:"center",level:2}},troops:{}};const claimed=new Set();
+ const pool={
+  query:async sql=>sql.includes("player_sessions")?{rows:[{id:playerId}],rowCount:1}:Promise.reject(new Error("Unexpected quest auth query: "+sql)),
+  connect:async()=>({query:async(sql,values=[])=>{
+   if(["BEGIN","COMMIT","ROLLBACK"].includes(sql))return {rows:[]};
+   if(sql.includes("INSERT INTO umaykut_v2.player_game_state"))return {rows:[],rowCount:1};
+   if(sql.includes("SELECT resources,buildings,troops FROM umaykut_v2.player_game_state"))return {rows:[state],rowCount:1};
+   if(sql.includes("SELECT quest_id FROM umaykut_v2.player_quest_claims"))return {rows:claimed.has(values[1])?[{quest_id:values[1]}]:[],rowCount:claimed.has(values[1])?1:0};
+   if(sql.includes("UPDATE umaykut_v2.player_game_state SET resources=")){state={...state,resources:JSON.parse(values[1])};return {rows:[],rowCount:1};}
+   if(sql.includes("INSERT INTO umaykut_v2.player_quest_claims")){claimed.add(values[1]);return {rows:[],rowCount:1};}
+   throw new Error("Unexpected quest query: "+sql);
+  },release:()=>{}})
+ };
+ const server=createServer({pool,sessionSecret:secret});await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
+ const url=`http://127.0.0.1:${server.address().port}/api/game/quests`,headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"};
+ const first=await fetch(url,{method:"POST",headers,body:JSON.stringify({questId:"center_level_2"})});
+ assert.equal(first.status,200);const result=await first.json();assert.equal(result.resources.gold,350);assert.equal(result.resources.wood,500);
+ const second=await fetch(url,{method:"POST",headers,body:JSON.stringify({questId:"center_level_2"})});
+ assert.equal(second.status,409);assert.equal(state.resources.gold,350);
+});
+
+test("quest reward cannot be claimed before its objective is complete",async t=>{
+ const secret="test-session-secret-with-at-least-32-characters",playerId="8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+ const token=createSessionToken(playerId,secret);let updated=false;
+ const pool={
+  query:async sql=>sql.includes("player_sessions")?{rows:[{id:playerId}],rowCount:1}:Promise.reject(new Error("Unexpected quest auth query: "+sql)),
+  connect:async()=>({query:async(sql,values=[])=>{
+   if(["BEGIN","COMMIT","ROLLBACK"].includes(sql))return {rows:[]};
+   if(sql.includes("INSERT INTO umaykut_v2.player_game_state"))return {rows:[],rowCount:1};
+   if(sql.includes("SELECT resources,buildings,troops FROM umaykut_v2.player_game_state"))return {rows:[{resources:{},buildings:{"1":{level:1}},troops:{}}],rowCount:1};
+   if(sql.includes("SELECT quest_id FROM umaykut_v2.player_quest_claims"))return {rows:[],rowCount:0};
+   if(sql.includes("UPDATE umaykut_v2.player_game_state")){updated=true;return {rows:[],rowCount:1};}
+   throw new Error("Unexpected quest query: "+sql);
+  },release:()=>{}})
+ };
+ const server=createServer({pool,sessionSecret:secret});await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
+ const response=await fetch(`http://127.0.0.1:${server.address().port}/api/game/quests`,{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({questId:"center_level_2"})});
+ assert.equal(response.status,409);assert.equal(updated,false);
+});
+
 test("health, readiness and 404 routes respond", async (t) => {
   const server = createServer({ pool: null });
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
