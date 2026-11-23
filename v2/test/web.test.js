@@ -150,12 +150,12 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,0);
 
-  assert.doesNotMatch(appScript,/mapHeading\.after\(bottomNav\)/);
-  assert.doesNotMatch(appScript,/mapView\.insertBefore\(bottomNav,mapView\.firstChild\)/);
-  assert.match(appScript,/Keep the main navigation in its original document position/);
   const script=await fetch(base+"/app.js?v=20261123-map-menu-bottom-3");
   assert.equal(script.status,200);
   const appScript=await script.text();
+  assert.doesNotMatch(appScript,/mapHeading\.after\(bottomNav\)/);
+  assert.doesNotMatch(appScript,/mapView\.insertBefore\(bottomNav,mapView\.firstChild\)/);
+  assert.match(appScript,/Keep the main navigation in its original document position/);
   assert.match(appScript,/data-faction-choice/);
   assert.match(appScript,/function renderBattleReports\(attacks\)/);
   assert.match(appScript,/function openBattleReports\(\)/);
