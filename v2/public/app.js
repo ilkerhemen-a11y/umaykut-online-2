@@ -1369,6 +1369,33 @@ function renderWorldMap(data){
   const faction=document.createElement("b");faction.textContent=factions[player.faction_id]?.name||"Oyuncu";
   marker.append(icon,name,faction);mapWorldCanvas.append(marker);
  });
+ // Final pass separates all visible world entities, including neutral villages and players.
+ const placedMarkers=[...mapWorldCanvas.querySelectorAll(".dynamic-world-marker")].map(element=>({
+  element,
+  x:(parseFloat(element.style.left)||50)*canvasWidth/100,
+  y:(parseFloat(element.style.top)||50)*canvasHeight/100,
+  resource:element.classList.contains("resource-node-marker")
+ }));
+ for(let pass=0;pass<55;pass++){
+  for(let i=0;i<placedMarkers.length;i++){
+   const a=placedMarkers[i];
+   for(let j=i+1;j<placedMarkers.length;j++){
+    const b=placedMarkers[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+    const gap=a.resource&&b.resource?76:104;
+    if(d<gap){
+     const angle=d<.01?i*2.399963:Math.atan2(dy,dx);
+     const push=(gap-d)*.24,px=Math.cos(angle)*push,py=Math.sin(angle)*push;
+     a.x-=px;a.y-=py;b.x+=px;b.y+=py;
+    }
+   }
+   a.x=Math.max(48,Math.min(canvasWidth-48,a.x));
+   a.y=Math.max(48,Math.min(canvasHeight-48,a.y));
+  }
+ }
+ placedMarkers.forEach(({element,x,y})=>{
+  element.style.left=(x/canvasWidth*100)+"%";
+  element.style.top=(y/canvasHeight*100)+"%";
+ });
  if(mapViewport&&mapWorldCanvas){
   requestAnimationFrame(()=>{
    const scaleX=mapWorldCanvas.clientWidth/100,scaleY=mapWorldCanvas.clientHeight/100;
