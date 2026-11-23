@@ -844,7 +844,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         const source = input.workerAssignments && typeof input.workerAssignments === "object"
           ? input.workerAssignments : {};
         const workerAssignments = {};
-        const allowedWorkerKey = key => ["grain", "wood", "stone", "gold", "iron"].includes(key) || /^mine_[1-9]\\d*$/.test(key);
+        const allowedWorkerKey = key => ["grain", "wood", "stone", "gold", "iron"].includes(key) || /^mine_[1-9]\d*$/.test(key);
         for (const [key, value] of Object.entries(source)) {
           if (!allowedWorkerKey(key)) return sendJson(res, 400, { error: "Geçersiz kaynak işçi kaydı." });
           workerAssignments[key] = value;
