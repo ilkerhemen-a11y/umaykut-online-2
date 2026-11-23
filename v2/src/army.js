@@ -117,11 +117,15 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     await client.query("BEGIN"); transaction = true;
     await client.query("INSERT INTO umaykut_v2.player_game_state(player_id) VALUES($1) ON CONFLICT(player_id) DO NOTHING", [session.id]);
     const result = await client.query(
-      "SELECT faction_id, resources, buildings, troops, training_queue FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",
+      "SELECT faction_id, resources, buildings, troops, training_queue, worker_pool, worker_assignments FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",
       [session.id]
     );
     const row = result.rows[0];
     const resources = parseJson(row.resources, {});
+    const workerPool = Math.max(0, Number(row.worker_pool ?? 1800) || 0);
+    const workerAssignments = parseJson(row.worker_assignments, {});
+    const assignedWorkers = Object.values(workerAssignments).reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
+    const idleWorkers = Math.max(0, workerPool - assignedWorkers);
     const buildings = parseJson(row.buildings, {});
     let troops = parseJson(row.troops, {});
     const storedQueue = parseJson(row.training_queue, []);
@@ -143,7 +147,8 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
       const amount = Number(input.amount);
       if (!unit) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 400, { error: "Geçersiz asker türü." }); return true; }
       if (!unit.unlocked) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: unit.name + " için " + (unit.building === "barracks" ? "Kışla" : "Ahır") + " seviyesi " + unit.requiredLevel + " olmalı." }); return true; }
-      if (!Number.isSafeInteger(amount) || amount < 1 || amount > 100) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 400, { error: "Bir seferde 1 ile 100 arasında asker yetiştirebilirsin." }); return true; }
+      if (!Number.isSafeInteger(amount) || amount < 1) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 400, { error: "Yetiştirilecek asker sayısı en az 1 olmalıdır.", idleWorkers }); return true; }
+      if (amount > idleWorkers) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: "Boşta yalnızca " + idleWorkers + " işçin var. Daha fazla asker yetiştiremezsin.", idleWorkers }); return true; }
       const cost = Object.fromEntries(Object.entries(unit.cost).map(([key, value]) => [key, value * amount]));
       const missing = Object.fromEntries(Object.entries(cost).filter(([key, value]) => Number(resources[key] || 0) < value).map(([key, value]) => [key, value - Number(resources[key] || 0)]));
       if (Object.keys(missing).length) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: "Asker yetiştirmek için yeterli kaynak yok.", missing, cost }); return true; }
@@ -158,6 +163,7 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     const finalResources = parseJson(latest.rows[0]?.resources, resources);
     sendJson(res, 200, {
       factionId, factionName: FACTIONS[factionId].name, troops,
+      workerPool, assignedWorkers, idleWorkers,
       trainingQueue: queue.map(job => ({ ...job, name: catalog.find(unit => unit.id === job.unitId)?.name || job.unitId })), catalog,
       totalUnits: Object.values(troops).reduce((sum, count) => sum + Number(count || 0), 0),
       armyPower: armyPower(troops, catalog), resources: finalResources,
