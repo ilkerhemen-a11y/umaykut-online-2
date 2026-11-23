@@ -31,7 +31,7 @@ const INITIAL_BUILDINGS = Object.freeze({
   "6": {type:"lumberyard",level:1},
   "7": {type:"temple",level:1},
   "8": {type:"market",level:1},
-  "9": {type:"warehouse",level:1}
+  "9": {type:"archery",level:1}
 });
 function normalizeBuildings(stored, { reset = false } = {}) {
   const source = typeof stored === "string" ? JSON.parse(stored || "{}") : (stored || {});
@@ -39,7 +39,8 @@ function normalizeBuildings(stored, { reset = false } = {}) {
   for (const [slot, initial] of Object.entries(INITIAL_BUILDINGS)) {
     const saved = source[slot];
     const level = Number(saved?.level);
-    const valid = !reset && saved?.type === initial.type &&
+    const legacyTypeMatches = slot === "9" && saved?.type === "warehouse";
+    const valid = !reset && (saved?.type === initial.type || legacyTypeMatches) &&
       Number.isSafeInteger(level) && level >= 1 && level <= 10;
     const upgrade = saved?.upgrade;
     const validUpgrade = valid && upgrade && Number(upgrade.targetLevel) === level + 1 &&
@@ -115,7 +116,7 @@ const FIXED_BUILDING_TYPES = Object.freeze({
   "6": "lumberyard",
   "7": "temple",
   "8": "market",
-  "9": "warehouse"
+  "9": "archery"
 });
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
