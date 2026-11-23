@@ -120,6 +120,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   const styles=await fetch(base+"/app.css?v=20261124-equal-ranking-2");
   assert.equal(styles.status,200);
   const css=await styles.text();
+  assert.ok(css.includes(".ranking-method-note{"));
   assert.ok(css.includes(".city-frame{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
   assert.ok(css.includes(".city-stage{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:100%;height:100%;"));
   assert.ok(css.includes(".city-art{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:fill;"));
@@ -226,7 +227,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/building\.upgrade\?\.targetLevel/);
   assert.match(appScript,/levelBadge\.textContent=String\(displayedLevel\)/);
   assert.match(appScript,/"9":"archery"/);
-  assert.match(appScript,/api\\\/game\\\/rankings/);
+  assert.ok(appScript.includes("/api/game/rankings"));
   assert.match(appScript,/umaykut-faction-v2/);
   assert.ok(appScript.includes('"/api/player/profile"'));
   assert.ok(appScript.includes('node.addEventListener("click",()=>openBuildingDialog(node.dataset.buildingSlot))'));
