@@ -118,7 +118,13 @@ export async function handleRankingRequest({ req, res, url, pool, sessionSecret 
     currentPlayerId: session.id,
     scoring: {
       weights: { buildingDevelopment: 25, armyStrength: 25, territorialControl: 25, economy: 25 },
-      note: "Tek genel puan, dört alanın eşit ağırlıklı ortalamasıdır. Geçici bölge iddiaları ve depolama kapasitesi puana eklenmez."
+      scales: {
+        buildingDevelopment: { buildingCount: 9, maxLevel: 10 },
+        armyStrength: { fullScoreAt: 10000, includesHomeDeployedScoutingAndGarrisonTroops: true },
+        territorialControl: { fullScoreAtOwnedRegions: 24, temporaryClaimsCount: false },
+        economy: { resourceTargets: { gold: 20000, wood: 20000, food: 20000, stone: 20000, iron: 20000, horses: 1000 }, resourceTypesWeightedEqually: true }
+      },
+      note: "Tek genel puan, dört alanın eşit ağırlıklı ortalamasıdır. Geçici bölge iddiaları ve depolama kapasitesi puana eklenmez; 9 numaralı bina Okçu olarak değerlendirilir."
     },
     serverNow: new Date().toISOString()
   });
