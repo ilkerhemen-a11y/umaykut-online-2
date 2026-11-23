@@ -5,6 +5,7 @@ on:
     branches:
       - "rebuild/**"
       - "feature/umaykut-world-map-casus-20261117"
+      - "feature/umaykut-ranking-live-20261124"
     paths:
       - "v2/**"
       - ".github/workflows/v2-foundation.yml"
