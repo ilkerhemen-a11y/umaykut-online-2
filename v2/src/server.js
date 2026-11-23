@@ -853,6 +853,8 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
               resources: economy.resources,
               buildings,
               productionPerHour: economy.productionPerHour,
+              productionBreakdown: economy.productionBreakdown,
+              resourceNodes: nodes.rows.map(node => ({ id: String(node.id), resourceType: node.resource_type, yieldLevel: Number(node.yield_level) })),
               productionApplied: economy.productionApplied,
               storageCapacity: economy.storageCapacity,
               lastResourceTick: economy.lastResourceTick,
