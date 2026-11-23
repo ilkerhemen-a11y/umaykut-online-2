@@ -1266,23 +1266,23 @@ let selectedNeutralRegion=null,neutralRegionMode="garrison",neutralRegionTimer=n
 
 const mapWorldCanvas=document.querySelector("#map-world-canvas");
 const mapViewport=document.querySelector(".world-map");
-let mapZoom=0.46;
-const WORLD_MAP_WIDTH=18000,WORLD_MAP_HEIGHT=12000;
-const MAP_ZOOM_MIN=0.25,MAP_ZOOM_MAX=0.9,MAP_ZOOM_STEP=0.05;
+let mapZoom=0.55;
+const MAP_ZOOM_MIN=0.55,MAP_ZOOM_MAX=1.6,MAP_ZOOM_STEP=0.15;
 function applyMapZoom(nextZoom,preserveCenter=true,focalPoint=null){
  if(!mapWorldCanvas||!mapViewport)return;
- const baseWidth=WORLD_MAP_WIDTH,baseHeight=WORLD_MAP_HEIGHT;
+ const mobile=window.matchMedia("(max-width: 420px)").matches;
+ const baseWidth=mobile?1500:1800,baseHeight=mobile?1000:1200;
  const anchorX=focalPoint?focalPoint.x:mapViewport.clientWidth/2;
  const anchorY=focalPoint?focalPoint.y:mapViewport.clientHeight/2;
  const worldX=(mapViewport.scrollLeft+anchorX)/(baseWidth*mapZoom);
  const worldY=(mapViewport.scrollTop+anchorY)/(baseHeight*mapZoom);
- mapZoom=Math.max(MAP_ZOOM_MIN,Math.min(MAP_ZOOM_MAX,Math.round(nextZoom*1000)/1000));
+ mapZoom=Math.max(MAP_ZOOM_MIN,Math.min(MAP_ZOOM_MAX,Math.round(nextZoom*100)/100));
  // CSS zoom scales the complete map scene, including every marker, label and SVG overlay.
  mapWorldCanvas.style.width=baseWidth+"px";
  mapWorldCanvas.style.height=baseHeight+"px";
  mapWorldCanvas.style.zoom=String(mapZoom);
  const label=document.querySelector("#map-zoom-level");
- if(label)label.textContent=(Math.round(mapZoom*1000)/10)+"%";
+ if(label)label.textContent=Math.round(mapZoom*100)+"%";
  if(preserveCenter){
   requestAnimationFrame(()=>{
    mapViewport.scrollLeft=Math.max(0,worldX*baseWidth*mapZoom-anchorX);
@@ -1293,7 +1293,7 @@ function applyMapZoom(nextZoom,preserveCenter=true,focalPoint=null){
 document.querySelector("#map-zoom-in")?.addEventListener("click",()=>applyMapZoom(mapZoom+MAP_ZOOM_STEP));
 document.querySelector("#map-zoom-out")?.addEventListener("click",()=>applyMapZoom(mapZoom-MAP_ZOOM_STEP));
 document.querySelector("#map-zoom-reset")?.addEventListener("click",()=>{
- applyMapZoom(0.46,false);
+ applyMapZoom(0.55,false);
  if(mapViewport&&mapWorldCanvas){
   const own=mapWorldCanvas.querySelector(".map-own-city");
   const x=own?parseFloat(own.style.left||"50"):50,y=own?parseFloat(own.style.top||"50"):50;
@@ -1338,15 +1338,6 @@ if(mapViewport){
 }
 window.addEventListener("resize",()=>applyMapZoom(mapZoom,false));
 applyMapZoom(mapZoom,false);
-if(mapViewport&&mapWorldCanvas){
- const own=mapWorldCanvas.querySelector(".map-own-city");
- const x=own?parseFloat(own.style.left||"50"):50;
- const y=own?parseFloat(own.style.top||"50"):50;
- requestAnimationFrame(()=>{
-  mapViewport.scrollLeft=Math.max(0,x/100*mapWorldCanvas.clientWidth*mapZoom-mapViewport.clientWidth/2);
-  mapViewport.scrollTop=Math.max(0,y/100*mapWorldCanvas.clientHeight*mapZoom-mapViewport.clientHeight/2);
- });
-}
 
 
 function neutralClaimIsActive(region){
@@ -1429,8 +1420,8 @@ function renderWorldMap(data){
   const miningRange=2+(schoolLevel-1)*2;
   const ring=document.createElementNS("http://www.w3.org/2000/svg","circle");
   ring.setAttribute("class","mining-range-ring");
-  ring.setAttribute("cx",String(ownX*180));ring.setAttribute("cy",String(ownY*120));
-  ring.setAttribute("r",String(miningRange*180));
+  ring.setAttribute("cx",String(ownX*18));ring.setAttribute("cy",String(ownY*12));
+  ring.setAttribute("r",String(miningRange*18));
   ring.setAttribute("data-school-level",String(schoolLevel));
   overlay.append(ring);
  }
@@ -1509,8 +1500,8 @@ function renderWorldMap(data){
   marker.style.left=displayX+"%";marker.style.top=displayY+"%";
   const schoolLevel=Math.max(1,Math.min(5,Number(gameBuildings["5"]?.level)||1));
   const range=2+(schoolLevel-1)*2;
-  const dx=(Number(node.world_x)-ownX)*180,dy=(Number(node.world_y)-ownY)*120;
-  const inRange=Math.hypot(dx,dy)<=range*180;
+  const dx=(Number(node.world_x)-ownX)*18,dy=(Number(node.world_y)-ownY)*12;
+  const inRange=Math.hypot(dx,dy)<=range*18;
   marker.dataset.inRange=String(inRange);
   marker.classList.toggle("mine-out-of-range",!inRange);
   marker.title=type.name+" · Verim "+node.yield_level+"/9 · "+(inRange?"Mavi alan içinde":"Mavi alan dışında");
@@ -1577,8 +1568,8 @@ mapWorldCanvas?.addEventListener("click",async event=>{
    const ownX=parseFloat(ownCity?.style.left)||50,ownY=parseFloat(ownCity?.style.top)||50;
    const schoolLevel=Math.max(1,Math.min(5,Number(gameBuildings["5"]?.level)||1));
    const range=2+(schoolLevel-1)*2;
-   const dx=(Number(node.world_x)-ownX)*180,dy=(Number(node.world_y)-ownY)*120;
-   if(Math.hypot(dx,dy)>range*180){
+   const dx=(Number(node.world_x)-ownX)*18,dy=(Number(node.world_y)-ownY)*12;
+   if(Math.hypot(dx,dy)>range*18){
     mapPrompt.hidden=false;resourcePanel.hidden=true;
     mapPrompt.textContent="Bu maden okulunun mevcut erişim çemberinin dışında. Okul seviyeni yükselterek erişim alanını genişletebilirsin.";
     return;
@@ -1622,7 +1613,7 @@ function renderMarchingArmies(playersData,raidsData){
   const targetY=Math.max(0,Math.min(100,Number(target.world_y)||50));
   const startX=outgoing?ownX:targetX,startY=outgoing?ownY:targetY;
   const endX=outgoing?targetX:ownX,endY=outgoing?targetY:ownY;
-  const x1=startX*180,y1=startY*120,x2=endX*180,y2=endY*120;
+  const x1=startX*18,y1=startY*12,x2=endX*18,y2=endY*12;
   const dx=x2-x1,dy=y2-y1;
   const cx=dx/2-dy*.12,cy=dy/2+dx*.12;
   const path=document.createElementNS("http://www.w3.org/2000/svg","path");
