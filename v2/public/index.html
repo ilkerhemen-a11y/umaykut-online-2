@@ -45,6 +45,7 @@
         <div class="resource"><span class="resource-icon" aria-hidden="true"><img src="/assets/resources/iron.svg" alt="" width="24" height="20" decoding="async"></span><b id="resource-iron">8.040</b><small>Demir</small></div>
       </div>
       <div class="realm"><span id="realm-player-name">YENİ YURDUM</span><b>SEVİYE 1</b><span class="realm-sub" id="realm-faction">Devlet seçilmedi</span></div>
+      <button class="top-settings" id="open-quests" type="button" aria-haspopup="dialog" aria-controls="quests-dialog" aria-label="Görevleri aç">🏆</button>
       <button class="top-settings" id="open-settings" type="button" aria-haspopup="dialog" aria-controls="settings-dialog" aria-label="Ayarları aç">⚙️</button>
     </header>
 
@@ -176,6 +177,12 @@
       <div class="market-rates"><p>Satış: 100 kaynak = <b>50 altın</b></p><p>Alış: 100 kaynak = <b>65 altın</b></p></div>
       <div class="market-actions"><button id="market-buy" type="button">Kaynak Satın Al</button><button id="market-sell" type="button">Kaynak Sat</button></div>
       <p id="market-message" class="army-message" role="status" aria-live="polite"></p>
+    </dialog>
+    <dialog id="quests-dialog" class="army-dialog quests-dialog" aria-labelledby="quests-title">
+      <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · GELİŞİM</small><h2 id="quests-title">Görevler ve Ödüller</h2></div><button id="quests-close" type="button" aria-label="Kapat">×</button></div>
+      <p class="army-message">Yurdunu geliştir, görevleri tamamla ve ödüllerini topla. Her ödül yalnızca bir kez alınabilir.</p>
+      <div id="quests-content" class="quests-content"><p>Görevler yükleniyor…</p></div>
+      <p id="quests-message" class="army-message" role="status" aria-live="polite"></p>
     </dialog>
     <dialog id="inventory-dialog" class="army-dialog inventory-dialog" aria-labelledby="inventory-title">
       <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · HAZİNE</small><h2 id="inventory-title">Envanterim</h2></div><button id="inventory-close" type="button" aria-label="Kapat">×</button></div>
