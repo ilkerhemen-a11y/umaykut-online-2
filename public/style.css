@@ -1235,3 +1235,8 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
   .resources .resource-icon img{width:29px;height:25px}
   .resources b{font-size:9px}
 }
+
+
+/* Five primary resources, matching the supplied village reference */
+.resources{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:699px){.resources{grid-template-columns:repeat(5,minmax(0,1fr))}}
