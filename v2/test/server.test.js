@@ -237,8 +237,8 @@ test("game state rejects worker assignments above the current worker pool", asyn
       if (sql.includes("SELECT p.id FROM umaykut_v2.players")) {
         return { rows: [{ id: playerId }], rowCount: 1 };
       }
-      if (sql.includes("SELECT worker_pool FROM umaykut_v2.player_game_state")) {
-        return { rows: [{ worker_pool: 1800 }], rowCount: 1 };
+      if (sql.includes("SELECT worker_pool, troops FROM umaykut_v2.player_game_state")) {
+        return { rows: [{ worker_pool: 1800, troops: {} }], rowCount: 1 };
       }
       throw new Error("Invalid worker payload should not write to the database.");
     }
