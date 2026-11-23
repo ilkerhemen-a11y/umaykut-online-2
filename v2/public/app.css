@@ -471,3 +471,23 @@
 .market-actions button{padding:12px 8px;border:1px solid #c4a15a;border-radius:9px;background:linear-gradient(#8a6a32,#4e381d);font:bold 12px Arial,sans-serif;color:#fff0c8}
 .market-actions button:disabled{opacity:.55}
 @media(max-width:360px){.market-level-row{font-size:9px}.market-balance{font-size:10px}}
+
+
+/* Quest and reward system */
+.quests-dialog{width:min(94vw,520px);max-height:min(88dvh,760px);overflow:auto}
+.quests-content{display:grid;gap:10px;margin-top:12px}
+.quests-summary{padding:11px;border:1px solid #8c7448;border-radius:11px;background:#101a14;display:grid;gap:8px;color:#f3d994;font-size:12px}
+.quests-summary-track,.quest-progress{height:8px;border-radius:10px;background:#080e0b;overflow:hidden}
+.quests-summary-track span,.quest-progress span{display:block;height:100%;border-radius:10px;background:linear-gradient(90deg,#9a7436,#f2d889)}
+.quest-card{padding:12px;border:1px solid #74603d;border-radius:12px;background:linear-gradient(145deg,#1c3025,#101a14);display:grid;gap:8px}
+.quest-card.is-completed{border-color:#b9944e}
+.quest-card.is-claimed{opacity:.72}
+.quest-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.quest-card-head strong{font-size:14px;color:#f4dfa4}
+.quest-status{font:9px Arial,sans-serif;color:#d9c28e;white-space:nowrap}
+.quest-card p{margin:0;font:11px/1.45 Arial,sans-serif;color:#c9c0a9}
+.quest-progress-label{font:10px Arial,sans-serif;color:#cfc3a2;text-align:right}
+.quest-reward{font:10px/1.5 Arial,sans-serif;color:#edcf81}
+.quest-claim{padding:10px;border:1px solid #d6b567;border-radius:9px;background:linear-gradient(#96723a,#5a411f);color:#fff0c5;font-weight:700}
+.quest-claim:disabled{opacity:.55}
+@media(max-width:390px){.top-settings{width:30px;height:30px;font-size:15px}.top{gap:4px}}
