@@ -7,6 +7,8 @@ test("slot nine migration changes the default to Okçu and preserves legacy prog
   const path = fileURLToPath(new URL("../migrations/017_okcu_building_slot.sql", import.meta.url));
   const sql = await readFile(path, "utf8");
   assert.match(sql, /"9":\{"type":"archery","level":1\}/);
+  assert.match(sql, /ADD COLUMN IF NOT EXISTS storage_capacity/);
+  assert.match(sql, /GREATEST\(/);
   assert.match(sql, /jsonb_set\(/);
   assert.match(sql, /buildings->'9'\) \|\| '\{"type":"archery"\}'::jsonb/);
   assert.match(sql, /WHERE buildings->'9'->>'type' = 'warehouse'/);
