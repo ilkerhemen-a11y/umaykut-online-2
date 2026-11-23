@@ -471,8 +471,7 @@ function showScreen(screen){
  const isMap=screen==="map";
  villageView.hidden=isMap;
  mapView.hidden=!isMap;
- if(isMap){const mapHeading=mapView.querySelector(".map-heading");mapHeading.after(bottomNav);}
- else{navHomeParent.insertBefore(bottomNav,navHomeNext);}
+ // Keep the main navigation in its original document position at the bottom of the page.
  document.body.classList.toggle("map-screen-active",isMap);
  navButtons.forEach(button=>button.classList.toggle("active",button.dataset.screen===screen));
  if(isMap&&authToken)loadWorldPlayers();
