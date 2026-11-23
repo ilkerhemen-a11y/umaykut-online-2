@@ -98,7 +98,6 @@ export function settleEconomy({
       workerBaseRate,
       nodeMultiplier: Number(nodeMultiplier.toFixed(2)),
       centerMultiplier: Number(centerMultiplier.toFixed(2)),
-      buildingMultiplier: resourceKey === "wood" ? Number(lumberyardMultiplier.toFixed(2)) : 1,
       hourlyProduction: Number((workers * workerBaseRate * nodeMultiplier * centerMultiplier * (resourceKey === "wood" ? lumberyardMultiplier : 1)).toFixed(2))
     });
   }
