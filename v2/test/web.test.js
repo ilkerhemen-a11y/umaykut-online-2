@@ -59,8 +59,12 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261123-attack-panels-1"/);
-  assert.ok(html.includes('src="/app.js?v=20261123-instant-recruit-1"'));
+  assert.match(html,/href="\/app\.css\?v=20261123-production-center-1"/);
+  assert.ok(html.includes('src="/app.js?v=20261123-production-center-1"'));
+  assert.match(html,/id="production-dialog"/);
+  assert.match(html,/id="production-open"/);
+  assert.match(html,/id="production-resource-grid"/);
+  assert.match(html,/id="production-breakdown-list"/);
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n      <section id="building-upgrade-tracker"',stageStart);
   assert.ok(stageEnd>stageStart);
@@ -108,7 +112,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
 
   // Building markers must overlay the image itself, not flow after it.
-  const styles=await fetch(base+"/app.css?v=20261123-attack-panels-1");
+  const styles=await fetch(base+"/app.css?v=20261123-production-center-1");
   assert.equal(styles.status,200);
   const css=await styles.text();
   assert.ok(css.includes(".city-frame{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
@@ -144,7 +148,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,0);
 
-  const script=await fetch(base+"/app.js?v=20261123-instant-recruit-1");
+  const script=await fetch(base+"/app.js?v=20261123-production-center-1");
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.match(appScript,/data-faction-choice/);
@@ -190,6 +194,9 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/data-select-unit/);
   assert.match(appScript,/data-recruit-unit/);
   assert.match(appScript,/setServerClock\(state.serverNow\)/);
+  assert.match(appScript,/function renderProductionDialog\(\)/);
+  assert.match(appScript,/productionBreakdown/);
+  assert.match(appScript,/productionNodeName/);
   assert.match(appScript,/building-upgrade-count/);
   assert.match(appScript,/BUILDING_SLOT_TYPES/);
   assert.match(appScript,/const BUILDING_ART=\{/);
