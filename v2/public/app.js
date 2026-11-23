@@ -1359,31 +1359,60 @@ function renderBattleReports(attacks){
   battleReportsList.append(Object.assign(document.createElement("p"),{textContent:"Henüz tamamlanmış bir savaş raporun yok. Saldırı veya savunma yaptığında raporların burada görünecek."}));
   return;
  }
+ const unitMeta={
+  scout:["Casus","🕵️"],infantry:["Piyade","🗡️"],archer:["Okçu","🏹"],shield:["Kalkanlı","🛡️"],
+  guard:["Muhafız","⚔️"],light_cavalry:["Hafif Süvari","🐎"],mounted_archer:["Atlı Okçu","🎯"],heavy_cavalry:["Ağır Süvari","🐴"]
+ };
+ const number=value=>reportNumber(Number(value||0));
+ const makeUnits=(side,report,raid)=>{
+  if(Array.isArray(report[side+"Units"]))return report[side+"Units"];
+  const losses=report[side+"Losses"]||{},survivors=report[side+"Survivors"]||{};
+  const original=side==="attacker"?(raid.troops||{}):{};
+  const ids=new Set([...Object.keys(losses),...Object.keys(survivors),...Object.keys(original)]);
+  return [...ids].map(id=>({id,name:unitMeta[id]?.[0]||id,icon:unitMeta[id]?.[1]||"⚔️",
+   sent:Number(original[id]??(Number(losses[id]||0)+Number(survivors[id]||0))),
+   lost:Number(losses[id]||0),survivors:Number(survivors[id]||0)})).filter(unit=>unit.sent>0);
+ };
+ const appendSide=(card,{label,name,power,units,tone})=>{
+  const panel=document.createElement("section");panel.className="battle-report-side "+tone;
+  const top=document.createElement("div");top.className="battle-report-side-head";
+  const sideName=document.createElement("strong");sideName.textContent=label+"  ";
+  const player=document.createElement("span");player.textContent=name||"Bilinmeyen köy";
+  top.append(sideName,player);panel.append(top);
+  const powerLine=document.createElement("div");powerLine.className="battle-report-power";
+  powerLine.textContent=(tone==="attacker"?"Saldırı Gücü ":"Savunma Gücü ")+number(power);
+  panel.append(powerLine);
+  const grid=document.createElement("div");grid.className="battle-report-units";
+  if(!units.length){const empty=document.createElement("small");empty.className="battle-report-empty";empty.textContent="Bu tarafta asker bulunmuyordu.";grid.append(empty);}
+  units.forEach(unit=>{
+   const tile=document.createElement("div");tile.className="battle-report-unit";
+   const portrait=document.createElement("div");portrait.className="battle-report-unit-portrait";portrait.textContent=unit.icon||unitMeta[unit.id]?.[1]||"⚔️";
+   const unitName=document.createElement("strong");unitName.textContent=unit.name||unitMeta[unit.id]?.[0]||unit.id;
+   const sent=document.createElement("small");sent.textContent="Gönderilen "+number(unit.sent);
+   const lost=document.createElement("small");lost.className="battle-report-unit-lost";lost.textContent="Ölen "+number(unit.lost);
+   tile.append(portrait,unitName,sent,lost);grid.append(tile);
+  });
+  panel.append(grid);card.append(panel);
+ };
  completed.forEach(raid=>{
   const report=raid.battle_report;
-  const card=document.createElement("article");card.className="battle-report-card"+(raid.neutralRegion?" territory":"");
+  const card=document.createElement("article");card.className="battle-report-card battle-report-showcase"+(raid.neutralRegion?" territory":"");
   const heading=document.createElement("div");heading.className="battle-report-heading";
-  const title=document.createElement("strong");
-  title.textContent=raid.neutralRegion
-   ? (raid.battle_type==="guard_challenge"?"🏘️ Tarafsız köy: ":"🏰 Bölge savaşı: ")+raid.region_name
-   : (raid.direction==="outgoing"?"⚔️ Saldırı: ":"🛡️ Savunma: ")+(raid.direction==="outgoing"?raid.defender_village:raid.attacker_village);
+  const title=document.createElement("strong");title.textContent=raid.neutralRegion
+   ? (raid.battle_type==="guard_challenge"?"Tarafsız köy savaşı":"Bölge savaşı")
+   : (raid.direction==="outgoing"?"Saldırı":"Savunma");
   const outcome=document.createElement("span");outcome.className="battle-report-outcome";
-  outcome.textContent=report.winner===(raid.direction==="outgoing"?"attacker":"defender")?"Zafer":"Mağlubiyet";
+  const winningSide=report.winner==="attacker"?"attacker":"defender";
+  outcome.textContent=winningSide==="attacker"?"SALDIRI ZAFERİ":"SAVUNMA ZAFERİ";
   heading.append(title,outcome);card.append(heading);
   const date=document.createElement("small");date.className="battle-report-date";
-  date.textContent=new Date(raid.arrives_at).toLocaleString("tr-TR");card.append(date);
-  const ownLoss=raid.direction==="outgoing"?report.attackerLostCount:report.defenderLostCount;
-  const enemyLoss=raid.direction==="outgoing"?report.defenderLostCount:report.attackerLostCount;
-  const stats=document.createElement("div");stats.className="battle-report-stats";
-  [["Senin kayıpların",ownLoss],["Rakip kayıpları",enemyLoss],["Savunma gücü",report.defenderPower],["Sur engeli","%"+(report.wallDefensePercent||0)]].forEach(([label,value])=>{
-   const item=document.createElement("div"),strong=document.createElement("strong"),small=document.createElement("small");
-   strong.textContent=reportNumber(value);small.textContent=label;item.append(strong,small);stats.append(item);
-  });
-  card.append(stats);
-  const detail=document.createElement("p");detail.textContent=report.outcomeText||"Savaş tamamlandı.";card.append(detail);
+  date.textContent=new Date(report.resolvedAt||raid.arrives_at).toLocaleString("tr-TR");card.append(date);
+  appendSide(card,{label:"SALDIRAN",name:raid.attacker_village||report.attackerVillage,power:report.attackerPower,units:makeUnits("attacker",report,raid),tone:"attacker"});
+  appendSide(card,{label:"SAVUNAN",name:raid.defender_village||report.defenderVillage,power:report.defenderPower,units:makeUnits("defender",report,raid),tone:"defender"});
+  if(report.outcomeText){const detail=document.createElement("p");detail.className="battle-report-result-text";detail.textContent=report.outcomeText;card.append(detail);}
   if(raid.direction==="outgoing"&&raid.loot){
    const loot=Object.entries(raid.loot).filter(([,count])=>Number(count)>0);
-   if(loot.length){const lootLine=document.createElement("small");lootLine.className="battle-report-loot";lootLine.textContent="Ganimet: "+loot.map(([key,count])=>key+" "+reportNumber(count)).join(" · ");card.append(lootLine);}
+   if(loot.length){const lootLine=document.createElement("small");lootLine.className="battle-report-loot";lootLine.textContent="🏆 Ganimet: "+loot.map(([key,count])=>key+" "+number(count)).join(" · ");card.append(lootLine);}
   }
   battleReportsList.append(card);
  });
