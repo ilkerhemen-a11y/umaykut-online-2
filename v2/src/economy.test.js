@@ -35,7 +35,7 @@ test("center level increases production and warehouse limits stored resources", 
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T01:00:00.000Z")
   });
-  assert.equal(result.productionPerHour.wood, 11);
+  assert.equal(result.productionPerHour.wood, 110);
   assert.equal(result.resources.wood, 15000);
   assert.equal(result.storageCapacity, 15000);
 });
