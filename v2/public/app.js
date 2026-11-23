@@ -1165,7 +1165,7 @@ function renderQuests(quests){
   const fill=document.createElement("span");fill.style.width=(quest.target?Math.max(0,Math.min(100,quest.progress/quest.target*100)):0)+"%";progress.append(fill);
   const values=document.createElement("small");values.className="quest-progress-label";values.textContent=formatNumber(quest.progress)+" / "+formatNumber(quest.target);
   const reward=document.createElement("div");reward.className="quest-reward";
-  reward.textContent="Ödül: "+Object.entries(quest.reward).map(([key,value])=>({gold:"🪙 Altın",wood:"🪵 Odun",food:"🌾 Yiyecek",stone:"🪨 Taş",iron:"⚒️ Demir"}[key]+" "+formatNumber(value)).join(" · ");
+  reward.textContent="Ödül: "+Object.entries(quest.reward).map(([key,value])=>({gold:"🪙 Altın",wood:"🪵 Odun",food:"🌾 Yiyecek",stone:"🪨 Taş",iron:"⚒️ Demir"}[key]+" "+formatNumber(value))).join(" · ");
   card.append(head,description,progress,values,reward);
   if(quest.completed&&!quest.claimed){
    const claim=document.createElement("button");claim.type="button";claim.className="quest-claim";claim.textContent="Ödülü Topla";claim.dataset.questId=quest.id;card.append(claim);
