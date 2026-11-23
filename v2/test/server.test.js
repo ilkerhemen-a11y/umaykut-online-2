@@ -60,12 +60,17 @@ test("game state is returned only to a valid V2 player session", async (t) => {
   const secret = "test-session-secret-with-at-least-32-characters";
   const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
   const token = createSessionToken(playerId, secret);
+  let migratedBuildings = null;
   const pool = {
-    query: async (sql) => {
+    query: async (sql, values = []) => {
       if (sql.includes("SELECT p.id FROM umaykut_v2.players")) {
         return { rows: [{ id: playerId }], rowCount: 1 };
       }
       if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) {
+        return { rows: [], rowCount: 1 };
+      }
+      if (sql.includes("UPDATE umaykut_v2.player_game_state SET buildings")) {
+        migratedBuildings = JSON.parse(values[1]);
         return { rows: [], rowCount: 1 };
       }
       if (sql.includes("SELECT p.village_name, s.faction_id, s.worker_pool")) {
@@ -85,7 +90,7 @@ test("game state is returned only to a valid V2 player session", async (t) => {
             "6": { type: "lumberyard", level: 1 },
             "7": { type: "temple", level: 1 },
             "8": { type: "market", level: 1 },
-            "9": { type: "warehouse", level: 1 }
+            "9": { type: "warehouse", level: 4 }
           },
           updated_at: "2026-11-17T12:00:00.000Z"
         }], rowCount: 1 };
@@ -107,7 +112,9 @@ test("game state is returned only to a valid V2 player session", async (t) => {
   assert.equal(state.buildings["1"].level, 3);
   assert.equal(state.buildings["2"].level, 2);
   assert.equal(state.buildings["9"].type, "archery", "legacy slot 9 must be normalized to the Okçu building type");
-  assert.equal(state.buildings["9"].level, 1, "legacy slot 9 level must be preserved");
+  assert.equal(state.buildings["9"].level, 4, "legacy slot 9 level must be preserved");
+  assert.equal(migratedBuildings["9"].type, "archery", "legacy building type must be persisted as archery");
+  assert.equal(migratedBuildings["9"].level, 4, "migration must preserve the existing Okçu level");
   assert.ok(Number.isFinite(Date.parse(state.serverNow)), "state response must include authoritative server time");
   assert.equal(Object.keys(state.buildings).length, 9);
 });
