@@ -944,7 +944,6 @@ function renderArmyUnitDetail(unitId){
  const unlock=document.createElement("p");unlock.className="army-unlock";
  unlock.textContent=unit.unlocked?(unit.building==="barracks"?"Kışla seviyesi ":"Ahır seviyesi ")+unit.requiredLevel+" · Birlik yetiştirilebilir":(unit.building==="barracks"?"Kışla seviye ":"Ahır seviye ")+unit.requiredLevel+" gerekli";
  content.append(unlock);
- const controls=document.createElement("div");controls.className="army-recruit-controls army-detail-controls";
  const availableForTraining=Math.min(100,availableWorkers);
  const capacity=document.createElement("p");capacity.className="army-unlock";capacity.textContent="Köyde boşta işçi: "+armyNumber(availableWorkers)+" · En fazla "+armyNumber(availableForTraining)+" asker yetiştirebilirsin.";content.append(capacity);
  const controls=document.createElement("div");controls.className="army-recruit-controls army-detail-controls";
