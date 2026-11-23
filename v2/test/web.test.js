@@ -59,8 +59,9 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261123-map-menu-top-1"/);
-  assert.ok(html.includes('src="/app.js?v=20261123-map-menu-bottom-3"'));
+  assert.match(html,/href="\/app\.css\?v=20261123-world-10x10-1"/);
+  assert.ok(html.includes('src="/app.js?v=20261123-world-10x10-1"'));
+  assert.match(html,/viewBox="0 0 18000 12000"/);
   assert.match(html,/id="production-dialog"/);
   assert.match(html,/id="production-open"/);
   assert.match(html,/id="production-resource-grid"/);
@@ -150,11 +151,16 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,0);
 
-  assert.doesNotMatch(appScript,/mapHeading\.after\(bottomNav\)/);
-  assert.doesNotMatch(appScript,/mapView\.insertBefore\(bottomNav,mapView\.firstChild\)/);\n  assert.match(appScript,/Keep the main navigation in its original document position/);
-  const script=await fetch(base+"/app.js?v=20261123-map-menu-bottom-3");
+  const script=await fetch(base+"/app.js?v=20261123-world-10x10-1");
   assert.equal(script.status,200);
   const appScript=await script.text();
+  assert.doesNotMatch(appScript,/mapHeading\.after\(bottomNav\)/);
+  assert.doesNotMatch(appScript,/mapView\.insertBefore\(bottomNav,mapView\.firstChild\)/);
+  assert.match(appScript,/Keep the main navigation in its original document position/);
+  assert.match(appScript,/WORLD_MAP_WIDTH=18000,WORLD_MAP_HEIGHT=12000/);
+  assert.match(appScript,/applyMapZoom\(0\.055,false\)/);
+  assert.match(appScript,/miningRange\*180/);
+  assert.ok(css.includes("background-size:1800px 1200px"));
   assert.match(appScript,/data-faction-choice/);
   assert.match(appScript,/function renderBattleReports\(attacks\)/);
   assert.match(appScript,/function openBattleReports\(\)/);
