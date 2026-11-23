@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getTroopCatalog, settleTrainingQueue } from "../src/army.js";
+import { getTroopCatalog, settleTrainingQueue, handleArmyRequest } from "../src/army.js";
+import { createSessionToken } from "../src/auth.js";
 
 test("level-one barracks and stable only unlock their first units", () => {
   const catalog = getTroopCatalog("gokturk", {
@@ -70,4 +71,69 @@ test("the reconnaissance unit is displayed as Casus in every faction", () => {
     assert.equal(unit.name, "Casus");
     assert.equal(unit.unlocked, true);
   }
+});
+
+
+test("army recruitment is capped by the number of idle workers on the server", async () => {
+  const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+  const secret = "test-session-secret-with-at-least-32-characters";
+  const token = createSessionToken(playerId, secret);
+  const state = {
+    faction_id: "gokturk",
+    resources: { wood: 10000, food: 10000, iron: 10000, gold: 10000 },
+    buildings: { "2": { type: "barracks", level: 5 }, "3": { type: "stable", level: 5 } },
+    troops: {},
+    training_queue: [],
+    worker_pool: 1800,
+    worker_assignments: { grain: 700, wood: 600, stone: 400 }
+  };
+  const writes = [];
+  const pool = {
+    query: async sql => sql.includes("SELECT p.id FROM umaykut_v2.players")
+      ? { rows: [{ id: playerId }], rowCount: 1 }
+      : sql.includes("SELECT resources FROM umaykut_v2.player_game_state")
+        ? { rows: [{ resources: state.resources }], rowCount: 1 }
+        : (() => { throw new Error("Unexpected pool query: " + sql); })(),
+    connect: async () => ({
+      query: async (sql, values = []) => {
+        if (["BEGIN", "COMMIT", "ROLLBACK"].includes(sql)) return { rows: [] };
+        if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) return { rows: [], rowCount: 1 };
+        if (sql.includes("SELECT faction_id, resources, buildings, troops, training_queue")) return { rows: [state], rowCount: 1 };
+        if (sql.includes("UPDATE umaykut_v2.player_game_state SET resources=")) {
+          state.resources = JSON.parse(values[1]);
+          state.training_queue = JSON.parse(values[2]);
+          state.troops = JSON.parse(values[3]);
+          writes.push(sql);
+          return { rows: [], rowCount: 1 };
+        }
+        throw new Error("Unexpected client query: " + sql);
+      },
+      release: () => {}
+    })
+  };
+  const invoke = async amount => {
+    const req = {
+      method: "POST",
+      headers: { authorization: "Bearer " + token },
+      [Symbol.asyncIterator]: async function* () {
+        yield JSON.stringify({ unitId: "infantry", amount });
+      }
+    };
+    const response = {
+      statusCode: 200, headers: {}, body: "",
+      writeHead(status, headers) { this.statusCode = status; this.headers = headers; },
+      end(body) { this.body = body; }
+    };
+    await handleArmyRequest({ req, res: response, url: new URL("http://localhost/api/game/army/recruit"), pool, sessionSecret: secret });
+    return { status: response.statusCode, body: JSON.parse(response.body) };
+  };
+  const tooMany = await invoke(101);
+  assert.equal(tooMany.status, 409);
+  assert.equal(tooMany.body.idleWorkers, 100);
+  assert.equal(state.troops.infantry, undefined);
+  const allowed = await invoke(100);
+  assert.equal(allowed.status, 200);
+  assert.equal(allowed.body.troops.infantry, 100);
+  assert.equal(allowed.body.idleWorkers, 100);
+  assert.equal(writes.length, 1);
 });
