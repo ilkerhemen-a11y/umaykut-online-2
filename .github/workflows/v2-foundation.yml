@@ -31,4 +31,6 @@ jobs:
       - run: node --check src/config.js
       - run: node --check src/neutral-regions.js
       - run: node --check src/neutral-regions-api.js
+      - run: node --check src/ranking-v2.js
+      - run: node --check src/ranking-api.js
       - run: node --check public/app.js
