@@ -1535,7 +1535,7 @@ const MAP_ZOOM_MIN=0.55,MAP_ZOOM_MAX=1.6,MAP_ZOOM_STEP=0.15;
 function applyMapZoom(nextZoom,preserveCenter=true,focalPoint=null){
  if(!mapWorldCanvas||!mapViewport)return;
  const mobile=window.matchMedia("(max-width: 420px)").matches;
- const baseWidth=mobile?1500:1800,baseHeight=mobile?1000:1200;
+ const baseWidth=mobile?1800:2160,baseHeight=mobile?1200:1440;
  const anchorX=focalPoint?focalPoint.x:mapViewport.clientWidth/2;
  const anchorY=focalPoint?focalPoint.y:mapViewport.clientHeight/2;
  const worldX=(mapViewport.scrollLeft+anchorX)/(baseWidth*mapZoom);
@@ -1731,7 +1731,7 @@ function renderWorldMap(data){
   y:(Number(player.world_y)||50)*canvasHeight/100
  }));
  // A gentle repulsion pass prevents resource icons and village markers from stacking.
- const minGap=76;
+ const minGap=92;
  for(let pass=0;pass<90;pass++){
   for(let i=0;i<resourceLayout.length;i++){
    const a=resourceLayout[i];
@@ -1798,7 +1798,7 @@ function renderWorldMap(data){
    const a=placedMarkers[i];
    for(let j=i+1;j<placedMarkers.length;j++){
     const b=placedMarkers[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
-    const gap=a.resource&&b.resource?76:104;
+    const gap=a.resource&&b.resource?92:125;
     if(d<gap){
      const angle=d<.01?i*2.399963:Math.atan2(dy,dx);
      const push=(gap-d)*.24,px=Math.cos(angle)*push,py=Math.sin(angle)*push;
