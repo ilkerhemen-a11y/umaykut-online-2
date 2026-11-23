@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101a13">
   <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
   <title>Umaykut Online 2 · V2</title>
-  <link rel="stylesheet" href="/app.css?v=20261123-attack-panels-1">
+  <link rel="stylesheet" href="/app.css?v=20261123-production-center-1">
   <link rel="stylesheet" href="/factions.css?v=20261117-founding-flow-2">
 </head>
 <body>
@@ -124,7 +124,7 @@
     <section class="map-view" id="map-view" hidden aria-label="Ortak dünya haritası">
       <div class="map-heading">
         <div><small>UMAYKUT DÜNYASI</small><h1>Geniş Dünya Haritası</h1><p>Haritada gezin, rakip yurtları ve zengin maden yataklarını keşfet</p></div>
-        <div class="worker-summary"><span>👷</span><strong id="workers-available">1.800</strong><small>Boştaki işçi</small><em id="workers-assigned-total">0 görevde</em></div>
+        <div class="map-heading-actions"><div class="worker-summary"><span>👷</span><strong id="workers-available">1.800</strong><small>Boştaki işçi</small><em id="workers-assigned-total">0 görevde</em></div><button type="button" id="production-open" class="production-open">📈 Üretim Merkezi</button></div>
       </div>
       <div class="world-map" aria-label="Gezilebilir ortak dünya haritası. Kaydırarak haritada ilerleyebilirsin." tabindex="0">
         <div class="map-zoom-controls" role="group" aria-label="Harita yakınlaştırma kontrolleri"><button type="button" id="map-zoom-out" aria-label="Haritayı uzaklaştır" title="Uzaklaştır">−</button><button type="button" id="map-zoom-reset" aria-label="Harita görünümünü sıfırla" title="Görünümü sıfırla">⤢</button><button type="button" id="map-zoom-in" aria-label="Haritayı yakınlaştır" title="Yakınlaştır">+</button><span id="map-zoom-level" aria-live="polite">55%</span></div>
@@ -163,6 +163,15 @@
       <button type="button" data-action="battle-reports" aria-haspopup="dialog" aria-controls="battle-reports-dialog"><span>📜</span>Savaş Raporu</button>
       <button type="button" data-action="settings" aria-haspopup="dialog" aria-controls="settings-dialog"><span>⚙️</span>Ayarlar</button>
     </nav>
+    <dialog id="production-dialog" class="army-dialog production-dialog" aria-labelledby="production-title">
+      <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · EKONOMİ</small><h2 id="production-title">Üretim Merkezi</h2></div><button type="button" id="production-close" aria-label="Kapat">×</button></div>
+      <p class="army-message">Saatlik üretimin, işçi dağılımın ve kaynak noktalarının verim katkısı.</p>
+      <div class="production-total-workers"><span>👷 Görevdeki işçiler</span><strong id="production-worker-total">0</strong><small id="production-worker-free">0 işçi boştadır</small></div>
+      <div id="production-resource-grid" class="production-resource-grid"><p>Üretim bilgileri yükleniyor…</p></div>
+      <section class="production-breakdown-section"><h3>İşçi gönderilen alanlar</h3><div id="production-breakdown-list" class="production-breakdown-list"><p>Henüz üretim alanına işçi gönderilmedi.</p></div></section>
+      <section class="production-effects"><h3>Üretim etkileri</h3><div id="production-effects-list"></div></section>
+      <p id="production-updated" class="army-message" role="status" aria-live="polite"></p>
+    </dialog>
     <dialog id="army-dialog" class="army-dialog" aria-labelledby="army-dialog-title">
   <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · SAVAŞ HAZIRLIĞI</small><h2 id="army-dialog-title">Ordu Birlikleri</h2></div><button id="army-close" type="button" aria-label="Kapat">×</button></div>
   <div class="army-summary"><div><strong id="army-total-units">0</strong><small>Toplam asker</small></div><div><strong id="army-total-power">0</strong><small>Ordu gücü</small></div><div><strong id="army-faction-name">Göktürk</strong><small>Devlet</small></div></div>
@@ -260,6 +269,6 @@
     </dialog>
   </main>
 
-  <script type="module" src="/app.js?v=20261123-instant-recruit-1"></script>
+  <script type="module" src="/app.js?v=20261123-production-center-1"></script>
 </body>
 </html>
