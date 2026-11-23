@@ -31,12 +31,11 @@ export function settleEconomy({
   const assignments = parseObject(storedAssignments);
   const buildings = parseObject(storedBuildings);
   const remainders = parseObject(storedRemainders);
-  const warehouseLevel = Math.max(1, Math.min(10, Number(buildings["9"]?.level) || 1));
   const centerLevel = Math.max(1, Math.min(10, Number(buildings["1"]?.level) || 1));
   const templeLevel = Math.max(1, Math.min(10, Number(buildings["7"]?.level) || 1));
   const lumberyardLevel = Math.max(1, Math.min(10, Number(buildings["6"]?.level) || 1));
   const lumberyardMultiplier = 1 + (lumberyardLevel - 1) * 0.05;
-  const storageCapacity = 15000 + (warehouseLevel - 1) * 10000;
+  const storageCapacity = 15000;
   const previousTick = lastResourceTick ? new Date(lastResourceTick).getTime() : now;
   const safePreviousTick = Number.isFinite(previousTick) ? previousTick : now;
   const elapsedMs = Math.max(0, Math.min(now - safePreviousTick, MAX_OFFLINE_HOURS * 3600000));
