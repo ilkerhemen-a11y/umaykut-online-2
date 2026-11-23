@@ -30,7 +30,7 @@ test("building development score is normalized from 0 to 100", () => {
   assert.equal(calculateBuildingDevelopmentScore(village), 10);
 });
 
-test("Okçu slot 9 contributes to development, but legacy warehouse does not", () => {
+test("Okçu slot 9 contributes to development and legacy warehouse data is treated as Okçu", () => {
   const withoutSlotNine = { ...village };
   delete withoutSlotNine["9"];
   assert.equal(
@@ -39,7 +39,7 @@ test("Okçu slot 9 contributes to development, but legacy warehouse does not", (
   );
   assert.equal(calculateBuildingDevelopmentScore({
     ...village, "9": { type: "warehouse", level: 10 }
-  }), 8.89);
+  }), 20);
 });
 
 test("army strength includes faction-adjusted attack and defensive values", () => {
