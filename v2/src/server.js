@@ -516,6 +516,48 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
       }
     }
 
+    if(url.pathname==="/api/game/market"){
+      if(!pool)return sendJson(res,503,{error:"Oyun kayıt servisi henüz yapılandırılmadı."});
+      if(!sessionSecret||sessionSecret.length<32)return sendJson(res,503,{error:"Oturum güvenlik ayarı eksik."});
+      if(req.method!=="POST"){res.setHeader("allow","POST");return sendJson(res,405,{error:"Yöntem desteklenmiyor."});}
+      const token=bearerToken(req);const session=verifySessionToken(token,sessionSecret);
+      if(!session)return sendJson(res,401,{error:"Oturum geçersiz veya süresi dolmuş."});
+      try{
+        const player=await pool.query("SELECT p.id FROM umaykut_v2.players p JOIN umaykut_v2.player_sessions s ON s.player_id=p.id WHERE p.id=$1 AND s.token_hash=$2 AND s.expires_at>NOW()",[session.id,sessionTokenHash(token)]);
+        if(!player.rowCount)return sendJson(res,401,{error:"Oyuncu oturumu bulunamadı."});
+        const input=await readJson(req);
+        const side=input.side,resource=input.resource,amount=Number(input.amount);
+        const rates={wood:50,food:50,stone:50,iron:50};
+        if(!["buy","sell"].includes(side)||!Object.hasOwn(rates,resource))return sendJson(res,400,{error:"Geçersiz pazar işlemi veya kaynak türü."});
+        if(!Number.isSafeInteger(amount)||amount<100||amount%100!==0)return sendJson(res,400,{error:"Miktar 100 ve katları olmalıdır."});
+        const client=await pool.connect();let inTransaction=false;
+        try{
+          await client.query("BEGIN");inTransaction=true;
+          await client.query("INSERT INTO umaykut_v2.player_game_state(player_id) VALUES($1) ON CONFLICT(player_id) DO NOTHING",[session.id]);
+          const result=await client.query("SELECT resources,buildings FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",[session.id]);
+          const row=result.rows[0]||{};
+          const resources=typeof row.resources==="string"?JSON.parse(row.resources||"{}"):{...(row.resources||{})};
+          const buildings=typeof row.buildings==="string"?JSON.parse(row.buildings||"{}"):(row.buildings||{});
+          const marketLevel=Math.max(0,Math.min(10,Number(buildings["8"]?.level)||0));
+          if(marketLevel<1){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,403,{error:"Ticaret yapmak için Pazar binası gerekli."});}
+          const capacity=marketLevel*1000;
+          if(amount>capacity){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,400,{error:`Pazar seviyen bu işlemde en fazla ${capacity} birim taşıyabilir.`,capacity});}
+          const goldPerLot=65,resourcePerLot=100,lots=amount/resourcePerLot;
+          const goldDelta=lots*(side==="buy"?-goldPerLot:rates[resource]);
+          if(side==="sell"&&Number(resources[resource]||0)<amount){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,409,{error:"Satış için yeterli kaynak bulunmuyor.",resources});}
+          if(side==="buy"&&Number(resources.gold||0)<lots*goldPerLot){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,409,{error:"Alış için yeterli altın bulunmuyor.",requiredGold:lots*goldPerLot,resources});}
+          const warehouseLevel=Math.max(1,Math.min(10,Number(buildings["9"]?.level)||1));
+          const storageCapacity=15000+(warehouseLevel-1)*10000;
+          if(side==="buy"&&Number(resources[resource]||0)+amount>storageCapacity){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,409,{error:"Depo kapasitesi bu alış için yeterli değil.",storageCapacity});}
+          if(side==="sell"){resources[resource]=Number(resources[resource]||0)-amount;resources.gold=Number(resources.gold||0)+lots*resourcePerLot/2;}
+          else{resources[resource]=Number(resources[resource]||0)+amount;resources.gold=Number(resources.gold||0)-lots*goldPerLot;}
+          await client.query("UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb,updated_at=NOW() WHERE player_id=$1",[session.id,JSON.stringify(resources)]);
+          await client.query("COMMIT");inTransaction=false;
+          return sendJson(res,200,{success:true,side,resource,amount,goldChange:side==="buy"?-lots*goldPerLot:lots*50,resources,marketLevel,capacity,serverNow:new Date().toISOString()});
+        }catch(error){if(inTransaction){try{await client.query("ROLLBACK");}catch{}}throw error;}finally{client.release();}
+      }catch(error){console.error("V2 market trade failed",{code:error.code||"UNKNOWN",message:String(error.message||"Unknown market error").slice(0,180)});return sendJson(res,error.status||500,{error:error.status?error.message:"Pazar işlemi tamamlanamadı."});}
+    }
+
     if(url.pathname==="/api/game/wall"){
       if(!pool)return sendJson(res,503,{error:"Oyun kayıt servisi henüz yapılandırılmadı."});
       if(!sessionSecret||sessionSecret.length<32)return sendJson(res,503,{error:"Oturum güvenlik ayarı eksik."});
