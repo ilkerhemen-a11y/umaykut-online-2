@@ -46,6 +46,7 @@
       </div>
       <div class="realm"><span id="realm-player-name">YENİ YURDUM</span><b>SEVİYE 1</b><span class="realm-sub" id="realm-faction">Devlet seçilmedi</span></div>
       <button class="top-settings" id="open-quests" type="button" aria-haspopup="dialog" aria-controls="quests-dialog" aria-label="Görevleri aç">🏆</button>
+      <button class="top-settings" id="open-ranking" type="button" aria-haspopup="dialog" aria-controls="ranking-dialog" aria-label="Oyuncu sıralamasını aç">🏅</button>
       <button class="top-settings" id="open-settings" type="button" aria-haspopup="dialog" aria-controls="settings-dialog" aria-label="Ayarları aç">⚙️</button>
     </header>
 
@@ -184,6 +185,19 @@
       <div id="quests-content" class="quests-content"><p>Görevler yükleniyor…</p></div>
       <p id="quests-message" class="army-message" role="status" aria-live="polite"></p>
     </dialog>
+    <dialog id="ranking-dialog" class="army-dialog ranking-dialog" aria-labelledby="ranking-title">
+      <div class="army-dialog-head">
+        <div><small>UMAYKUT ONLINE II · BOZKIRIN LİDERLERİ</small><h2 id="ranking-title">Oyuncu Sıralaması</h2></div>
+        <button id="ranking-close" type="button" aria-label="Sıralamayı kapat">×</button>
+      </div>
+      <section class="ranking-self-card" id="ranking-self-card">
+        <div><small>SENİN SIRALAMAN</small><strong id="ranking-my-position">—</strong></div>
+        <div><small>TOPLAM PUANIN</small><strong id="ranking-my-score">—</strong></div>
+      </section>
+      <div class="ranking-list-heading"><h3>En güçlü yurtlar</h3><button id="ranking-refresh" type="button">Yenile</button></div>
+      <div id="ranking-list" class="ranking-list" aria-live="polite"><p>Sıralama yükleniyor…</p></div>
+      <p id="ranking-message" class="army-message" role="status" aria-live="polite"></p>
+    </dialog>
     <dialog id="inventory-dialog" class="army-dialog inventory-dialog" aria-labelledby="inventory-title">
       <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · HAZİNE</small><h2 id="inventory-title">Envanterim</h2></div><button id="inventory-close" type="button" aria-label="Kapat">×</button></div>
       <p class="army-message">Kaynaklarını, ordunu ve köyünün genel durumunu buradan takip et.</p>
@@ -296,6 +310,6 @@
     </dialog>
   </main>
 
-  <script type="module" src="/app.js?v=20261123-map-menu-bottom-3"></script>
+  <script type="module" src="/app.js?v=20261123-overall-ranking-1"></script>
 </body>
 </html>
