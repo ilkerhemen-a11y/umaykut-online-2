@@ -112,11 +112,11 @@ const BUILDING_TYPES={
  farm:{name:"Çiftlik",shortName:"Çiftlik",icon:"🌾",description:"Yiyecek üretimini geliştirecek yapı."},
  stable:{name:"Ahır",shortName:"Ahır",icon:"🐎",description:"Atlı birlikler için gerekli altyapı."},
  market:{name:"Pazar",shortName:"Pazar",icon:"🏪",description:"Kaynak ve ticaret işlemlerinin merkezi."},
- warehouse:{name:"Okçu",shortName:"Okçu",icon:"🏹",description:"Okçu birliklerinin eğitildiği ve hazırlandığı yapı."}
+ archery:{name:"Okçu",shortName:"Okçu",icon:"🏹",description:"Okçu birliklerinin eğitildiği ve hazırlandığı yapı."}
 };
 const BUILDING_SLOT_TYPES={
  "1":"center","2":"barracks","3":"stable","4":"blacksmith",
- "5":"school","6":"lumberyard","7":"temple","8":"market","9":"warehouse"
+ "5":"school","6":"lumberyard","7":"temple","8":"market","9":"archery"
 };
 const DEFAULT_BUILDINGS={
  "1":{type:"center",level:1},
@@ -127,7 +127,7 @@ const DEFAULT_BUILDINGS={
  "6":{type:"lumberyard",level:1},
  "7":{type:"temple",level:1},
  "8":{type:"market",level:1},
- "9":{type:"warehouse",level:1}
+ "9":{type:"archery",level:1}
 };
 const BUILDING_BASE_COST={wood:30,stone:20,iron:5};
 const MAX_BUILDING_LEVEL=10;
