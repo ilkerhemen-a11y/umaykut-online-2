@@ -912,7 +912,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
                  ('gold'::varchar,3),('grain'::varchar,4)
                ) AS v(resource_type,resource_slot)
                CROSS JOIN LATERAL (
-                 SELECT random()*2*pi() AS angle, 1.25+random()*0.45 AS radius
+                 SELECT random()*2*pi()+v.resource_slot*0 AS angle, 1.25+random()*0.45+v.resource_slot*0 AS radius
                ) AS spawn
                WHERE s.player_id=$1
                  AND NOT EXISTS(SELECT 1 FROM umaykut_v2.world_resource_nodes n WHERE n.owner_player_id=s.player_id::text)`,
