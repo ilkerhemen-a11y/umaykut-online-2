@@ -39,7 +39,7 @@ function createMarketPool({playerId,row,onUpdate=()=>{}}){
    query:async(sql,values=[])=>{
     if(["BEGIN","COMMIT","ROLLBACK"].includes(sql))return {rows:[]};
     if(sql.includes("INSERT INTO umaykut_v2.player_game_state"))return {rows:[],rowCount:1};
-    if(sql.includes("SELECT resources,buildings FROM umaykut_v2.player_game_state"))return {rows:[row],rowCount:1};
+    if(sql.includes("SELECT resources,buildings"))return {rows:[row],rowCount:1};
     if(sql.includes("UPDATE umaykut_v2.player_game_state SET resources=")){onUpdate(values);return {rows:[],rowCount:1};}
     throw new Error("Unexpected market query: "+sql);
    },release:()=>{}
