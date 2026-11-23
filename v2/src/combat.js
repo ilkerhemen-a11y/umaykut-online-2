@@ -72,13 +72,14 @@ function troopPower(troops, catalog, mode, opposingTroops = {}, opposingCatalog 
   const totalOpposing = infantry + cavalry;
   const infantryShare = totalOpposing ? infantry / totalOpposing : 0.5;
   const cavalryShare = totalOpposing ? cavalry / totalOpposing : 0.5;
-  return Object.entries(troops || {}).reduce((sum, [id, count]) => {
+  // Weighted infantry/cavalry defense can be fractional; battle power is an integer game stat.
+  return Math.round(Object.entries(troops || {}).reduce((sum, [id, count]) => {
     const unit = units.get(id);
     if (!unit) return sum;
     const effectiveDefense = Number(unit.infantryDefense || 0) * infantryShare +
       Number(unit.cavalryDefense || 0) * cavalryShare;
     return sum + validNonNegativeInteger(count, "Asker sayısı") * effectiveDefense;
-  }, 0);
+  }, 0));
 }
 function splitLosses(troops, lossCount) {
   const entries = Object.entries(troops || {});
