@@ -210,7 +210,7 @@ const BUILDING_TYPES={
  farm:{name:"Çiftlik",shortName:"Çiftlik",icon:"🌾",description:"Yiyecek üretimini geliştirecek yapı."},
  stable:{name:"Ahır",shortName:"Ahır",icon:"🐎",description:"Atlı birlikler için gerekli altyapı."},
  market:{name:"Pazar",shortName:"Pazar",icon:"🏪",description:"Kaynak ve ticaret işlemlerinin merkezi."},
- warehouse:{name:"Depo",shortName:"Depo",icon:"🏚️",description:"Kaynakların güvenle saklandığı ve kapasitenin artırıldığı yapı."}
+ warehouse:{name:"Okçu",shortName:"Okçu",icon:"🏹",description:"Okçu birliklerinin yetiştirildiği ve geliştirildiği yapı."}
 };
 const BUILDING_SLOT_TYPES={
  "1":"center","2":"barracks","3":"stable","4":"blacksmith",
@@ -1060,8 +1060,10 @@ function renderArmyUnitDetail(unitId){
  unlock.textContent=unit.unlocked?(unit.building==="barracks"?"Kışla seviyesi ":"Ahır seviyesi ")+unit.requiredLevel+" · Birlik yetiştirilebilir":(unit.building==="barracks"?"Kışla seviye ":"Ahır seviye ")+unit.requiredLevel+" gerekli";
  content.append(unlock);
  const controls=document.createElement("div");controls.className="army-recruit-controls army-detail-controls";
- const amount=document.createElement("input");amount.type="number";amount.min="1";amount.max="100";amount.value="1";amount.inputMode="numeric";amount.id="army-selected-amount";amount.setAttribute("aria-label",unit.name+" yetiştirilecek asker sayısı");
- const button=document.createElement("button");button.type="button";button.textContent=unit.unlocked?"Bu askeri yetiştir":"Birlik kilitli";button.disabled=!unit.unlocked;button.dataset.recruitUnit=unit.id;button.dataset.amountInput="army-selected-amount";
+ const idleWorkers=Math.max(0,Number(armyState.idleWorkers)||0);
+ const workerLimit=document.createElement("p");workerLimit.className="army-unlock";workerLimit.textContent="Boşta işçi: "+armyNumber(idleWorkers)+" · En fazla bu kadar asker yetiştirebilirsin.";content.append(workerLimit);
+ const amount=document.createElement("input");amount.type="number";amount.min="1";amount.max=String(idleWorkers);amount.value=idleWorkers>0?"1":"0";amount.inputMode="numeric";amount.id="army-selected-amount";amount.setAttribute("aria-label",unit.name+" yetiştirilecek asker sayısı");
+ const button=document.createElement("button");button.type="button";button.textContent=unit.unlocked?(idleWorkers>0?"Bu askeri yetiştir":"Boşta işçi yok"):"Birlik kilitli";button.disabled=!unit.unlocked||idleWorkers<1;button.dataset.recruitUnit=unit.id;button.dataset.amountInput="army-selected-amount";
  controls.append(amount,button);content.append(controls);
 }
 function renderArmyQueue(){
@@ -1417,14 +1419,15 @@ document.querySelector("#army-unit-detail").addEventListener("click",async event
  const button=event.target.closest("[data-recruit-unit]");
  if(!button)return;
  const amount=Number(document.querySelector("#"+button.dataset.amountInput).value);
- if(!Number.isSafeInteger(amount)||amount<1||amount>100){armyMessageNode.textContent="Bir seferde 1 ile 100 arasında asker seçebilirsin.";return;}
+ const idleWorkers=Math.max(0,Number(armyState?.idleWorkers)||0);
+  if(!Number.isSafeInteger(amount)||amount<1||amount>idleWorkers){armyMessageNode.textContent="En fazla "+armyNumber(idleWorkers)+" boşta işçin kadar asker yetiştirebilirsin.";return;}
  button.disabled=true;armyMessageNode.textContent="Askerler orduya katılıyor…";
  try{
   const result=await authRequest("/api/game/army/recruit",{method:"POST",token:authToken,body:{unitId:button.dataset.recruitUnit,amount}});
   armyState=result;gameResources={...gameResources,...result.resources};renderResourceBalances();
   renderArmySummary();renderArmyCatalog();renderArmyQueue();
   if(selectedArmyUnitId)renderArmyUnitDetail(selectedArmyUnitId);
-  armyMessageNode.textContent=amount+" asker anında orduna katıldı. Kaynaklar hesabından düşüldü.";
+  armyMessageNode.textContent=amount+" asker anında orduna katıldı. "+armyNumber(result.idleWorkers)+" işçi boşta kaldı. Kaynaklar hesabından düşüldü.";
  }catch(error){armyMessageNode.textContent=error.message||"Asker yetiştirme başlatılamadı.";button.disabled=false;}
 });
 
