@@ -24,6 +24,7 @@ export function settleEconomy({
   resourceNodes = [],
   lastResourceTick,
   productionRemainders: storedRemainders,
+  workerPool = 1800,
   now = Date.now()
 }) {
   const resources = parseObject(storedResources);
@@ -32,11 +33,17 @@ export function settleEconomy({
   const remainders = parseObject(storedRemainders);
   const warehouseLevel = Math.max(1, Math.min(10, Number(buildings["9"]?.level) || 1));
   const centerLevel = Math.max(1, Math.min(10, Number(buildings["1"]?.level) || 1));
+  const templeLevel = Math.max(1, Math.min(10, Number(buildings["7"]?.level) || 1));
   const storageCapacity = 15000 + (warehouseLevel - 1) * 10000;
   const previousTick = lastResourceTick ? new Date(lastResourceTick).getTime() : now;
   const safePreviousTick = Number.isFinite(previousTick) ? previousTick : now;
   const elapsedMs = Math.max(0, Math.min(now - safePreviousTick, MAX_OFFLINE_HOURS * 3600000));
   const elapsedHours = elapsedMs / 3600000;
+  const workerProductionPerHour = templeLevel * 25;
+  const exactWorkers = workerProductionPerHour * elapsedHours + Math.max(0, Number(remainders.workers) || 0);
+  const newWorkers = Math.floor(exactWorkers);
+  remainders.workers = Number((exactWorkers - newWorkers).toFixed(8));
+  const settledWorkerPool = Math.max(0, Math.floor(Number(workerPool) || 0)) + newWorkers;
   const lastTick = now;
   const productionPerHour = Object.fromEntries(RESOURCE_KEYS.map(key => [key, 0]));
   const nodeById = new Map(resourceNodes.map(node => [String(node.id), node]));
@@ -109,6 +116,9 @@ export function settleEconomy({
     remainders,
     productionPerHour,
     productionBreakdown,
+    workerPool: settledWorkerPool,
+    workerProductionPerHour,
+    workersProduced: newWorkers,
     productionApplied,
     storageCapacity,
     lastResourceTick: new Date(lastTick).toISOString()
