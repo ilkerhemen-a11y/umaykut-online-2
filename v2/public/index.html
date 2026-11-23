@@ -163,6 +163,12 @@
       <button type="button" data-action="battle-reports" aria-haspopup="dialog" aria-controls="battle-reports-dialog"><span>📜</span>Savaş Raporu</button>
       <button type="button" data-action="settings" aria-haspopup="dialog" aria-controls="settings-dialog"><span>⚙️</span>Ayarlar</button>
     </nav>
+    <dialog id="inventory-dialog" class="army-dialog inventory-dialog" aria-labelledby="inventory-title">
+      <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · HAZİNE</small><h2 id="inventory-title">Envanterim</h2></div><button id="inventory-close" type="button" aria-label="Kapat">×</button></div>
+      <p class="army-message">Kaynaklarını, ordunu ve köyünün genel durumunu buradan takip et.</p>
+      <div id="inventory-content" class="inventory-content"><p>Envanter bilgileri yükleniyor…</p></div>
+      <p id="inventory-message" class="army-message" role="status" aria-live="polite"></p>
+    </dialog>
     <dialog id="production-dialog" class="army-dialog production-dialog" aria-labelledby="production-title">
       <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · EKONOMİ</small><h2 id="production-title">Üretim Merkezi</h2></div><button type="button" id="production-close" aria-label="Kapat">×</button></div>
       <p class="army-message">Saatlik üretimin, işçi dağılımın ve kaynak noktalarının verim katkısı.</p>
