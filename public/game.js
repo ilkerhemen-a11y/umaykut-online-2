@@ -433,7 +433,7 @@ async function loadEconomy(silent=false){
     const data=await api("/api/economy/me");
     renderEconomy(data);
     const r=data.resources;
-    for(const key of ["food","wood","stone","iron","gold","horses"])$("#"+key).textContent=Number(r[key]||0).toLocaleString("tr-TR");
+    for(const key of ["food","wood","stone","iron","gold","horses"]){const counter=$("#"+key);if(counter)counter.textContent=Number(r[key]||0).toLocaleString("tr-TR");}
   }catch(error){
     if(!silent)$("#economyMessage").textContent=error.message;
   }
