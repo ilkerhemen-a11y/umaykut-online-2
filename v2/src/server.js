@@ -899,6 +899,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
              SET faction_id = COALESCE(EXCLUDED.faction_id, umaykut_v2.player_game_state.faction_id),
                  worker_assignments = EXCLUDED.worker_assignments,
                  worker_state_initialized = TRUE,
+                 last_resource_tick = NOW(),
                  updated_at = NOW()
            RETURNING faction_id, worker_pool, worker_assignments, worker_state_initialized, resources, buildings, wall, updated_at`,
           [playerId, factionId, JSON.stringify(workerAssignments)]
