@@ -104,7 +104,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.match(appScript,/resource-node-marker/);
-  assert.match(appScript,/node\\.resource_type/);
+  assert.ok(appScript.includes("node.resource_type"));
   assert.match(appScript,/data-faction-choice/);
   assert.match(appScript,/function renderBattleReports\(attacks\)/);
   assert.match(appScript,/async function loadRankings\(\)/);
