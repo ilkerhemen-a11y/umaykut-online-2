@@ -56,7 +56,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
   assert.match(html,/href="\/app\.css\?v=20261123-resource-layout-2"/);
-  assert.ok(html.includes('src="/app.js?v=20261123-resource-layout-2"'));
+  assert.ok(html.includes('src="/app.js?v=20261123-clean-map-workers-1"'));
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n      <section id="building-upgrade-tracker"',stageStart);
   assert.ok(stageEnd>stageStart);
