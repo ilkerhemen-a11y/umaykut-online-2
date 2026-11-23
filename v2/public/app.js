@@ -542,6 +542,7 @@ function restoreWorkerState(){
  try{
   const saved=JSON.parse(localStorage.getItem(WORKER_STORAGE_KEY)||localStorage.getItem("umaykut-worker-state-v2")||"null");
   if(!saved||!saved.assigned)return;
+  if(Number.isFinite(Number(saved.workerPool)))currentWorkerPool=Math.max(WORKER_POOL,Number(saved.workerPool));
   Object.keys(saved.assigned).forEach(key=>{
    if((RESOURCE_KEYS.includes(key)||/^mine_\d+$/.test(key))&&Number.isSafeInteger(saved.assigned[key])&&saved.assigned[key]>=0)assigned[key]=saved.assigned[key];
   });
