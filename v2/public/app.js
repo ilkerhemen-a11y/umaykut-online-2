@@ -210,11 +210,11 @@ const BUILDING_TYPES={
  farm:{name:"Çiftlik",shortName:"Çiftlik",icon:"🌾",description:"Yiyecek üretimini geliştirecek yapı."},
  stable:{name:"Ahır",shortName:"Ahır",icon:"🐎",description:"Atlı birlikler için gerekli altyapı."},
  market:{name:"Pazar",shortName:"Pazar",icon:"🏪",description:"Kaynak ve ticaret işlemlerinin merkezi."},
- warehouse:{name:"Okçu",shortName:"Okçu",icon:"🏹",description:"Okçu birliklerinin yetiştirildiği ve geliştirildiği yapı."}
+ archery:{name:"Okçu",shortName:"Okçu",icon:"🏹",description:"Okçu birliklerinin yetiştirildiği ve geliştirildiği yapı."}
 };
 const BUILDING_SLOT_TYPES={
  "1":"center","2":"barracks","3":"stable","4":"blacksmith",
- "5":"school","6":"lumberyard","7":"temple","8":"market","9":"warehouse"
+ "5":"school","6":"lumberyard","7":"temple","8":"market","9":"archery"
 };
 const BUILDING_ART={
  "1":"/assets/seljuk-center.svg",
@@ -236,7 +236,7 @@ const DEFAULT_BUILDINGS={
  "6":{type:"lumberyard",level:1},
  "7":{type:"temple",level:1},
  "8":{type:"market",level:1},
- "9":{type:"warehouse",level:1}
+ "9":{type:"archery",level:1}
 };
 const BUILDING_BASE_COST={wood:30,stone:20,iron:5};
 const MAX_BUILDING_LEVEL=10;
@@ -579,9 +579,13 @@ async function loadRanking(){
  rankingRefreshButton.disabled=true;
  rankingMessageNode.textContent="Sıralama güncelleniyor…";
  try{
-  const data=await authRequest("/api/game/ranking",{token:authToken});
-  renderRanking(data);
-  rankingMessageNode.textContent=rankingNumber(data.totalPlayers)+" oyuncu değerlendirildi.";
+  const data=await authRequest("/api/game/rankings",{token:authToken});
+  const ranked=Array.isArray(data.rankings)?data.rankings:[];
+  const currentId=String(data.currentPlayerId||"");
+  const players=ranked.map(player=>({...player,score:player.overall,isMe:String(player.playerId)===currentId}));
+  const me=players.find(player=>player.isMe)||null;
+  renderRanking({totalPlayers:players.length,topPlayers:players.slice(0,50),me});
+  rankingMessageNode.textContent=rankingNumber(players.length)+" oyuncu değerlendirildi.";
  }catch(error){
   rankingListNode.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Sıralama yüklenemedi."}));
   rankingMessageNode.textContent="Bağlantını kontrol edip yeniden deneyebilirsin.";
@@ -759,7 +763,7 @@ function renderProductionDialog(){
   });
  }
  const centerLevel=Number(gameBuildings["1"]?.level)||1;
- const warehouseLevel=Number(gameBuildings["9"]?.level)||1;
+ const archeryLevel=Number(gameBuildings["9"]?.level)||1;
  const lumberyardLevel=Number(gameBuildings["6"]?.level)||1;
  const centerBonus=(centerLevel-1)*5;
  const lumberyardBonus=(lumberyardLevel-1)*5;
@@ -768,7 +772,7 @@ function renderProductionDialog(){
  const effects=[
   "Merkez seviyesi "+centerLevel+": üretime +%"+centerBonus+" bonus",
   "Keresteci seviyesi "+lumberyardLevel+": odun üretimine +%"+lumberyardBonus+" bonus",
-  "Depo seviyesi "+warehouseLevel+": her kaynak için "+formatNumber(gameStorageCapacity)+" kapasite",
+  "Okçu seviyesi "+archeryLevel+": okçu birlikleri için eğitim altyapısı",
   nodeBonus?"Kaynak noktası verimi: her seviye temel üretime +%10 katkı sağlar.":"Kaynak noktalarına işçi gönderildiğinde verim seviyesi üretime bonus sağlar."
  ];
  effects.forEach(value=>{const p=document.createElement("p");p.textContent=value;productionEffectsList.append(p);});
