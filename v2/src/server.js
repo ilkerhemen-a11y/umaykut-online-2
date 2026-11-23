@@ -6,6 +6,7 @@ import { loadConfig } from "./config.js";
 import { resolveBattle, resolveScoutClash } from "./combat.js";
 import { handleNeutralRegionRequest } from "./neutral-regions-api.js";
 import { createPool } from "./database.js";
+import { settleEconomy } from "./economy.js";
 import { handleArmyRequest, getTroopCatalog, settleTrainingQueue } from "./army.js";
 import {
   bearerToken,
@@ -794,46 +795,80 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         if (!playerResult.rowCount) return sendJson(res, 401, { error: "Oyuncu oturumu bulunamadı." });
         const playerId = playerResult.rows[0].id;
         if (req.method === "GET") {
-          await pool.query(
-            "INSERT INTO umaykut_v2.player_game_state(player_id) VALUES($1) ON CONFLICT (player_id) DO NOTHING",
-            [playerId]
-          );
-          const state = await pool.query(
-            `SELECT p.village_name, s.faction_id, s.worker_pool, s.worker_assignments,
-                    s.worker_state_initialized, s.resources, s.buildings, s.wall, s.updated_at
-             FROM umaykut_v2.players p
-             JOIN umaykut_v2.player_game_state s ON s.player_id = p.id
-             WHERE p.id = $1`,
-            [playerId]
-          );
-          const row = state.rows[0];
-          // A not-yet-founded character always receives a clean level-one village.
-          // For established players, repair missing/invalid slots without lowering valid progress.
-          const normalized = normalizeBuildings(row.buildings, {
-            reset: !row.village_name || !row.faction_id
-          });
-          const completion = settleCompletedBuildingUpgrades(normalized);
-          const buildings = completion.buildings;
-          if (completion.changed || JSON.stringify(buildings) !== JSON.stringify(
-            typeof row.buildings === "string" ? JSON.parse(row.buildings || "{}") : (row.buildings || {})
-          )) {
-            await pool.query(
-              "UPDATE umaykut_v2.player_game_state SET buildings = $2::jsonb, updated_at = NOW() WHERE player_id = $1",
-              [playerId, JSON.stringify(buildings)]
+          const client = await pool.connect();
+          let inTransaction = false;
+          try {
+            await client.query("BEGIN");
+            inTransaction = true;
+            await client.query(
+              "INSERT INTO umaykut_v2.player_game_state(player_id) VALUES($1) ON CONFLICT (player_id) DO NOTHING",
+              [playerId]
             );
+            const state = await client.query(
+              `SELECT p.village_name, s.faction_id, s.worker_pool, s.worker_assignments,
+                      s.worker_state_initialized, s.resources, s.buildings, s.wall, s.updated_at,
+                      s.last_resource_tick, s.production_remainders
+               FROM umaykut_v2.players p
+               JOIN umaykut_v2.player_game_state s ON s.player_id = p.id
+               WHERE p.id = $1
+               FOR UPDATE OF s`,
+              [playerId]
+            );
+            const row = state.rows[0];
+            const normalized = normalizeBuildings(row.buildings, {
+              reset: !row.village_name || !row.faction_id
+            });
+            const completion = settleCompletedBuildingUpgrades(normalized);
+            const buildings = completion.buildings;
+            const nodes = await client.query(
+              "SELECT id, resource_type, yield_level FROM umaykut_v2.world_resource_nodes WHERE owner_player_id = $1",
+              [String(playerId)]
+            );
+            const economy = settleEconomy({
+              resources: row.resources,
+              workerAssignments: row.worker_assignments,
+              buildings,
+              resourceNodes: nodes.rows,
+              lastResourceTick: row.last_resource_tick,
+              productionRemainders: row.production_remainders
+            });
+            await client.query(
+              `UPDATE umaykut_v2.player_game_state
+               SET buildings = $2::jsonb,
+                   resources = $3::jsonb,
+                   last_resource_tick = $4,
+                   production_remainders = $5::jsonb,
+                   updated_at = NOW()
+               WHERE player_id = $1`,
+              [playerId, JSON.stringify(buildings), JSON.stringify(economy.resources),
+               economy.lastResourceTick, JSON.stringify(economy.remainders)]
+            );
+            await client.query("COMMIT");
+            inTransaction = false;
+            return sendJson(res, 200, {
+              factionId: row.faction_id,
+              workerPool: Number(row.worker_pool),
+              workerAssignments: row.worker_assignments,
+              workerStateInitialized: row.worker_state_initialized,
+              resources: economy.resources,
+              buildings,
+              productionPerHour: economy.productionPerHour,
+              productionApplied: economy.productionApplied,
+              storageCapacity: economy.storageCapacity,
+              lastResourceTick: economy.lastResourceTick,
+              wall: settleWallUpgrade(row.wall || {}),
+              wallEffects: wallEffects(settleWallUpgrade(row.wall || {}).level),
+              updatedAt: row.updated_at,
+              serverNow: new Date().toISOString()
+            });
+          } catch (error) {
+            if (inTransaction) {
+              try { await client.query("ROLLBACK"); } catch {}
+            }
+            throw error;
+          } finally {
+            client.release();
           }
-          return sendJson(res, 200, {
-            factionId: row.faction_id,
-            workerPool: Number(row.worker_pool),
-            workerAssignments: row.worker_assignments,
-            workerStateInitialized: row.worker_state_initialized,
-            resources: row.resources,
-            buildings,
-            wall: settleWallUpgrade(row.wall||{}),
-            wallEffects: wallEffects(settleWallUpgrade(row.wall||{}).level),
-            updatedAt: row.updated_at,
-            serverNow: new Date().toISOString()
-          });
         }
         const input = await readJson(req);
         const allowedFactions = new Set(["hun", "seljuk", "gokturk"]);
