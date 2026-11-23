@@ -90,6 +90,10 @@ test("due raid is resolved and surviving troops plus loot return exactly once", 
   assert.equal(raid.status, "returned");
   assert.ok(raid.battle_report);
   assert.equal(typeof raid.battle_report.winner, "string");
+  assert.ok(Array.isArray(raid.battle_report.attackerUnits));
+  assert.ok(Array.isArray(raid.battle_report.defenderUnits));
+  assert.equal(raid.battle_report.attackerUnits[0].sent, 5);
+  assert.equal(raid.battle_report.defenderUnits[0].sent, 2);
   const attackerAfterFirst = structuredClone(states.get(attackerId));
   const second = await processDueRaids(pool);
   assert.deepEqual(second, { resolved: 0, returned: 0 });

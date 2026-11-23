@@ -98,7 +98,23 @@ async function resolveRaid(pool, raidId) {
       defenderSurvivors: outcome.defenderSurvivors,
       shelterProtected: outcome.protectedResources,
       loot: outcome.loot,
-      carryCapacity: outcome.carryCapacity
+      carryCapacity: outcome.carryCapacity,
+      attackerUnits: attackerCatalog
+        .filter(unit => Number(attackerTroops[unit.id] || 0) > 0)
+        .map(unit => ({
+          id: unit.id, name: unit.name, icon: unit.icon,
+          sent: Number(attackerTroops[unit.id] || 0),
+          lost: Number(outcome.attackerLosses[unit.id] || 0),
+          survivors: Number(outcome.attackerSurvivors[unit.id] || 0)
+        })),
+      defenderUnits: defenderCatalog
+        .filter(unit => Number(defenderTroops[unit.id] || 0) > 0)
+        .map(unit => ({
+          id: unit.id, name: unit.name, icon: unit.icon,
+          sent: Number(defenderTroops[unit.id] || 0),
+          lost: Number(outcome.defenderLosses[unit.id] || 0),
+          survivors: Number(outcome.defenderSurvivors[unit.id] || 0)
+        }))
     };
 
     await client.query(
