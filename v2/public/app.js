@@ -244,6 +244,10 @@ let gameResources={...DEFAULT_RESOURCES};
 let gameBuildings={...DEFAULT_BUILDINGS};
 let gameWall={level:1,upgrade:null};
 let wallServerEffects={defensePercent:5,shelterCapacity:{gold:500,wood:500,food:500,stone:500,iron:500}};
+let gameProductionPerHour={gold:0,wood:0,food:0,stone:0,iron:0};
+let gameProductionBreakdown=[];
+let gameResourceNodes=[];
+let gameStorageCapacity=15000;
 function renderResourceBalances(){
  for(const key of Object.keys(DEFAULT_RESOURCES)){
   const node=document.querySelector("#resource-"+key);
@@ -625,6 +629,77 @@ recallButton.addEventListener("click",()=>{
 restoreWorkerState();
 updateWorkerSummary();
 
+const productionDialog=document.querySelector("#production-dialog");
+const productionOpen=document.querySelector("#production-open");
+const productionClose=document.querySelector("#production-close");
+const productionResourceGrid=document.querySelector("#production-resource-grid");
+const productionBreakdownList=document.querySelector("#production-breakdown-list");
+const productionWorkerTotal=document.querySelector("#production-worker-total");
+const productionWorkerFree=document.querySelector("#production-worker-free");
+const productionEffectsList=document.querySelector("#production-effects-list");
+const productionUpdated=document.querySelector("#production-updated");
+const RESOURCE_LABELS={gold:"Altın",wood:"Odun",food:"Yiyecek",stone:"Taş",iron:"Demir"};
+const RESOURCE_ICONS={gold:"🪙",wood:"🪵",food:"🌾",stone:"🪨",iron:"⛏️"};
+const RESOURCE_BASE_RATES={gold:2,wood:10,food:12,stone:6,iron:4};
+function productionNodeName(item){
+ const node=gameResourceNodes.find(node=>String(node.id)===String(item.nodeId));
+ const names={gold:"Altın Yatağı",wood:"Odun Alanı",food:"Tahıl Tarlası",stone:"Taş Ocağı",iron:"Demir Madeni"};
+ return node?names[node.resourceType]||"Kaynak Alanı":names[item.resourceType]||"Kaynak Alanı";
+}
+function renderProductionDialog(){
+ if(!productionResourceGrid)return;
+ const total=totalAssigned();
+ productionWorkerTotal.textContent=formatNumber(total);
+ productionWorkerFree.textContent=formatNumber(Math.max(0,WORKER_POOL-total))+" işçi boştadır";
+ productionResourceGrid.replaceChildren();
+ for(const key of ["gold","wood","food","stone","iron"]){
+  const current=Number(gameResources[key]||0),rate=Number(gameProductionPerHour[key]||0);
+  const card=document.createElement("article");card.className="production-resource-card";
+  const heading=document.createElement("div");heading.className="production-resource-heading";
+  const icon=document.createElement("span");icon.textContent=RESOURCE_ICONS[key];
+  const name=document.createElement("b");name.textContent=RESOURCE_LABELS[key];
+  heading.append(icon,name);
+  const amount=document.createElement("strong");amount.textContent="+"+formatNumber(rate)+"/saat";
+  const stock=document.createElement("small");stock.textContent=formatNumber(current)+" / "+formatNumber(gameStorageCapacity)+" depoda";
+  const meter=document.createElement("div");meter.className="production-capacity-track";
+  const fill=document.createElement("span");fill.style.width=Math.min(100,current/gameStorageCapacity*100)+"%";meter.append(fill);
+  card.append(heading,amount,stock,meter);productionResourceGrid.append(card);
+ }
+ productionBreakdownList.replaceChildren();
+ if(!gameProductionBreakdown.length){
+  const empty=document.createElement("p");empty.textContent="Henüz kaynak alanlarına işçi gönderilmedi.";productionBreakdownList.append(empty);
+ }else{
+  gameProductionBreakdown.forEach(item=>{
+   const row=document.createElement("article");row.className="production-breakdown-row";
+   const title=document.createElement("strong");title.textContent=productionNodeName(item)+(item.nodeId?" · Verim "+item.yieldLevel+"/10":" · Genel alan");
+   const detail=document.createElement("small");detail.textContent=formatNumber(item.workers)+" işçi × "+formatNumber(item.workerBaseRate)+" temel üretim × "+item.nodeMultiplier.toFixed(2)+" kaynak verimi × "+item.centerMultiplier.toFixed(2)+" merkez bonusu";
+   const output=document.createElement("b");output.textContent="+"+formatNumber(item.hourlyProduction)+" "+RESOURCE_LABELS[item.resourceType]+"/saat";
+   row.append(title,detail,output);productionBreakdownList.append(row);
+  });
+ }
+ const centerLevel=Number(gameBuildings["1"]?.level)||1;
+ const warehouseLevel=Number(gameBuildings["9"]?.level)||1;
+ const centerBonus=(centerLevel-1)*5;
+ const nodeBonus=gameProductionBreakdown.some(item=>item.nodeId);
+ productionEffectsList.replaceChildren();
+ const effects=[
+  "Merkez seviyesi "+centerLevel+": üretime +%"+centerBonus+" bonus",
+  "Depo seviyesi "+warehouseLevel+": her kaynak için "+formatNumber(gameStorageCapacity)+" kapasite",
+  nodeBonus?"Kaynak noktası verimi: her seviye temel üretime +%10 katkı sağlar.":"Kaynak noktalarına işçi gönderildiğinde verim seviyesi üretime bonus sağlar."
+ ];
+ effects.forEach(value=>{const p=document.createElement("p");p.textContent=value;productionEffectsList.append(p);});
+ if(productionUpdated)productionUpdated.textContent="Hesaplama sunucudaki gerçek üretim değerleriyle eşleştirildi.";
+}
+async function openProductionDialog(){
+ renderProductionDialog();
+ if(productionDialog&&!productionDialog.open)productionDialog.showModal();
+ if(productionUpdated)productionUpdated.textContent="Üretim bilgileri güncelleniyor…";
+ try{await refreshProductionState();}catch{if(productionUpdated)productionUpdated.textContent="Son kayıtlı üretim değerleri gösteriliyor.";}
+}
+productionOpen?.addEventListener("click",openProductionDialog);
+productionClose?.addEventListener("click",()=>productionDialog.close());
+
+
 
 // Account access: the legacy login/register experience is connected to the V2 account API.
 const AUTH_TOKEN_KEY="umaykut-v2-session";
@@ -676,13 +751,31 @@ async function authRequest(path,{method="GET",body,token}={}){
 }
 
 
+function applyProductionState(state){
+ gameProductionPerHour={...gameProductionPerHour,...(state.productionPerHour||{})};
+ gameProductionBreakdown=Array.isArray(state.productionBreakdown)?state.productionBreakdown:[];
+ gameResourceNodes=Array.isArray(state.resourceNodes)?state.resourceNodes:[];
+ gameStorageCapacity=Math.max(1,Number(state.storageCapacity)||gameStorageCapacity);
+ if(state.resources&&typeof state.resources==="object")gameResources={...DEFAULT_RESOURCES,...state.resources};
+ renderResourceBalances();
+ renderProductionDialog();
+}
+async function refreshProductionState(){
+ if(!authToken)return null;
+ const state=await authRequest("/api/game/state",{token:authToken});
+ setServerClock(state.serverNow);
+ applyProductionState(state);
+ return state;
+}
 async function persistGameState(){
  if(!authToken||!gameStateReady)return;
- return authRequest("/api/game/state",{
+ const saved=await authRequest("/api/game/state",{
   method:"PUT",
   token:authToken,
   body:{factionId:shell.dataset.faction,workerAssignments:{...assigned}}
  });
+ await refreshProductionState();
+ return saved;
 }
 
 async function loadGameState(){
@@ -692,7 +785,7 @@ async function loadGameState(){
   const state=await authRequest("/api/game/state",{token:authToken});
   setServerClock(state.serverNow);
   if(state.factionId) setFaction(state.factionId);
-  if(state.resources&&typeof state.resources==="object")gameResources={...DEFAULT_RESOURCES,...state.resources};
+  applyProductionState(state);
   gameWall=state.wall||{level:1,upgrade:null};
   wallServerEffects=state.wallEffects||wallEffectsForLevel(gameWall.level);
   renderWallDialog();
