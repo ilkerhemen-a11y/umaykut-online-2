@@ -59,7 +59,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261123-temple-workers-2"/);
+  assert.match(html,/href="\/app\.css\?v=20261123-map-nav-clearance-1"/);
   assert.ok(html.includes('src="/app.js?v=20261123-temple-workers-2"'));
   assert.match(html,/id="production-dialog"/);
   assert.match(html,/id="production-open"/);
