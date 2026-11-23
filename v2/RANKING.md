@@ -18,7 +18,7 @@ Genel puan, bu dört 0–100 puanın ağırlıklı ortalamasıdır. Eşitlikte �
 ## Alanların hesaplanması
 
 ### Bina gelişimi
-Dokuz sabit bina yuvası eşit ağırlıktadır. Her yuvanın seviyesi 1–10 aralığındadır. Dokuz binanın tamamı 10. seviyedeyse alan puanı 100 olur. 9 numaralı yuva **Okçu** binasıdır. Eski kayıtlardaki `warehouse` türü 9. yuva için geriye dönük Okçu kabul edilir; seviyesi korunur.
+Dokuz sabit bina yuvası ile ayrı Sur/Sığınak yapısı eşit ağırlıktadır. Her yapının seviyesi 1–10 aralığındadır. Dokuz bina ve Sur/Sığınak 10. seviyedeyse alan puanı 100 olur. 9 numaralı yuva **Okçu** binasıdır. Eski kayıtlardaki `warehouse` türü 9. yuva için geriye dönük Okçu kabul edilir; seviyesi korunur.
 
 ### Ordu gücü
 Evdeki birlikler, yürüyen veya dönüşteki saldırı birlikleri, aktif casus görevindeki sağ kalan birlikler ve sahip olunan/aktif geçici hâkimiyet altındaki bölge garnizonları birlikte sayılır. Her birlik için sunucudaki devlet kataloğundan alınan saldırı gücü ile piyade ve süvari savunmasının ortalaması toplanır. 10.000 toplam güç 100 puana ulaşır.
