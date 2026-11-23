@@ -64,14 +64,14 @@ function raidPool() {
           if (values[3] !== undefined) state.wall = JSON.parse(values[3]);
           return { rows: [], rowCount: 1 };
         }
-        if (sql.includes("UPDATE umaykut_v2.player_raids SET status='resolved'")) {
+        if (sql.includes("SET status='resolved'")) {
           raid.status = "resolved";
           raid.battle_report = JSON.parse(values[1]);
           raid.loot = JSON.parse(values[2]);
           raid.return_at = new Date(Date.now() - 1);
           return { rows: [], rowCount: 1 };
         }
-        if (sql.includes("UPDATE umaykut_v2.player_raids SET status='returned'")) {
+        if (sql.includes("SET status='returned'")) {
           raid.status = "returned";
           return { rows: [], rowCount: 1 };
         }
