@@ -491,3 +491,13 @@
 .quest-claim{padding:10px;border:1px solid #d6b567;border-radius:9px;background:linear-gradient(#96723a,#5a411f);color:#fff0c5;font-weight:700}
 .quest-claim:disabled{opacity:.55}
 @media(max-width:390px){.top-settings{width:30px;height:30px;font-size:15px}.top{gap:4px}}
+
+
+.achievement-heading{margin:10px 2px 0;color:#f0d28b;font-size:15px}
+.achievement-card{display:flex;align-items:center;gap:11px;padding:10px;border:1px solid #5b543d;border-radius:11px;background:#111b15}
+.achievement-card.is-unlocked{border-color:#b18b47;background:linear-gradient(120deg,#293322,#111b15)}
+.achievement-emblem{font-size:25px}
+.achievement-details{display:grid;gap:3px;min-width:0}
+.achievement-details strong{font-size:12px;color:#efdaa1}
+.achievement-details small{font:10px/1.35 Arial,sans-serif;color:#c3b99f}
+.achievement-details .achievement-status{color:#d7b96e}
