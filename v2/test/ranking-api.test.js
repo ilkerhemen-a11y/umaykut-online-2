@@ -32,7 +32,9 @@ test("authenticated leaderboard returns one overall score and sorted category de
           {
             id: "9f2f3d1a-2d3b-4b5c-9d7e-123456789abc", username: "Alp", village_name: "Alp Yurdu",
             faction_id: "hun", buildings: { "9": { type: "archery", level: 1 } },
-            troops: { archer: 1 }, resources: {}, owned_regions: 0
+            troops: { archer: 1 }, deployed_troops: [{ infantry: 10 }],
+            stationed_troops: [{ shield: 3 }], scouting_troops: [{ scout: 2 }],
+            resources: {}, owned_regions: 0
           }
         ], rowCount: 2
       };
@@ -56,6 +58,7 @@ test("authenticated leaderboard returns one overall score and sorted category de
   assert.equal(data.rankings[0].economy, 100);
   assert.equal(data.rankings[0].overall, 100);
   assert.equal(data.rankings[1].buildingDevelopment, 1.11);
+  assert.equal(data.rankings[1].armyRawStrength, 729.5, "army ranking must include deployed, garrisoned and scouting units");
   assert.equal(data.scoring.weights.economy, 25);
 });
 
