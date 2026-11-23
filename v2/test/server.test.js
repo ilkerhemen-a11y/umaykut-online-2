@@ -106,6 +106,8 @@ test("game state is returned only to a valid V2 player session", async (t) => {
   assert.deepEqual(state.workerAssignments, { grain: 20, wood: 30, stone: 10 });
   assert.equal(state.buildings["1"].level, 3);
   assert.equal(state.buildings["2"].level, 2);
+  assert.equal(state.buildings["9"].type, "archery", "legacy slot 9 must be normalized to the Okçu building type");
+  assert.equal(state.buildings["9"].level, 1, "legacy slot 9 level must be preserved");
   assert.ok(Number.isFinite(Date.parse(state.serverNow)), "state response must include authoritative server time");
   assert.equal(Object.keys(state.buildings).length, 9);
 });
@@ -151,7 +153,7 @@ test("fixed building slots reject construction and only allow level upgrades", a
       "6":{type:"lumberyard",level:1},
       "7":{type:"temple",level:1},
       "8":{type:"market",level:1},
-      "9":{type:"warehouse",level:1}
+      "9":{type:"archery",level:1}
     }
   };
   const pool = {
