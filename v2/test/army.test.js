@@ -134,6 +134,7 @@ test("army recruitment is capped by the number of idle workers on the server", a
   const allowed = await invoke(100);
   assert.equal(allowed.status, 200);
   assert.equal(allowed.body.troops.infantry, 100);
-  assert.equal(allowed.body.idleWorkers, 100);
+  assert.equal(allowed.body.idleWorkers, 0);
+  assert.equal(allowed.body.totalUnits, 100);
   assert.equal(writes.length, 1);
 });
