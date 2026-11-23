@@ -1,0 +1,237 @@
+/* Three selectable nation identities for the shared village layout. */
+.game-shell{--faction-main:#c6a04d;--faction-dark:#70501f;--faction-light:#f5df9a;--roof-tint:#d8ad48;--faction-shadow:#76511c}
+.game-shell[data-faction="hun"]{--faction-main:#b83e3d;--faction-dark:#692426;--faction-light:#f0b5a5;--roof-tint:#bd302f;--faction-shadow:#591c20}
+.game-shell[data-faction="seljuk"]{--faction-main:#d2a94e;--faction-dark:#77501d;--faction-light:#ffe29a;--roof-tint:#e0b84f;--faction-shadow:#6b4818}
+.game-shell[data-faction="gokturk"]{--faction-main:#2586a0;--faction-dark:#17495f;--faction-light:#a8e2ed;--roof-tint:#1689a8;--faction-shadow:#103c51}
+.faction-panel{display:grid;gap:5px;margin-top:-2px}
+.faction-caption{font:8px Arial,sans-serif;letter-spacing:1.8px;text-align:center;color:var(--faction-light)}
+.faction-switcher{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.faction-switcher button{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;align-items:center;justify-items:center;column-gap:6px;padding:6px 4px;border:1px solid color-mix(in srgb,var(--faction-main) 55%,#51432d);border-radius:9px;background:linear-gradient(145deg,#1c2921,#111a14);color:#e9ddbd;font: bold 11px Arial,sans-serif;cursor:pointer;touch-action:manipulation}
+.faction-switcher button .faction-symbol{grid-row:1/3;font-size:21px;color:var(--faction-light)}
+.faction-switcher button .faction-art{width:40px;height:40px;overflow:hidden;border:1px solid color-mix(in srgb,var(--faction-main) 65%,#8b7548);border-radius:7px;box-shadow:0 2px 8px #0008}
+.faction-switcher button .faction-art img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
+.faction-switcher button small{font:8px Arial,sans-serif;color:#b9b19a}
+.faction-switcher button.selected{border-color:var(--faction-light);background:linear-gradient(145deg,color-mix(in srgb,var(--faction-dark) 75%,#18231b),#111812);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--faction-light) 35%,transparent),0 0 12px color-mix(in srgb,var(--faction-main) 28%,transparent);color:#fff2ce}
+.faction-switcher button:focus-visible{outline:2px solid white;outline-offset:2px}
+.top{border-bottom-color:var(--faction-main)}
+.brand,.brand small,.realm,.realm b{color:var(--faction-light)}
+.resource,.player-level,.city-frame,.army-strip,.bottom-nav{border-color:var(--faction-main)}
+.resource{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--faction-light) 14%,transparent)}
+.village-heading h1,.player-level{color:var(--faction-light)}
+.player-level{background:linear-gradient(145deg,color-mix(in srgb,var(--faction-dark) 42%,#17251d),#17251d)}
+.city-frame{box-shadow:0 8px 28px #0008,inset 0 0 0 2px color-mix(in srgb,var(--faction-light) 18%,transparent)}
+.building-point{border-color:var(--faction-light);background:radial-gradient(circle at 35% 25%,var(--faction-light),var(--faction-main) 60%,var(--faction-dark));box-shadow:0 3px 9px #000b,0 0 0 2px color-mix(in srgb,var(--faction-shadow) 65%,transparent)}
+.building-point.center{background:radial-gradient(circle at 35% 25%,#fff5ce,var(--faction-main) 62%,var(--faction-dark))}
+.army-strip{background:linear-gradient(150deg,color-mix(in srgb,var(--faction-dark) 32%,#172a35),#101a1d)}
+.army-title{color:var(--faction-light)}
+.bottom-nav button{border-color:var(--faction-main)}
+.bottom-nav button.active{background:linear-gradient(145deg,var(--faction-main),var(--faction-dark));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--faction-light) 42%,transparent)}
+.building-dialog{border-color:var(--faction-main)}
+.eyebrow,.level-row strong{color:var(--faction-light)}
+.level-track span{background:linear-gradient(90deg,var(--faction-dark),var(--faction-light))}
+.primary-action{border-color:var(--faction-light);background:linear-gradient(var(--faction-main),var(--faction-dark))}
+.faction-tint{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.58;mix-blend-mode:color;transition:opacity .2s ease;background:
+ radial-gradient(ellipse 7% 3.5% at 50% 49%,var(--roof-tint) 0 54%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 37% 36%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 63% 36%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 76% 46%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 76% 58%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 66% 65%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 50% 70%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 34% 64%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 24% 51%,var(--roof-tint) 0 56%,transparent 100%),
+ radial-gradient(ellipse 6% 3% at 25% 40%,var(--roof-tint) 0 56%,transparent 100%)}
+.building-points{z-index:2}
+.map-hint{z-index:3}
+@media(min-width:600px){.faction-switcher button{font-size:12px;padding:8px}.faction-switcher button .faction-symbol{font-size:24px}}
+
+
+/* Small numbered labels placed directly over the nine buildings in the uploaded Göktürk image. */
+.building-numbers{position:absolute;inset:0;z-index:4;pointer-events:none}
+.building-number{position:absolute;transform:translate(-50%,-50%);display:grid;place-items:center;width:clamp(19px,4.8vw,24px);height:clamp(19px,4.8vw,24px);border:1.5px solid var(--faction-light);border-radius:50%;background:linear-gradient(145deg,#0b2530eF,#07151beF);color:#fff4d2;font:700 10px/1 Arial,sans-serif;text-shadow:0 1px 2px #000;box-shadow:0 2px 5px #000b,0 0 0 1px #06101688;backdrop-filter:blur(2px)}
+.building-number.is-center{width:clamp(21px,5.2vw,26px);height:clamp(21px,5.2vw,26px);font-size:11px;border-width:1.7px;background:linear-gradient(145deg,var(--faction-main),var(--faction-dark))}
+@media(min-width:600px){.building-number{width:25px;height:25px;font-size:11px}.building-number.is-center{width:27px;height:27px}}
+
+
+/* Shared 2D world map */
+.map-view{padding:12px 10px 14px;flex:1;display:flex;flex-direction:column;gap:10px}
+.map-view[hidden]{display:none!important}
+.map-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.map-heading>div:first-child>small{font:8px Arial,sans-serif;letter-spacing:1.8px;color:var(--faction-light)}
+.map-heading h1{margin:2px 0;font-size:20px;color:var(--faction-light)}
+.map-heading p{margin:0;font:10px Arial,sans-serif;color:#c5bea8}
+.worker-summary{min-width:94px;display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:6px;padding:7px 9px;border:1px solid var(--faction-main);border-radius:10px;background:linear-gradient(145deg,#1b2b20,#101912)}
+.worker-summary span{grid-row:1/3;font-size:20px}
+.worker-summary strong{font-size:17px;color:var(--faction-light);font-variant-numeric:tabular-nums}
+.worker-summary small{font:8px Arial,sans-serif;color:#c9bea0;white-space:nowrap}
+.map-legend{display:flex;justify-content:space-around;gap:5px;padding:7px 5px;border:1px solid #6e704b;border-radius:9px;background:#152119;font:9px Arial,sans-serif;color:#e7dfc5}
+.map-legend span{display:flex;align-items:center;gap:4px;white-space:nowrap}
+.map-legend i{font-style:normal;font-size:14px}
+.world-map{position:relative;width:100%;aspect-ratio:4/5;max-height:610px;min-height:390px;overflow:hidden;border:1px solid var(--faction-main);border-radius:13px;background:#708b50;box-shadow:0 6px 22px #0008,inset 0 0 0 2px #f1dfa522}
+.map-landscape{position:absolute;inset:0;width:100%;height:100%;display:block}.map-terrain-image{object-fit:cover;object-position:center;user-select:none;-webkit-user-drag:none;pointer-events:none}.map-geography-overlay{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible}.map-geography-overlay .map-state-borders{filter:drop-shadow(0 2px 2px rgba(0,0,0,.7))}.map-geography-overlay .map-rivers,.map-geography-overlay .map-roads{filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}.map-geography-overlay .map-mountains,.map-geography-overlay .map-forests{opacity:.9}
+.map-region-label{position:absolute;padding:3px 6px;border:1px solid #d6d0a266;border-radius:5px;background:#17261a88;color:#f1e4bd;font:7px Arial,sans-serif;letter-spacing:1px;pointer-events:none}
+.map-region-label.north{top:7%;left:7%}
+.map-region-label.south{bottom:6%;left:7%}
+.map-compass{position:absolute;top:7%;right:7%;display:grid;justify-items:center;color:#fff0c9;font:bold 10px Arial,sans-serif;text-shadow:0 1px 3px #000}
+.map-point{position:absolute;z-index:2;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;padding:0;border:0;background:transparent;cursor:pointer;touch-action:manipulation;text-shadow:0 1px 3px #000}
+.map-point>span{display:grid;place-items:center;width:38px;height:38px;border:2px solid #f1e5b7;border-radius:50%;background:linear-gradient(145deg,#233b2b,#0e1b14);font-size:21px;box-shadow:0 2px 8px #000a,0 0 0 2px #1a2a1a99}
+.map-point small,.map-point b{padding:2px 5px;border:1px solid #c5b77b88;border-radius:5px;background:#101b14e8;color:#fff0c6;font:8px Arial,sans-serif;white-space:nowrap}
+.map-point b{font-size:7px;color:#d7e4bc}
+.map-point[aria-pressed="true"]>span{border-color:var(--faction-light);box-shadow:0 0 0 3px color-mix(in srgb,var(--faction-main) 38%,transparent),0 3px 12px #000b}
+.map-point:focus-visible{outline:2px solid white;outline-offset:5px;border-radius:8px}
+.map-own-city{position:absolute;z-index:2;transform:translate(-50%,-50%);display:grid;justify-items:center;gap:2px;pointer-events:none}
+.map-own-city span{display:grid;place-items:center;width:48px;height:48px;border:2px solid var(--faction-light);border-radius:50%;background:linear-gradient(145deg,var(--faction-main),var(--faction-dark));font-size:25px;box-shadow:0 0 0 4px #14231888,0 4px 10px #000a}
+.map-own-city b,.map-own-city small{padding:2px 5px;border-radius:5px;background:#101b14e8;color:#fff0c6;font:9px Arial,sans-serif;white-space:nowrap}
+.map-own-city small{font-size:7px;color:#c8c3a8}
+.map-detail{padding:10px;border:1px solid var(--faction-main);border-radius:11px;background:linear-gradient(145deg,#1b2a20,#101812);box-shadow:0 4px 12px #0006}
+.map-detail>p{margin:0;text-align:center;font:11px/1.45 Arial,sans-serif;color:#d4c9a8}
+#resource-selection{display:grid;grid-template-columns:1fr;gap:10px}
+#resource-selection[hidden]{display:none!important}
+.selected-resource-heading small{font:8px Arial,sans-serif;letter-spacing:1.4px;color:var(--faction-light)}
+.selected-resource-heading h2{margin:3px 0;font-size:17px;color:#fff0c6}
+.selected-resource-heading p{margin:0;font:10px Arial,sans-serif;color:#c8c0a8}
+.worker-control label{display:block;margin-bottom:5px;font:9px Arial,sans-serif;color:#e8d8ad}
+.worker-control>div{display:flex;gap:7px}
+.worker-control input{min-width:0;flex:1;padding:9px;border:1px solid #7d8b65;border-radius:7px;background:#0c1510;color:#fff0c6;font:14px Arial,sans-serif}
+.worker-control button{padding:0 16px;border:1px solid var(--faction-light);border-radius:7px;background:linear-gradient(145deg,var(--faction-main),var(--faction-dark));color:#fff7dc;font:bold 11px Arial,sans-serif}
+.worker-control button:disabled{opacity:.45}
+.worker-control>small{display:block;margin-top:6px;font:8px/1.4 Arial,sans-serif;color:#bdb59b}
+.map-prototype-note{margin:0;text-align:center;font:8px/1.4 Arial,sans-serif;color:#a9a78d}
+@media(min-width:600px){.map-view{padding:16px 20px}.world-map{max-height:680px}.map-point>span{width:44px;height:44px;font-size:23px}.map-point small{font-size:9px}.map-detail{padding:13px}}
+
+.village-wrap[hidden]{display:none!important}
+
+.worker-summary em{grid-column:2;font:8px Arial,sans-serif;color:#b9d5bd;font-style:normal;white-space:nowrap}
+.worker-actions{display:grid!important;grid-template-columns:minmax(54px,1fr) auto auto;gap:6px!important}
+.worker-actions button{padding:0 11px;min-height:36px;white-space:nowrap}
+.worker-actions button:disabled{opacity:.38;filter:saturate(.3)}
+.worker-actions input{width:100%;box-sizing:border-box}
+@media(max-width:360px){.worker-actions{grid-template-columns:minmax(45px,1fr) auto auto;gap:4px!important}.worker-actions button{padding:0 8px;font-size:10px}}
+
+/* Kullanıcının yüklediği kale görseli: ortak dünya haritası */
+.map-own-city img{display:block;width:58px;height:58px;aspect-ratio:1;object-fit:cover;object-position:center;border:2px solid var(--faction-light);border-radius:11px;background:linear-gradient(145deg,var(--faction-main),var(--faction-dark));box-shadow:0 0 0 4px #14231888,0 4px 10px #000a}
+
+
+/* Legacy-style account gate, adapted to the V2 theme and account API. */
+.auth-screen{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:20px;background:radial-gradient(ellipse at top,#4c3b1d,#17140f 65%)}
+.auth-screen[hidden]{display:none!important}
+.auth-card{width:100%;max-width:390px;background:#211b12;border:1px solid #d5aa42;border-radius:18px;padding:25px 22px;text-align:center;box-shadow:0 18px 60px #0009}
+.auth-emblem{font-size:48px;line-height:1.2}
+.auth-card h1{font:700 21px Georgia,serif;letter-spacing:2px;color:#e9c65d;margin:8px 0}
+.auth-card>p{font:13px Georgia,serif;color:#d5c49a}
+.auth-tabs{display:flex;gap:8px;margin:22px 0 16px}
+.auth-tabs button{flex:1;background:#302718;border:1px solid #6e5429;padding:11px;border-radius:8px;color:#f7e8bd;font:14px Georgia,serif;cursor:pointer}
+.auth-tabs button.selected{background:#62491e;color:#ffe18a;border-color:#d5aa42}
+#auth-form{text-align:left;display:flex;flex-direction:column;gap:8px}
+#auth-form label{font:12px Georgia,serif;color:#e4cb8c;margin-top:5px}
+#auth-form input{width:100%;background:#120f0b;border:1px solid #69532d;border-radius:8px;color:#fff;padding:13px;font:14px Georgia,serif;outline:none}
+#auth-form input:focus{border-color:#e5bd53;box-shadow:0 0 0 2px #e5bd5333}
+#auth-email-field[hidden]{display:none!important}
+#auth-submit{width:100%;margin-top:12px;cursor:pointer;background:linear-gradient(#473719,#211a10);border:1px solid #d5aa42;border-radius:22px;padding:14px;font:bold 14px Georgia,serif;color:#f5d36c}
+#auth-submit:disabled{opacity:.6;cursor:wait}
+.auth-message{min-height:18px;text-align:center;color:#f2c36b;font:12px Georgia,serif;margin:4px 0}
+.auth-card>small{display:block;font:10px Georgia,serif;color:#a99b7c;margin-top:10px}
+@media(max-width:360px){.auth-card{padding:22px 17px}.auth-card h1{font-size:19px}.auth-tabs{margin:18px 0 14px}}
+
+/* Clickable numbered building markers; the uploaded village artwork stays unchanged. */
+.building-numbers{pointer-events:none}
+.building-number{pointer-events:auto;appearance:none;cursor:pointer;padding:0;font-family:Arial,sans-serif;transition:transform .12s ease,box-shadow .12s ease}
+.building-number.is-built{background:linear-gradient(145deg,var(--faction-main),var(--faction-dark));border-color:var(--faction-light)}
+.building-number:active{transform:translate(-50%,-50%) scale(.9)}
+.building-number:focus-visible{outline:2px solid #fff4d2;outline-offset:3px}
+.building-dialog{position:relative;max-height:90dvh;overflow:auto}
+.building-dialog .close{position:absolute;right:10px;top:8px;cursor:pointer}
+.building-type-field{margin:15px 0 8px}
+.building-type-field[hidden]{display:none}
+.building-type-field label{display:block;margin-bottom:6px;font:10px Arial,sans-serif;color:#e8d8ad}
+.building-type-field select{width:100%;padding:10px;border:1px solid #8d713b;border-radius:8px;background:#101812;color:#fff0c6;font:13px Arial,sans-serif}
+.building-cost-title{margin:16px 0 7px;font:10px Arial,sans-serif;letter-spacing:1px;color:#e8d29b;text-transform:uppercase}
+.building-costs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.building-costs span{display:grid;gap:5px;justify-items:center;padding:9px 3px;border:1px solid #77613b;border-radius:8px;background:#111a13;font:9px Arial,sans-serif;color:#cfc4a6}
+.building-costs b{font-size:13px;color:#fff0c6}
+.building-message{min-height:30px;margin:10px 0;font:10px/1.4 Arial,sans-serif;text-align:center;color:#d9c99d}
+.building-dialog .primary-action:disabled{opacity:.45;filter:saturate(.5)}
+
+/* Keep the marker visually compact while giving mobile taps a larger hit area. */
+.building-number{position:relative}
+.building-number::before{content:"";position:absolute;inset:-8px;border-radius:50%}
+
+/* Faction palette is applied only after the player confirms a state. */
+.game-shell:not([data-faction]){--faction-main:#c6a04d;--faction-dark:#70501f;--faction-light:#f5df9a;--roof-tint:#d8ad48;--faction-shadow:#76511c}
+
+
+/* Large shared world map: native two-axis panning works on touch screens and desktop. */
+.world-map{height:clamp(430px,62vh,620px);min-height:430px;max-height:none;aspect-ratio:auto;overflow:auto;overscroll-behavior:contain;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch;scrollbar-color:#b89550 #172319;scrollbar-width:thin}
+.map-world-canvas{position:relative;flex:0 0 auto;width:1800px;height:1200px;overflow:hidden;background:#6e8b4c}
+.map-world-canvas .map-landscape{width:100%;height:100%}
+.map-world-canvas .map-point{z-index:3}
+.map-world-canvas .map-own-city{z-index:5}
+.map-mine-point>span{border-color:#e4c16e;background:linear-gradient(145deg,#4b4225,#172017)}
+.map-mine-point small{font-weight:700}
+.map-mine-point b{color:#ffe39a}
+.map-player-point>span{width:48px;height:48px;border-color:#9ee0e7;background:linear-gradient(145deg,#245d6b,#12232b);font-size:25px}
+.map-player-point small{max-width:130px;overflow:hidden;text-overflow:ellipsis}
+.map-player-point b{color:#aee5ed}
+.map-world-canvas .map-region-label{font-size:11px;padding:5px 8px}
+.map-world-canvas .map-compass{font-size:16px}
+.world-map:focus-visible{outline:2px solid var(--faction-light);outline-offset:3px}
+@media(max-width:420px){.map-world-canvas{width:1500px;height:1000px}.world-map{height:470px}}
+
+.live-army-route{fill:none;stroke:#ffe09a;stroke-width:5;stroke-linecap:round;stroke-dasharray:13 12;opacity:.9;filter:drop-shadow(0 2px 3px rgba(0,0,0,.8));pointer-events:none}
+.live-army-route.incoming{stroke:#ff9b82}
+.map-army-marker{position:absolute;z-index:7;display:grid;place-items:center;width:36px;height:36px;border:2px solid #ffe09a;border-radius:50%;background:linear-gradient(145deg,#674b22,#172018);box-shadow:0 0 0 4px #151e18aa,0 4px 12px #000b;font:20px Arial,sans-serif;pointer-events:none;transform:translate(-50%,-50%);offset-anchor:center;animation-name:map-army-march;animation-timing-function:linear;animation-iteration-count:1;animation-fill-mode:forwards}
+@keyframes map-army-march{from{offset-distance:0%}to{offset-distance:100%}}
+
+
+/* Expanded world view: more visible terrain, compact home-village marker. */
+.world-map{
+ height:clamp(540px,74vh,860px);
+ min-height:540px;
+ max-height:none;
+}
+.map-own-city img{
+ width:38px;
+ height:38px;
+ object-fit:cover;
+ border:1.5px solid var(--faction-light);
+ border-radius:50%;
+ box-shadow:0 0 0 3px #14231888,0 3px 8px #000a;
+}
+.map-own-city b{font-size:8px;padding:2px 4px}
+.map-own-city small{font-size:7px;padding:1px 4px}
+@media(max-width:600px){
+ .world-map{height:70vh;min-height:520px;max-height:760px}
+ .map-own-city img{width:34px;height:34px}
+}
+
+
+/* Floating zoom controls for the shared world map. */
+.world-map{position:relative}
+.map-zoom-controls{
+ position:absolute;z-index:12;top:12px;right:12px;
+ display:flex;align-items:center;gap:5px;padding:5px;
+ border:1px solid #c6a45c99;border-radius:11px;
+ background:#101a16eF;box-shadow:0 4px 14px #0009;
+ backdrop-filter:blur(7px);
+}
+.map-zoom-controls button{
+ display:grid;place-items:center;width:36px;height:36px;
+ border:1px solid #9b8048;border-radius:8px;
+ background:linear-gradient(145deg,#314333,#142018);
+ color:#fff0c6;font:700 22px/1 Arial,sans-serif;
+ cursor:pointer;touch-action:manipulation;
+}
+.map-zoom-controls button:active{transform:scale(.94)}
+.map-zoom-controls button:focus-visible{outline:2px solid #ffe39a;outline-offset:2px}
+.map-zoom-controls span{min-width:38px;text-align:center;color:#f2dfad;font:10px Arial,sans-serif}
+
+
+/* Neutral settlements are exploration targets; ownership remains unassigned until conquest rules are implemented. */
+.map-neutral-village>span{
+ width:34px;height:34px;border-color:#d9c58b;
+ background:linear-gradient(145deg,#66502b,#211b13);
+ font-size:19px;box-shadow:0 2px 8px #000b,0 0 0 2px #392d1b99;
+}
+.map-neutral-village small{border-color:#d9bd78;background:#201b12ed;color:#fff0c6}
+.map-neutral-village b{border-color:#c5a65d;background:#2a2114ed;color:#f6d78e}
+.map-neutral-village:focus-visible>span{outline:2px solid #ffe8a8;outline-offset:3px}
