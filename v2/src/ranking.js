@@ -54,7 +54,9 @@ export function calculateArmyStrength(troops = {}, factionId = "gokturk", buildi
 }
 
 export function calculateArmyStrengthScore(strength) {
-  return Math.round(Math.min(100, safeCount(strength) / MAX_ARMY_STRENGTH * 100) * 100) / 100;
+  const amount = Number(strength);
+  const safeStrength = Number.isFinite(amount) && amount > 0 ? amount : 0;
+  return Math.round(Math.min(100, safeStrength / MAX_ARMY_STRENGTH * 100) * 100) / 100;
 }
 
 /** Only permanently conquered regions count; temporary four-hour claims do not. */
