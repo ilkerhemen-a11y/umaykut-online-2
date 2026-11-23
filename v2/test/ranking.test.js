@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   calculateArmyStrength,
   calculateArmyStrengthScore,
+  combineTroopStacks,
   calculateBuildingDevelopmentScore,
   calculateEconomyScore,
   calculateOverallRankingScore,
@@ -49,6 +50,15 @@ test("army strength includes faction-adjusted attack and defensive values", () =
   assert.equal(calculateArmyStrengthScore(20000), 100);
   assert.equal(calculateArmyStrengthScore(0), 0);
   assert.equal(calculateArmyStrength({}, "gokturk", village), 0);
+});
+
+test("army stacks from home, raids, scouting and regional garrisons are combined", () => {
+  assert.deepEqual(combineTroopStacks(
+    { infantry: 5, scout: 1 },
+    [{ infantry: 3, archer: 2 }],
+    [{ shield: 4 }],
+    [{ scout: 2 }]
+  ), { infantry: 8, scout: 3, archer: 2, shield: 4 });
 });
 
 test("territory score counts only the permanent owned-region input and caps at 24", () => {
