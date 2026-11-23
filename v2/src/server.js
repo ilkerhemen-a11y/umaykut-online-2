@@ -843,10 +843,17 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         }
         const source = input.workerAssignments && typeof input.workerAssignments === "object"
           ? input.workerAssignments : {};
-        const workerAssignments = { grain: source.grain, wood: source.wood, stone: source.stone };
+        const workerAssignments = {};
+        const allowedWorkerKey = key => ["grain", "wood", "stone", "gold", "iron"].includes(key) || /^mine_[1-9]\d*$/.test(key);
+        for (const [key, value] of Object.entries(source)) {
+          if (!allowedWorkerKey(key)) return sendJson(res, 400, { error: "Geçersiz kaynak işçi kaydı." });
+          workerAssignments[key] = value;
+        }
+        for (const key of ["grain", "wood", "stone", "gold", "iron"]) {
+          if (workerAssignments[key] === undefined) workerAssignments[key] = 0;
+        }
         const values = Object.values(workerAssignments);
         if (!values.every(value => Number.isSafeInteger(value) && value >= 0) ||
-            Object.keys(source).some(key => !["grain", "wood", "stone"].includes(key)) ||
             values.reduce((sum, value) => sum + value, 0) > 1800) {
           return sendJson(res, 400, { error: "İşçi dağılımı geçersiz. Toplam işçi sayısı 1.800'ü aşamaz." });
         }

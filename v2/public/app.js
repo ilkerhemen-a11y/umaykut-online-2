@@ -518,33 +518,36 @@ compactResourcesToggle.addEventListener("change",saveSettings);
 applySettings();
 
 const WORKER_POOL=1800;
-const WORKER_STORAGE_KEY="umaykut-worker-state-v2";
+const WORKER_STORAGE_KEY="umaykut-worker-state-v3";
+const RESOURCE_KEYS=["grain","wood","stone","gold","iron"];
 const resourceInfo={
- grain:{name:"Tahıl Ovası",type:"TAHIL BÖLGESİ",description:"Tahıl toplamak için işçilerini bu ovaya görevlendir.",counter:"assigned-grain"},
- wood:{name:"Orman",type:"ODUN BÖLGESİ",description:"Odun toplamak için işçilerini ormanlık alana görevlendir.",counter:"assigned-wood"},
- stone:{name:"Taş Ocağı",type:"TAŞ BÖLGESİ",description:"Taş toplamak için işçilerini taş ocağına görevlendir.",counter:"assigned-stone"}
+ grain:{name:"Tahıl Tarlası",type:"TAHIL BÖLGESİ",description:"Tahıl üretmek için bu tarlaya işçi görevlendir."},
+ wood:{name:"Odun Deposu",type:"ODUN BÖLGESİ",description:"Odun toplamak için bu kaynağa işçi görevlendir."},
+ stone:{name:"Taş Ocağı",type:"TAŞ BÖLGESİ",description:"Taş çıkarmak için bu ocağa işçi görevlendir."},
+ gold:{name:"Altın Yatağı",type:"ALTIN BÖLGESİ",description:"Altın çıkarmak için bu yatağa işçi görevlendir."},
+ iron:{name:"Demir Madeni",type:"DEMİR BÖLGESİ",description:"Demir çıkarmak için bu madene işçi görevlendir."}
 };
-const assigned={grain:0,wood:0,stone:0};
+const assigned={grain:0,wood:0,stone:0,gold:0,iron:0};
 let availableWorkers=WORKER_POOL;
 let selectedResource=null;
+let selectedMineKey=null;
+let selectedMineName="";
 function restoreWorkerState(){
  try{
-  const saved=JSON.parse(localStorage.getItem(WORKER_STORAGE_KEY)||"null");
+  const saved=JSON.parse(localStorage.getItem(WORKER_STORAGE_KEY)||localStorage.getItem("umaykut-worker-state-v2")||"null");
   if(!saved||!saved.assigned)return;
-  const values=["grain","wood","stone"].map(key=>saved.assigned[key]);
-  if(!values.every(value=>Number.isSafeInteger(value)&&value>=0))return;
-  const total=values.reduce((sum,value)=>sum+value,0);
-  if(total>WORKER_POOL)return;
-  ["grain","wood","stone"].forEach((key,index)=>assigned[key]=values[index]);
+  Object.keys(saved.assigned).forEach(key=>{
+   if((RESOURCE_KEYS.includes(key)||/^mine_\d+$/.test(key))&&Number.isSafeInteger(saved.assigned[key])&&saved.assigned[key]>=0)assigned[key]=saved.assigned[key];
+  });
+  const total=totalAssigned();
+  if(total>WORKER_POOL){Object.keys(assigned).forEach(key=>assigned[key]=0);return;}
   availableWorkers=WORKER_POOL-total;
  }catch{}
 }
 function saveWorkerState(){
- try{
-  localStorage.setItem(WORKER_STORAGE_KEY,JSON.stringify({version:2,workerPool:WORKER_POOL,assigned}));
- }catch{}
- if(gameStateReady) persistGameState().catch(()=>{
-  if(workerStatus) workerStatus.textContent="Bağlantı kurulamadı; değişiklik bu cihazda saklandı.";
+ try{localStorage.setItem(WORKER_STORAGE_KEY,JSON.stringify({version:3,workerPool:WORKER_POOL,assigned}));}catch{}
+ if(gameStateReady)persistGameState().catch(()=>{
+  if(workerStatus)workerStatus.textContent="Bağlantı kurulamadı; değişiklik bu cihazda saklandı.";
  });
 }
 const availableLabel=document.querySelector("#workers-available");
@@ -561,77 +564,63 @@ const recallButton=document.querySelector("#recall-workers");
 function formatNumber(value){return new Intl.NumberFormat("tr-TR").format(value);}
 function totalAssigned(){return Object.values(assigned).reduce((sum,value)=>sum+value,0);}
 function updateWorkerSummary(){
+ availableWorkers=Math.max(0,WORKER_POOL-totalAssigned());
  availableLabel.textContent=formatNumber(availableWorkers);
  assignedTotalLabel.textContent=formatNumber(totalAssigned())+" görevde";
- Object.entries(resourceInfo).forEach(([key,info])=>{
-  document.querySelector("#"+info.counter).textContent=formatNumber(assigned[key])+" işçi";
- });
  updateWorkerActions();
+}
+function selectedMineAssigned(){
+ if(!selectedResource)return 0;
+ return (selectedMineKey?Number(assigned[selectedMineKey]||0):0)+Number(assigned[selectedResource]||0);
 }
 function updateWorkerActions(){
  if(!selectedResource)return;
- const current=assigned[selectedResource];
+ const current=selectedMineAssigned();
  assignButton.disabled=availableWorkers===0;
  recallButton.disabled=current===0;
  workerInput.max=String(Math.max(availableWorkers,current,1));
 }
-function selectResource(button){
- selectedResource=button.dataset.resource;
- const info=resourceInfo[selectedResource];
- document.querySelectorAll("[data-resource]").forEach(node=>{
-  node.setAttribute("aria-pressed",String(node===button));
- });
+function selectWorldMine(node,marker){
+ const info=resourceInfo[node.resource_type];
+ if(!info)return;
+ selectedResource=node.resource_type;
+ selectedMineKey="mine_"+node.id;
+ selectedMineName=info.name;
+ mapWorldCanvas.querySelectorAll(".resource-node-marker.is-selected").forEach(item=>item.classList.remove("is-selected"));
+ marker.classList.add("is-selected");
  mapPrompt.hidden=true;
  resourcePanel.hidden=false;
- resourceType.textContent=info.type;
+ resourceType.textContent=info.type+" · VERİM "+node.yield_level+"/9";
  resourceName.textContent=info.name;
  resourceDescription.textContent=info.description;
  workerInput.value="1";
- workerStatus.textContent=`Bu bölgede ${formatNumber(assigned[selectedResource])} işçi görevde · ${formatNumber(availableWorkers)} işçi boştadır.`;
+ workerStatus.textContent=`Bu kaynakta ${formatNumber(selectedMineAssigned())} işçi görevde · ${formatNumber(availableWorkers)} işçi boştadır.`;
  updateWorkerActions();
 }
-document.querySelectorAll("[data-resource]").forEach(button=>{
- button.addEventListener("click",()=>selectResource(button));
-});
 function readWorkerCount(){
  const count=Number(workerInput.value);
- if(!Number.isSafeInteger(count)||count<1){
-  workerStatus.textContent="Lütfen 1 veya daha fazla tam sayı gir.";
-  return null;
- }
+ if(!Number.isSafeInteger(count)||count<1){workerStatus.textContent="Lütfen 1 veya daha fazla tam sayı gir.";return null;}
  return count;
 }
 assignButton.addEventListener("click",()=>{
- if(!selectedResource)return;
- const count=readWorkerCount();
- if(count===null)return;
- if(count>availableWorkers){
-  workerStatus.textContent=`En fazla ${formatNumber(availableWorkers)} işçi gönderebilirsin.`;
-  workerInput.value=String(Math.max(availableWorkers,1));
-  return;
- }
- assigned[selectedResource]+=count;
- availableWorkers-=count;
- saveWorkerState();
- updateWorkerSummary();
- workerInput.value="1";
- workerStatus.textContent=`${formatNumber(count)} işçi ${resourceInfo[selectedResource].name} bölgesine gönderildi. ${formatNumber(assigned[selectedResource])} görevde, ${formatNumber(availableWorkers)} boştadır. Hesabına kaydedildi.`;
+ if(!selectedResource||!selectedMineKey)return;
+ const count=readWorkerCount();if(count===null)return;
+ if(count>availableWorkers){workerStatus.textContent=`En fazla ${formatNumber(availableWorkers)} işçi gönderebilirsin.`;workerInput.value=String(Math.max(availableWorkers,1));return;}
+ assigned[selectedMineKey]=(assigned[selectedMineKey]||0)+count;
+ saveWorkerState();updateWorkerSummary();workerInput.value="1";
+ workerStatus.textContent=`${formatNumber(count)} işçi ${selectedMineName} noktasına gönderildi. Bu kaynakta ${formatNumber(selectedMineAssigned())} görevde, ${formatNumber(availableWorkers)} boştadır. Hesabına kaydedildi.`;
 });
 recallButton.addEventListener("click",()=>{
- if(!selectedResource)return;
- const count=readWorkerCount();
- if(count===null)return;
- if(count>assigned[selectedResource]){
-  workerStatus.textContent=`Bu bölgede yalnızca ${formatNumber(assigned[selectedResource])} işçi görevde.`;
-  workerInput.value=String(Math.max(assigned[selectedResource],1));
-  return;
- }
- assigned[selectedResource]-=count;
- availableWorkers+=count;
- saveWorkerState();
- updateWorkerSummary();
- workerInput.value="1";
- workerStatus.textContent=`${formatNumber(count)} işçi ${resourceInfo[selectedResource].name} bölgesinden geri çağrıldı. ${formatNumber(assigned[selectedResource])} görevde, ${formatNumber(availableWorkers)} boştadır. Hesabına kaydedildi.`;
+ if(!selectedResource||!selectedMineKey)return;
+ const count=readWorkerCount();if(count===null)return;
+ const current=selectedMineAssigned();
+ if(count>current){workerStatus.textContent=`Bu kaynakta yalnızca ${formatNumber(current)} işçi görevde.`;workerInput.value=String(Math.max(current,1));return;}
+ let remaining=count;
+ const fromMine=Math.min(remaining,Number(assigned[selectedMineKey]||0));
+ assigned[selectedMineKey]-=fromMine;remaining-=fromMine;
+ if(remaining>0)assigned[selectedResource]=Math.max(0,Number(assigned[selectedResource]||0)-remaining);
+ saveWorkerState();updateWorkerSummary();workerInput.value="1";
+ workerStatus.textContent=`${formatNumber(count)} işçi ${selectedMineName} noktasından geri çağrıldı. Bu kaynakta ${formatNumber(selectedMineAssigned())} görevde, ${formatNumber(availableWorkers)} boştadır.`;
 });
 restoreWorkerState();
 updateWorkerSummary();
@@ -715,7 +704,11 @@ async function loadGameState(){
   renderBuildingMarkers();
   renderUpgradeTracker();
   if(state.workerStateInitialized){
-   ["grain","wood","stone"].forEach(key=>{assigned[key]=Number(state.workerAssignments?.[key]||0);});
+   Object.keys(assigned).forEach(key=>delete assigned[key]);
+   Object.entries(state.workerAssignments||{}).forEach(([key,value])=>{
+    if((RESOURCE_KEYS.includes(key)||/^mine_\d+$/.test(key))&&Number.isSafeInteger(Number(value))&&Number(value)>=0)assigned[key]=Number(value);
+   });
+   RESOURCE_KEYS.forEach(key=>{if(!Number.isSafeInteger(assigned[key]))assigned[key]=0;});
    availableWorkers=Math.max(0,Number(state.workerPool||WORKER_POOL)-totalAssigned());
   }else{
    await authRequest("/api/game/state",{
@@ -1421,9 +1414,7 @@ mapWorldCanvas?.addEventListener("click",async event=>{
     mapPrompt.textContent="Bu maden okulunun mevcut erişim çemberinin dışında. Okul seviyeni yükselterek erişim alanını genişletebilirsin.";
     return;
    }
-   const labels={iron:"Demir Madeni",stone:"Taş Ocağı",gold:"Altın Yatağı",wood:"Odun Deposu",grain:"Tahıl Tarlası"};
-   mapPrompt.hidden=false;resourcePanel.hidden=true;
-   mapPrompt.textContent=labels[node.resource_type]+" · Verim seviyesi "+node.yield_level+"/9. Maden erişim alanında.";
+   selectWorldMine(node,mine);
   }
   return;
  }

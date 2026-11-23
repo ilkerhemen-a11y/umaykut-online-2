@@ -46,14 +46,17 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/data-action="inventory"/);
   assert.match(html,/id="neutral-region-dialog"/);
   assert.match(html,/id="neutral-region-action"/);
+  assert.doesNotMatch(html,/class="map-legend"/);
+  assert.doesNotMatch(html,/data-resource="(?:grain|wood|stone)"/);
+  assert.match(html,/köyünün erişim alanındaki bir kaynak görseline dokun/);
   assert.match(html,/id="open-settings"/);
   assert.match(html,/data-action="settings"/);
   assert.match(html,/id="logout-button"/);
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261123-building-upgrade-progress-1"/);
-  assert.ok(html.includes('src="/app.js?v=20261123-building-upgrade-progress-1"'));
+  assert.match(html,/href="\/app\.css\?v=20261123-resource-layout-2"/);
+  assert.ok(html.includes('src="/app.js?v=20261123-clean-map-workers-1"'));
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n      <section id="building-upgrade-tracker"',stageStart);
   assert.ok(stageEnd>stageStart);
@@ -101,7 +104,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
 
   // Building markers must overlay the image itself, not flow after it.
-  const styles=await fetch(base+"/app.css?v=20261123-building-upgrade-progress-1");
+  const styles=await fetch(base+"/app.css?v=20261123-clean-map-workers-1");
   assert.equal(styles.status,200);
   const css=await styles.text();
   assert.ok(css.includes(".city-frame{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
@@ -135,9 +138,9 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="workers-available">1\.800/);
   assert.match(html,/id="workers-assigned-total">0 görevde/);
   assert.match(html,/id="recall-workers"/);
-  assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,3);
+  assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,0);
 
-  const script=await fetch(base+"/app.js?v=20261123-building-upgrade-progress-1");
+  const script=await fetch(base+"/app.js?v=20261123-clean-map-workers-1");
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.match(appScript,/data-faction-choice/);
@@ -237,7 +240,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.deepEqual(Array.from(bytes.slice(0,3)),[0xff,0xd8,0xff]);
 });
 
-test("resource bar uses the six matching isometric SVG icons and serves each asset", async (t) => {
+test("resource bar uses the five matching isometric SVG icons and serves each asset", async (t) => {
   const server=createServer({ pool: null });
   await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
   t.after(()=>new Promise(resolve=>server.close(resolve)));
@@ -246,8 +249,8 @@ test("resource bar uses the six matching isometric SVG icons and serves each ass
   assert.equal(page.status,200);
   const html=await page.text();
   const resources=[
-    ["gold","resource-gold"],["wood","resource-wood"],["food","resource-food"],
-    ["stone","resource-stone"],["iron","resource-iron"],["horses","resource-horses"]
+    ["gold","resource-gold"],["wood","resource-wood"],["grain","resource-food"],
+    ["stone","resource-stone"],["iron","resource-iron"]
   ];
   for(const [asset,id] of resources){
     assert.match(html,new RegExp(`<span class="resource-icon" aria-hidden="true"><img src="/assets/resources/${asset}\\.svg" alt="" width="24" height="20"`));
