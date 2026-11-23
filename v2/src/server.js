@@ -830,24 +830,28 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
               buildings,
               resourceNodes: nodes.rows,
               lastResourceTick: row.last_resource_tick,
-              productionRemainders: row.production_remainders
+              productionRemainders: row.production_remainders,
+              workerPool: row.worker_pool
             });
             await client.query(
               `UPDATE umaykut_v2.player_game_state
                SET buildings = $2::jsonb,
                    resources = $3::jsonb,
+                   worker_pool = $6,
                    last_resource_tick = $4,
                    production_remainders = $5::jsonb,
                    updated_at = NOW()
                WHERE player_id = $1`,
               [playerId, JSON.stringify(buildings), JSON.stringify(economy.resources),
-               economy.lastResourceTick, JSON.stringify(economy.remainders)]
+               economy.lastResourceTick, JSON.stringify(economy.remainders), economy.workerPool]
             );
             await client.query("COMMIT");
             inTransaction = false;
             return sendJson(res, 200, {
               factionId: row.faction_id,
-              workerPool: Number(row.worker_pool),
+              workerPool: economy.workerPool,
+              workerProductionPerHour: economy.workerProductionPerHour,
+              workersProduced: economy.workersProduced,
               workerAssignments: row.worker_assignments,
               workerStateInitialized: row.worker_state_initialized,
               resources: economy.resources,
@@ -890,9 +894,17 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           if (workerAssignments[key] === undefined) workerAssignments[key] = 0;
         }
         const values = Object.values(workerAssignments);
-        if (!values.every(value => Number.isSafeInteger(value) && value >= 0) ||
-            values.reduce((sum, value) => sum + value, 0) > 1800) {
-          return sendJson(res, 400, { error: "İşçi dağılımı geçersiz. Toplam işçi sayısı 1.800'ü aşamaz." });
+        const totalAssignedWorkers = values.reduce((sum, value) => sum + value, 0);
+        if (!values.every(value => Number.isSafeInteger(value) && value >= 0)) {
+          return sendJson(res, 400, { error: "İşçi dağılımı geçersiz." });
+        }
+        const workerCapacity = await pool.query(
+          "SELECT worker_pool FROM umaykut_v2.player_game_state WHERE player_id = $1",
+          [playerId]
+        );
+        const currentWorkerPool = Number(workerCapacity.rows[0]?.worker_pool ?? 1800);
+        if (totalAssignedWorkers > currentWorkerPool) {
+          return sendJson(res, 400, { error: "Görevlendirilen işçi sayısı mevcut toplam işçiyi aşamaz.", workerPool: currentWorkerPool });
         }
         const saved = await pool.query(
           `INSERT INTO umaykut_v2.player_game_state(player_id, faction_id, worker_assignments, worker_state_initialized)
