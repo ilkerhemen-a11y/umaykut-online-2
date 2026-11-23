@@ -34,7 +34,7 @@ test("Okçu slot 9 contributes to development and legacy warehouse data is treat
   const withoutSlotNine = { ...village };
   delete withoutSlotNine["9"];
   assert.equal(
-    calculateBuildingDevelopmentScore(village) - calculateBuildingDevelopmentScore(withoutSlotNine),
+    Math.round((calculateBuildingDevelopmentScore(village) - calculateBuildingDevelopmentScore(withoutSlotNine)) * 100) / 100,
     1.11
   );
   assert.equal(calculateBuildingDevelopmentScore({
