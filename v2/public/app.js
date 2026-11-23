@@ -1,5 +1,6 @@
 import { clampVillageZoom, clampVillagePan, calculateVillagePinch, calculateVillagePan } from "./village-camera.js";
 import { applyVillageSelection } from "./village-selection.js";
+import { calculateVillageUpgradeProgress } from "./village-upgrade-progress.js";
 
 applyVillageSelection(document.querySelectorAll("[data-building-slot]"), null);
 const factions={
@@ -264,8 +265,29 @@ function renderBuildingMarkers(){
   if(levelBadge)levelBadge.textContent=String(displayedLevel);
   node.classList.add("is-built");
   node.classList.toggle("is-upgrading",Boolean(building.upgrade));
-  node.setAttribute("aria-label",slot+" numaralı "+definition.name+" seviye "+displayedLevel+(building.upgrade?" yükseltiliyor":""));
+  node.setAttribute("aria-label",slot+" numaralı "+definition.name+" seviye "+displayedLevel);
   node.dataset.level=String(displayedLevel);
+ });
+ renderBuildingUpgradeProgress();
+}
+function renderBuildingUpgradeProgress(){
+ const now=getServerNow();
+ document.querySelectorAll("[data-building-slot]").forEach(node=>{
+  const slot=String(node.dataset.buildingSlot||"");
+  const upgrade=gameBuildings[slot]?.upgrade;
+  const currentLabel=node.getAttribute("aria-label")||"";
+  const baseLabel=currentLabel.replace(/, yükseltiliyor, yüzde \d+ tamamlandı$/,"").replace(/ yükseltiliyor$/,"");
+  if(!upgrade){
+   node.style.removeProperty("--upgrade-progress");
+   delete node.dataset.upgradeProgress;
+   if(currentLabel!==baseLabel)node.setAttribute("aria-label",baseLabel);
+   return;
+  }
+  const progress=calculateVillageUpgradeProgress(upgrade,now);
+  const rounded=Math.round(progress);
+  node.style.setProperty("--upgrade-progress",progress.toFixed(2)+"%");
+  node.dataset.upgradeProgress=String(rounded);
+  node.setAttribute("aria-label",baseLabel+", yükseltiliyor, yüzde "+rounded+" tamamlandı");
  });
 }
 const buildingDialog=document.querySelector("#building-dialog");
@@ -406,7 +428,7 @@ document.querySelectorAll("[data-building-slot]").forEach(node=>{
  node.addEventListener("click",()=>openBuildingDialog(node.dataset.buildingSlot));
 });
 buildingClose.addEventListener("click",()=>buildingDialog.close());
-setInterval(()=>{updateUpgradeTracking();updateWallUpgradeCountdown();},1000);
+setInterval(()=>{updateUpgradeTracking();renderBuildingUpgradeProgress();updateWallUpgradeCountdown();},1000);
 buildingAction.addEventListener("click",async()=>{
  const slot=String(selectedBuildingSlot);
  const body={action:"upgrade",slot:selectedBuildingSlot};

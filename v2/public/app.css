@@ -77,7 +77,7 @@
 .upgrade-progress span{display:block;height:100%;border-radius:10px;background:linear-gradient(90deg,#9b702d,#f3d37e);transition:width .5s linear}
 .upgrade-card-foot{display:block;font-size:9px}
 .building-number.is-upgrading{border-color:#fff0a7;box-shadow:0 0 0 2px #d7a94c88,0 0 12px #f4d27c}
-.building-number.is-upgrading::after{content:"";position:absolute;right:-3px;top:-3px;width:8px;height:8px;border:1px solid #fff0bd;border-radius:50%;background:#35c46b;box-shadow:0 0 6px #35c46b}
+.building-number.is-upgrading::after{content:"";position:absolute;inset:-5px;z-index:0;border-radius:50%;background:conic-gradient(#35c46b var(--upgrade-progress,0%),#314b36 var(--upgrade-progress,0%));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));box-shadow:0 0 6px #35c46b55;pointer-events:none;transition:background .5s linear}.building-number.is-upgrading .building-marker-art{z-index:1}
 @media(max-width:390px){.building-upgrade-tracker{padding:9px}.upgrade-card{padding:8px}.upgrade-card-top strong{font-size:11px}.upgrade-countdown{font-size:11px}}
 
 

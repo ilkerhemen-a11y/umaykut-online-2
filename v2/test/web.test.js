@@ -2,6 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "../src/server.js";
 import { applyVillageSelection } from "../public/village-selection.js";
+  assert.ok(appScript.includes('from "./village-upgrade-progress.js"'));
+  assert.match(appScript,/function renderBuildingUpgradeProgress\(\)/);
+  assert.match(appScript,/calculateVillageUpgradeProgress\(upgrade,now\)/);
+  const upgradeModule=await fetch(base+"/village-upgrade-progress.js");
+  assert.equal(upgradeModule.status,200);
+  assert.match(await upgradeModule.text(),/export function calculateVillageUpgradeProgress/);
 
 test("village building selection updates only the active marker and its accessible pressed state", () => {
   const makeMarker=(slot)=>{
@@ -52,8 +58,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261122-building-selection-1"/);
-  assert.ok(html.includes('src="/app.js?v=20261122-building-selection-1"'));
+  assert.match(html,/href="\/app\.css\?v=20261123-building-upgrade-progress-1"/);
+  assert.ok(html.includes('src="/app.js?v=20261123-building-upgrade-progress-1"'));
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n      <section id="building-upgrade-tracker"',stageStart);
   assert.ok(stageEnd>stageStart);
@@ -101,7 +107,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
 
   // Building markers must overlay the image itself, not flow after it.
-  const styles=await fetch(base+"/app.css?v=20261122-building-selection-1");
+  const styles=await fetch(base+"/app.css?v=20261123-building-upgrade-progress-1");
   assert.equal(styles.status,200);
   const css=await styles.text();
   assert.ok(css.includes(".city-frame{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
@@ -120,6 +126,10 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(css.includes(".building-marker-art{") && css.includes("object-fit:contain"));
   assert.ok(css.includes(".building-number.is-selected::before"));
   assert.ok(css.includes(".building-number.is-selected .building-marker-art"));
+  assert.ok(css.includes(".building-number.is-upgrading::after"));
+  assert.ok(css.includes("conic-gradient(#35c46b var(--upgrade-progress,0%),#314b36 var(--upgrade-progress,0%))"));
+  assert.ok(css.includes(".building-number.is-upgrading .building-marker-art{z-index:1}"));
+
   assert.ok(css.includes(".building-index{position:absolute;"));
   assert.ok(css.includes("font:700 7px/1.2 Arial,sans-serif"));
   assert.ok(!css.includes(".city-frame{max-height:700px}"));
@@ -133,7 +143,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,3);
 
-  const script=await fetch(base+"/app.js?v=20261122-building-selection-1");
+  const script=await fetch(base+"/app.js?v=20261123-building-upgrade-progress-1");
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.match(appScript,/data-faction-choice/);
