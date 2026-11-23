@@ -5,6 +5,7 @@ on:
     branches:
       - "rebuild/**"
       - "feature/umaykut-world-map-casus-20261117"
+      - "feature/umaykut-ranking-live-20261124"
     paths:
       - "v2/**"
       - ".github/workflows/v2-foundation.yml"
@@ -31,4 +32,6 @@ jobs:
       - run: node --check src/config.js
       - run: node --check src/neutral-regions.js
       - run: node --check src/neutral-regions-api.js
+      - run: node --check src/ranking-v2.js
+      - run: node --check src/ranking-api.js
       - run: node --check public/app.js

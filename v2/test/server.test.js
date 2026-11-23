@@ -39,7 +39,7 @@ function createMarketPool({playerId,row,onUpdate=()=>{}}){
    query:async(sql,values=[])=>{
     if(["BEGIN","COMMIT","ROLLBACK"].includes(sql))return {rows:[]};
     if(sql.includes("INSERT INTO umaykut_v2.player_game_state"))return {rows:[],rowCount:1};
-    if(sql.includes("SELECT resources,buildings FROM umaykut_v2.player_game_state"))return {rows:[row],rowCount:1};
+    if(sql.includes("SELECT resources,buildings"))return {rows:[row],rowCount:1};
     if(sql.includes("UPDATE umaykut_v2.player_game_state SET resources=")){onUpdate(values);return {rows:[],rowCount:1};}
     throw new Error("Unexpected market query: "+sql);
    },release:()=>{}
@@ -99,13 +99,13 @@ test("lumberyard level increases wood production without changing other resource
   const base = settleEconomy({
     resources:{gold:0,wood:0,food:0,stone:0,iron:0},
     workerAssignments:{wood:10,grain:10},
-    buildings:{"1":{type:"center",level:1},"6":{type:"lumberyard",level:1},"7":{type:"temple",level:1},"9":{type:"warehouse",level:1}},
+    buildings:{"1":{type:"center",level:1},"6":{type:"lumberyard",level:1},"7":{type:"temple",level:1},"9":{type:"archery",level:1}},
     lastResourceTick:new Date(0),now:3600000
   });
   const upgraded = settleEconomy({
     resources:{gold:0,wood:0,food:0,stone:0,iron:0},
     workerAssignments:{wood:10,grain:10},
-    buildings:{"1":{type:"center",level:1},"6":{type:"lumberyard",level:5},"7":{type:"temple",level:1},"9":{type:"warehouse",level:1}},
+    buildings:{"1":{type:"center",level:1},"6":{type:"lumberyard",level:5},"7":{type:"temple",level:1},"9":{type:"archery",level:1}},
     lastResourceTick:new Date(0),now:3600000
   });
   assert.equal(base.productionPerHour.wood,100);
@@ -140,7 +140,7 @@ test("config rejects invalid port", () => {
 test("market purchases debit gold and credit the selected resource",async t=>{
  const secret="test-session-secret-with-at-least-32-characters",playerId="8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
  const token=createSessionToken(playerId,secret);let saved;
- const pool=createMarketPool({playerId,row:{resources:{gold:1000,wood:200},buildings:{"8":{type:"market",level:2},"9":{type:"warehouse",level:1}}},onUpdate:values=>{saved=JSON.parse(values[1]);}});
+ const pool=createMarketPool({playerId,row:{resources:{gold:1000,wood:200},buildings:{"8":{type:"market",level:2},"9":{type:"archery",level:1}}},onUpdate:values=>{saved=JSON.parse(values[1]);}});
  const server=createServer({pool,sessionSecret:secret});await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
  const response=await fetch(`http://127.0.0.1:${server.address().port}/api/game/market`,{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({side:"buy",resource:"wood",amount:100})});
  assert.equal(response.status,200);const result=await response.json();assert.equal(result.resources.gold,935);assert.equal(result.resources.wood,300);assert.deepEqual(saved,result.resources);
@@ -149,7 +149,7 @@ test("market purchases debit gold and credit the selected resource",async t=>{
 test("market rejects trades above the building capacity without changing resources",async t=>{
  const secret="test-session-secret-with-at-least-32-characters",playerId="8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
  const token=createSessionToken(playerId,secret);let updated=false;
- const pool=createMarketPool({playerId,row:{resources:{gold:1000,wood:0},buildings:{"8":{type:"market",level:1},"9":{type:"warehouse",level:1}}},onUpdate:()=>{updated=true;}});
+ const pool=createMarketPool({playerId,row:{resources:{gold:1000,wood:0},buildings:{"8":{type:"market",level:1},"9":{type:"archery",level:1}}},onUpdate:()=>{updated=true;}});
  const server=createServer({pool,sessionSecret:secret});await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
  const response=await fetch(`http://127.0.0.1:${server.address().port}/api/game/market`,{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({side:"buy",resource:"wood",amount:1100})});
  assert.equal(response.status,400);assert.equal(updated,false);
@@ -252,7 +252,7 @@ test("game state is returned only to a valid V2 player session", async (t) => {
         "3": { type: "stable", level: 1 }, "4": { type: "blacksmith", level: 1 },
         "5": { type: "school", level: 1 }, "6": { type: "lumberyard", level: 1 },
         "7": { type: "temple", level: 1 }, "8": { type: "market", level: 1 },
-        "9": { type: "warehouse", level: 1 }
+        "9": { type: "warehouse", level: 4, upgrade: { targetLevel: 5, startedAt: "2026-11-23T10:00:00.000Z", completesAt: "2026-11-25T10:00:00.000Z" } }
       },
       updated_at: "2026-11-17T12:00:00.000Z"
     }
@@ -271,6 +271,9 @@ test("game state is returned only to a valid V2 player session", async (t) => {
   assert.deepEqual(state.workerAssignments, { grain: 20, wood: 30, stone: 10 });
   assert.equal(state.buildings["1"].level, 3);
   assert.equal(state.buildings["2"].level, 2);
+  assert.equal(state.buildings["9"].type, "archery");
+  assert.equal(state.buildings["9"].level, 4);
+  assert.equal(state.buildings["9"].upgrade.targetLevel, 5);
   assert.ok(Number.isFinite(Date.parse(state.serverNow)), "state response must include authoritative server time");
   assert.equal(Object.keys(state.buildings).length, 9);
 });
@@ -319,7 +322,7 @@ test("fixed building slots reject construction and only allow level upgrades", a
       "6":{type:"lumberyard",level:1},
       "7":{type:"temple",level:1},
       "8":{type:"market",level:1},
-      "9":{type:"warehouse",level:1}
+      "9":{type:"archery",level:1}
     }
   };
   const pool = {
