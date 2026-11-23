@@ -35,7 +35,7 @@ export function settleEconomy({
   const centerLevel = Math.max(1, Math.min(10, Number(buildings["1"]?.level) || 1));
   const templeLevel = Math.max(1, Math.min(10, Number(buildings["7"]?.level) || 1));
   const lumberyardLevel = Math.max(1, Math.min(10, Number(buildings["6"]?.level) || 1));
-  const lumberyardMultiplier = 1 + lumberyardLevel * 0.05;
+  const lumberyardMultiplier = 1 + (lumberyardLevel - 1) * 0.05;
   const storageCapacity = 15000 + (warehouseLevel - 1) * 10000;
   const previousTick = lastResourceTick ? new Date(lastResourceTick).getTime() : now;
   const safePreviousTick = Number.isFinite(previousTick) ? previousTick : now;
@@ -125,7 +125,7 @@ export function settleEconomy({
     workersProduced: newWorkers,
     productionApplied,
     storageCapacity,
-    lumberyardBonusPercent: lumberyardLevel * 5,
+    lumberyardBonusPercent: (lumberyardLevel - 1) * 5,
     lastResourceTick: new Date(lastTick).toISOString()
   };
 }
