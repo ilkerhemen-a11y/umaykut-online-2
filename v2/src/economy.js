@@ -60,6 +60,39 @@ export function settleEconomy({
   }
 
   const centerMultiplier = 1 + (centerLevel - 1) * 0.05;
+  const centerMultiplier = 1 + (centerLevel - 1) * 0.05;
+  const productionBreakdown = [];
+  for (const [workerKey, rawCount] of Object.entries(assignments)) {
+    const workers = Number(rawCount);
+    if (!Number.isSafeInteger(workers) || workers <= 0) continue;
+    let resourceType = workerKey;
+    let nodeId = null;
+    let yieldLevel = 1;
+    const nodeMatch = /^mine_([1-9]\\d*)$/.exec(workerKey);
+    if (nodeMatch) {
+      const node = nodeById.get(nodeMatch[1]);
+      if (!node) continue;
+      resourceType = String(node.resource_type);
+      nodeId = nodeMatch[1];
+      yieldLevel = Math.max(1, Math.min(10, Number(node.yield_level) || 1));
+    }
+    const resourceKey = RESOURCE_ALIASES[resourceType] || resourceType;
+    const workerBaseRate = RESOURCE_PRODUCTION_PER_WORKER_HOUR[resourceType];
+    if (!RESOURCE_KEYS.includes(resourceKey) || !Number.isFinite(workerBaseRate)) continue;
+    const nodeMultiplier = 1 + (yieldLevel - 1) * 0.1;
+    productionBreakdown.push({
+      key: workerKey,
+      nodeId,
+      resourceType: resourceKey,
+      workers,
+      yieldLevel,
+      workerBaseRate,
+      nodeMultiplier: Number(nodeMultiplier.toFixed(2)),
+      centerMultiplier: Number(centerMultiplier.toFixed(2)),
+      hourlyProduction: Number((workers * workerBaseRate * nodeMultiplier * centerMultiplier).toFixed(2))
+    });
+  }
+
   const productionApplied = {};
   for (const key of RESOURCE_KEYS) {
     const exact = productionPerHour[key] * centerMultiplier * elapsedHours + Math.max(0, Number(remainders[key]) || 0);
@@ -76,6 +109,7 @@ export function settleEconomy({
     resources,
     remainders,
     productionPerHour,
+    productionBreakdown,
     productionApplied,
     storageCapacity,
     lastResourceTick: new Date(lastTick).toISOString()
