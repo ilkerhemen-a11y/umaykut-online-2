@@ -522,3 +522,5 @@
 .ranking-identity small{overflow:hidden;color:#c8bea4;font:9px Arial,sans-serif;text-overflow:ellipsis;white-space:nowrap}
 .ranking-points{color:#f4d68b;font:bold 13px Georgia,serif;white-space:nowrap}
 .ranking-more{margin:7px 0 0;text-align:center;color:#c9bea2;font:10px Arial,sans-serif}
+
+.ranking-method-note{margin:4px 0 14px;color:#cfc3a4;font:11px/1.5 Arial,sans-serif;text-align:center}
