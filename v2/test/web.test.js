@@ -44,6 +44,10 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/data-action="battle-reports"/);
   assert.match(html,/id="battle-reports-list"/);
   assert.match(html,/data-action="inventory"/);
+  assert.match(html,/data-action="incoming-attacks"/);
+  assert.match(html,/data-action="outgoing-attacks"/);
+  assert.match(html,/id="incoming-attacks-dialog"/);
+  assert.match(html,/id="outgoing-attacks-dialog"/);
   assert.match(html,/id="neutral-region-dialog"/);
   assert.match(html,/id="neutral-region-action"/);
   assert.doesNotMatch(html,/class="map-legend"/);
