@@ -528,6 +528,76 @@ reducedMotionToggle.addEventListener("change",saveSettings);
 compactResourcesToggle.addEventListener("change",saveSettings);
 applySettings();
 
+const rankingDialog=document.querySelector("#ranking-dialog");
+const rankingListNode=document.querySelector("#ranking-list");
+const rankingMessageNode=document.querySelector("#ranking-message");
+const rankingRefreshButton=document.querySelector("#ranking-refresh");
+const rankingFactionNames={gokturk:"Göktürk",hun:"Hun",seljuk:"Selçuklu"};
+const rankingNumber=value=>new Intl.NumberFormat("tr-TR").format(Number(value)||0);
+
+function renderRanking(data){
+ const me=data.me;
+ document.querySelector("#ranking-my-position").textContent=me?"#"+rankingNumber(me.rank):"Henüz yok";
+ document.querySelector("#ranking-my-score").textContent=me?rankingNumber(me.score)+" puan":"—";
+ rankingListNode.replaceChildren();
+ const players=Array.isArray(data.topPlayers)?data.topPlayers:[];
+ if(!players.length){
+  const empty=document.createElement("p");
+  empty.textContent="Henüz sıralamaya katılan bir yurt bulunmuyor.";
+  rankingListNode.append(empty);
+  return;
+ }
+ players.forEach(player=>{
+  const row=document.createElement("article");
+  row.className="ranking-row"+(player.isMe?" is-me":"");
+  const rank=document.createElement("span");
+  rank.className="ranking-place";
+  rank.textContent=player.rank<=3?["🥇","🥈","🥉"][player.rank-1]:"#"+rankingNumber(player.rank);
+  const identity=document.createElement("span");
+  identity.className="ranking-identity";
+  const username=document.createElement("strong");
+  username.textContent=player.username||"Oyuncu";
+  const village=document.createElement("small");
+  village.textContent=(player.villageName||"İsimsiz Yurt")+" · "+(rankingFactionNames[player.factionId]||"Devlet seçilmedi");
+  identity.append(username,village);
+  const score=document.createElement("b");
+  score.className="ranking-points";
+  score.textContent=rankingNumber(player.score);
+  row.append(rank,identity,score);
+  rankingListNode.append(row);
+ });
+ if(data.totalPlayers>players.length){
+  const more=document.createElement("p");
+  more.className="ranking-more";
+  more.textContent="İlk "+rankingNumber(players.length)+" oyuncu gösteriliyor · Toplam "+rankingNumber(data.totalPlayers)+" oyuncu";
+  rankingListNode.append(more);
+ }
+}
+
+async function loadRanking(){
+ if(!authToken)return;
+ rankingRefreshButton.disabled=true;
+ rankingMessageNode.textContent="Sıralama güncelleniyor…";
+ try{
+  const data=await authRequest("/api/game/ranking",{token:authToken});
+  renderRanking(data);
+  rankingMessageNode.textContent=rankingNumber(data.totalPlayers)+" oyuncu değerlendirildi.";
+ }catch(error){
+  rankingListNode.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Sıralama yüklenemedi."}));
+  rankingMessageNode.textContent="Bağlantını kontrol edip yeniden deneyebilirsin.";
+ }finally{
+  rankingRefreshButton.disabled=false;
+ }
+}
+
+function openRanking(){
+ if(!rankingDialog.open)rankingDialog.showModal();
+ loadRanking();
+}
+document.querySelector("#open-ranking").addEventListener("click",openRanking);
+document.querySelector("#ranking-close").addEventListener("click",()=>rankingDialog.close());
+rankingRefreshButton.addEventListener("click",loadRanking);
+
 const WORKER_POOL=1800;
 let currentWorkerPool=WORKER_POOL;
 let currentArmyPopulation=0;
