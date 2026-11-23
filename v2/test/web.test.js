@@ -138,7 +138,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="workers-available">1\.800/);
   assert.match(html,/id="workers-assigned-total">0 görevde/);
   assert.match(html,/id="recall-workers"/);
-  assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,3);
+  assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,0);
 
   const script=await fetch(base+"/app.js?v=20261123-building-upgrade-progress-1");
   assert.equal(script.status,200);
