@@ -20,7 +20,7 @@ test("world resource migration equalizes the four core global resources without 
 
 test("new player resource nodes use randomized positions close to the village", async () => {
   const server = await read("../src/server.js");
-  assert.equal((server.match(/random\(\)\*2\*pi\(\) AS angle, 1\.25\+random\(\)\*0\.45 AS radius/g) || []).length, 2);
+  assert.equal((server.match(/random\\(\\)\\*2\\*pi\\(\\)\\+v\\.resource_slot\\*0 AS angle, 1\\.25\\+random\\(\\)\\*0\\.45\\+v\\.resource_slot\\*0 AS radius/g) || []).length, 2);
   assert.equal((server.match(/cos\(spawn\.angle\+v\.resource_slot\*2\*pi\(\)\/5\)\*spawn\.radius/g) || []).length, 2);
   assert.equal((server.match(/sin\(spawn\.angle\+v\.resource_slot\*2\*pi\(\)\/5\)\*spawn\.radius/g) || []).length, 2);
 });
