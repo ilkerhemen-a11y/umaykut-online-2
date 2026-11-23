@@ -1001,12 +1001,14 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           return sendJson(res, 400, { error: "İşçi dağılımı geçersiz." });
         }
         const workerCapacity = await pool.query(
-          "SELECT worker_pool FROM umaykut_v2.player_game_state WHERE player_id = $1",
+          "SELECT worker_pool, troops FROM umaykut_v2.player_game_state WHERE player_id = $1",
           [playerId]
         );
         const currentWorkerPool = Number(workerCapacity.rows[0]?.worker_pool ?? 1800);
-        if (totalAssignedWorkers > currentWorkerPool) {
-          return sendJson(res, 400, { error: "Görevlendirilen işçi sayısı mevcut toplam işçiyi aşamaz.", workerPool: currentWorkerPool });
+        const currentTroops = workerCapacity.rows[0]?.troops ?? {};
+        const totalTroops = Object.values(currentTroops).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0);
+        if (totalAssignedWorkers + totalTroops > currentWorkerPool) {
+          return sendJson(res, 400, { error: "Görevlendirilen işçi ve asker sayısı toplam işçi kapasitesini aşamaz.", workerPool: currentWorkerPool, totalTroops });
         }
         const saved = await pool.query(
           `INSERT INTO umaykut_v2.player_game_state(player_id, faction_id, worker_assignments, worker_state_initialized)
