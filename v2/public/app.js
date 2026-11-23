@@ -1056,6 +1056,60 @@ async function openBattleReports(){
   battleReportsMessage.textContent="Bağlantını kontrol edip yeniden dene.";
  }
 }
+
+const incomingAttacksDialog=document.querySelector("#incoming-attacks-dialog");
+const outgoingAttacksDialog=document.querySelector("#outgoing-attacks-dialog");
+function attackTimeLabel(raid){
+ const now=Date.now(),arrival=Date.parse(raid.arrives_at)-now,returning=raid.return_at?Date.parse(raid.return_at)-now:0;
+ if(raid.status==="marching")return arrival>0?"Hedefe varış: yaklaşık "+Math.ceil(arrival/60000)+" dk":"Hedefe ulaştı · savaş sonucu bekleniyor";
+ if(raid.status==="resolved")return returning>0?"Savaş tamamlandı · dönüş: yaklaşık "+Math.ceil(returning/60000)+" dk":"Savaş tamamlandı · dönüş sürecinde";
+ return "Sefer tamamlandı · ordu köye döndü";
+}
+function attackDetailCard(raid,direction){
+ const outgoing=direction==="outgoing",card=document.createElement("article");card.className="attack-detail-card";
+ const heading=document.createElement("div");heading.className="attack-detail-heading";
+ const title=document.createElement("strong");title.textContent=(outgoing?"⚔️ Hedef: ":"🛡️ Saldıran: ")+(outgoing?(raid.defender_village||"Rakip köy"):(raid.attacker_village||"Bilinmeyen oyuncu"));
+ const status=document.createElement("span");status.className="attack-status";status.textContent=raid.status==="marching"?"Yolda":raid.status==="resolved"?"Savaş bitti":"Tamamlandı";heading.append(title,status);card.append(heading);
+ const timing=document.createElement("p");timing.className="attack-detail-timing";timing.textContent=attackTimeLabel(raid);card.append(timing);
+ const dates=document.createElement("div");dates.className="attack-detail-meta";
+ if(raid.departed_at){const x=document.createElement("small");x.textContent="Çıkış: "+new Date(raid.departed_at).toLocaleString("tr-TR");dates.append(x);}
+ if(raid.arrives_at){const x=document.createElement("small");x.textContent="Varış: "+new Date(raid.arrives_at).toLocaleString("tr-TR");dates.append(x);}
+ if(raid.return_at){const x=document.createElement("small");x.textContent="Dönüş: "+new Date(raid.return_at).toLocaleString("tr-TR");dates.append(x);}
+ if(dates.children.length)card.append(dates);
+ if(raid.battle_report){
+  const report=raid.battle_report,grid=document.createElement("div");grid.className="attack-detail-stats";
+  const ownLoss=outgoing?report.attackerLostCount:report.defenderLostCount,enemyLoss=outgoing?report.defenderLostCount:report.attackerLostCount;
+  [["Senin asker kaybın",ownLoss],["Rakip asker kaybı",enemyLoss],["Savunma gücü",report.defenderPower],["Sur azaltması","%"+(report.wallDefensePercent||0)]].forEach(([label,value])=>{const cell=document.createElement("div"),v=document.createElement("strong"),l=document.createElement("small");v.textContent=reportNumber(value??0);l.textContent=label;cell.append(v,l);grid.append(cell);});
+  card.append(grid);
+  const ownBreakdown=outgoing?report.attackerLosses:report.defenderLosses,enemyBreakdown=outgoing?report.defenderLosses:report.attackerLosses;
+  const format=losses=>Object.entries(losses||{}).filter(([,n])=>Number(n)>0).map(([id,n])=>id+": "+reportNumber(n)).join(" · ")||"Kayıp yok";
+  const losses=document.createElement("p");losses.className="attack-detail-copy";losses.textContent="Senin kayıpların: "+format(ownBreakdown)+" | Rakip kayıpları: "+format(enemyBreakdown);card.append(losses);
+  if(report.outcomeText){const outcome=document.createElement("p");outcome.className="attack-detail-copy";outcome.textContent=report.outcomeText;card.append(outcome);}
+  if(outgoing&&raid.loot){const loot=Object.entries(raid.loot).filter(([,n])=>Number(n)>0).map(([key,n])=>key+": "+reportNumber(n));if(loot.length){const lootLine=document.createElement("p");lootLine.className="attack-detail-loot";lootLine.textContent="🏆 Ganimet: "+loot.join(" · ");card.append(lootLine);}}
+ }else{
+  const waiting=document.createElement("p");waiting.className="attack-detail-copy";waiting.textContent=raid.status==="marching"?"Savaş sonucu henüz oluşmadı. Ordu hedefe ulaştığında sonuç burada gösterilecek.":"Bu sefer için ayrıntılı savaş raporu bulunmuyor.";card.append(waiting);
+ }
+ return card;
+}
+async function openAttackList(direction){
+ if(!authToken)return;
+ const dialog=direction==="incoming"?incomingAttacksDialog:outgoingAttacksDialog;
+ const list=document.querySelector("#"+direction+"-attacks-list"),message=document.querySelector("#"+direction+"-attacks-message");
+ list.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Saldırı kayıtları yükleniyor…"}));message.textContent="";
+ dialog.showModal();
+ try{
+  const data=await authRequest("/api/game/attacks",{token:authToken});
+  const raids=(data.attacks||[]).filter(raid=>raid.direction===direction).sort((a,b)=>Date.parse(b.departed_at||b.arrives_at)-Date.parse(a.departed_at||a.arrives_at));
+  list.replaceChildren();
+  if(!raids.length){list.append(Object.assign(document.createElement("p"),{textContent:direction==="incoming"?"Köyüne gelen saldırı bulunmuyor.":"Henüz bir saldırı göndermedin."}));}
+  else raids.forEach(raid=>list.append(attackDetailCard(raid,direction)));
+  message.textContent=raids.length+" kayıt bulundu.";
+ }catch(error){list.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Saldırı kayıtları yüklenemedi."}));message.textContent="Bağlantını kontrol edip yeniden dene.";}
+}
+document.querySelector('[data-action="incoming-attacks"]').addEventListener("click",()=>openAttackList("incoming"));
+document.querySelector('[data-action="outgoing-attacks"]').addEventListener("click",()=>openAttackList("outgoing"));
+document.querySelectorAll("[data-close-attack-list]").forEach(button=>button.addEventListener("click",()=>{(button.dataset.closeAttackList==="incoming"?incomingAttacksDialog:outgoingAttacksDialog).close();}));
+
 document.querySelector('[data-action="battle-reports"]').addEventListener("click",openBattleReports);
 document.querySelector("#battle-reports-close").addEventListener("click",()=>battleReportsDialog.close());
 battleReportsDialog.addEventListener("click",event=>{if(event.target===battleReportsDialog)battleReportsDialog.close();});
