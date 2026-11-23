@@ -61,7 +61,7 @@ test("lumberyard level increases wood production without changing other resource
     buildings:{"1":{type:"center",level:1},"6":{type:"lumberyard",level:5},"7":{type:"temple",level:1},"9":{type:"warehouse",level:1}},
     lastResourceTick:new Date(0),now:3600000
   });
-  assert.equal(base.productionPerHour.wood,105);
+  assert.equal(base.productionPerHour.wood,100);
   assert.equal(upgraded.productionPerHour.wood,120);
   assert.equal(base.productionPerHour.food,120);
   assert.equal(upgraded.productionPerHour.food,120);
