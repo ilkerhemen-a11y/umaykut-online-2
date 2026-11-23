@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Umaykut Online 2 — Köy Numara Önizlemesi</title>
+<style>
+:root{color-scheme:dark;--gold:#e3c16e;--cream:#f3e5bd;--panel:#17231d}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#0b130e;color:var(--cream);font-family:Arial,sans-serif}
+body{padding:14px 12px 28px}
+main{width:min(100%,760px);margin:auto}
+h1{font:700 21px Georgia,serif;color:#f4d98f;text-align:center;margin:5px 0 8px}
+.intro{font-size:13px;line-height:1.5;text-align:center;color:#d5c8a6;margin:0 auto 14px;max-width:600px}
+.stage-wrap{display:grid;place-items:center;width:100%;min-height:280px;padding:8px;border:1px solid #8d713d;border-radius:14px;background:#17251b;box-shadow:0 8px 28px #0008}
+#stage{position:relative;max-width:100%;max-height:76vh;touch-action:pan-y;user-select:none}
+#art{display:block;width:100%;height:100%;object-fit:fill;border-radius:8px}
+.marker{position:absolute;z-index:2;transform:translate(-50%,-50%);width:34px;height:34px;border:2px solid #fff0b4;border-radius:50%;background:radial-gradient(circle at 35% 25%,#fff0b4,#c28b31 62%,#69491d);color:#fff8dc;text-shadow:0 1px 2px #54320c;font:bold 16px Georgia,serif;box-shadow:0 2px 8px #000c,0 0 0 2px #47351b;display:grid;place-items:center;padding:0;touch-action:none;cursor:grab}
+.marker:active{cursor:grabbing;transform:translate(-50%,-50%) scale(1.08)}
+.marker small{position:absolute;top:calc(100% + 3px);left:50%;transform:translateX(-50%);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;padding:3px 5px;border:1px solid #d7bd7b;border-radius:4px;background:#101811ed;color:#fff0c8;font:700 9px Arial,sans-serif;box-shadow:0 1px 4px #0009}
+.controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0}
+button.action{border:1px solid #d9b969;border-radius:9px;background:linear-gradient(#94713a,#59401e);padding:11px 14px;color:#fff0c5;font-weight:700;font-size:13px}
+a.back{display:inline-block;color:#e8cb80;text-align:center;width:100%;font-size:12px;margin-top:4px}
+.coords{padding:12px;border:1px solid #76613a;border-radius:10px;background:#111c15;font:12px/1.6 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;color:#eadcb9}
+.note{font-size:11px;color:#bdb18f;line-height:1.5;text-align:center;margin:10px 0}
+</style>
+</head>
+<body>
+<main>
+<h1>Göktürk Köyü — Numara Yerleşimi</h1>
+<p class="intro">Dostum, numaraları doğru binaların tam üzerine sürükle. Görselin kendisi V2 deposundaki orijinal köy resmidir. Yerleşimi bitirince koordinatları kopyalayıp buraya gönder; oyunun asıl ekranına henüz dokunmuyorum.</p>
+<div class="stage-wrap"><div id="stage">
+<img id="art" src="/assets/IMG-20261117-WA0073.jpg" alt="Göktürk başlangıç köyü">
+<button class="marker" data-n="1" style="left:50%;top:45%" aria-label="1 Merkez">1<small>Merkez</small></button>
+<button class="marker" data-n="2" style="left:41.82%;top:33.31%" aria-label="2 Kışla">2<small>Kışla</small></button>
+<button class="marker" data-n="3" style="left:64.5%;top:33.66%" aria-label="3 Ahır">3<small>Ahır</small></button>
+<button class="marker" data-n="4" style="left:23.79%;top:40.14%" aria-label="4 Oduncu Ocağı">4<small>Oduncu Ocağı</small></button>
+<button class="marker" data-n="5" style="left:82.43%;top:40.76%" aria-label="5 Çiftlik">5<small>Çiftlik</small></button>
+<button class="marker" data-n="6" style="left:21%;top:51%" aria-label="6 Taş Ocağı">6<small>Taş Ocağı</small></button>
+<button class="marker" data-n="7" style="left:85.22%;top:53.18%" aria-label="7 Demir Madeni">7<small>Demir Madeni</small></button>
+<button class="marker" data-n="8" style="left:38.5%;top:58.98%" aria-label="8 Pazar">8<small>Pazar</small></button>
+<button class="marker" data-n="9" style="left:66.47%;top:59.53%" aria-label="9 Depo">9<small>Depo</small></button>
+</div></div>
+<div class="controls">
+<button class="action" id="copy">Koordinatları kopyala</button>
+<button class="action" id="reset">Başlangıç konumlarına döndür</button>
+</div>
+<div class="coords" id="coords" aria-live="polite"></div>
+<p class="note">Bir numarayı taşımak için üzerine basılı tutup doğru binanın ortasına sürükle. Her numara ayrı hareket eder. Kopyalama çalışmazsa alttaki koordinatları seçip kopyalayabilirsin.</p>
+<a class="back" href="/">← V2 oyun ekranına dön</a>
+</main>
+<script>
+const stage=document.querySelector("#stage"),art=document.querySelector("#art"),coords=document.querySelector("#coords");
+const initial={"1":[50,45],"2":[41.82,33.31],"3":[64.5,33.66],"4":[23.79,40.14],"5":[82.43,40.76],"6":[21,51],"7":[85.22,53.18],"8":[38.5,58.98],"9":[66.47,59.53]};
+const names={"1":"Merkez","2":"Kışla","3":"Ahır","4":"Oduncu Ocağı","5":"Çiftlik","6":"Taş Ocağı","7":"Demir Madeni","8":"Pazar","9":"Depo"};
+function fit(){if(!art.naturalWidth)return;const box=stage.parentElement;const maxW=box.clientWidth-16,maxH=window.innerHeight*.76;const s=Math.min(maxW/art.naturalWidth,maxH/art.naturalHeight);stage.style.width=Math.round(art.naturalWidth*s)+"px";stage.style.height=Math.round(art.naturalHeight*s)+"px";}
+function getData(){return [...document.querySelectorAll(".marker")].sort((a,b)=>Number(a.dataset.n)-Number(b.dataset.n)).map(el=>{const n=el.dataset.n;return n+" "+names[n]+": "+Number(parseFloat(el.style.left).toFixed(2))+"%, "+Number(parseFloat(el.style.top).toFixed(2))+"%";}).join("\n");}
+function update(){coords.textContent=getData();}
+function place(el,x,y){el.style.left=Math.max(2,Math.min(98,x))+"%";el.style.top=Math.max(2,Math.min(98,y))+"%";update();}
+document.querySelectorAll(".marker").forEach(el=>{
+ let active=false;
+ el.addEventListener("pointerdown",e=>{active=true;el.setPointerCapture(e.pointerId);e.preventDefault();});
+ el.addEventListener("pointermove",e=>{if(!active)return;const r=stage.getBoundingClientRect();place(el,(e.clientX-r.left)/r.width*100,(e.clientY-r.top)/r.height*100);});
+ el.addEventListener("pointerup",()=>active=false);
+ el.addEventListener("pointercancel",()=>active=false);
+});
+document.querySelector("#reset").addEventListener("click",()=>{document.querySelectorAll(".marker").forEach(el=>{const p=initial[el.dataset.n];el.style.left=p[0]+"%";el.style.top=p[1]+"%";});update();});
+document.querySelector("#copy").addEventListener("click",async()=>{const value=getData();try{await navigator.clipboard.writeText(value);document.querySelector("#copy").textContent="Kopyalandı ✓";}catch{coords.focus?.();document.querySelector("#copy").textContent="Alttaki koordinatları seçip kopyala";}});
+art.addEventListener("load",fit,{once:true});if(art.complete)fit();window.addEventListener("resize",fit,{passive:true});update();
+</script>
+</body>
+</html>

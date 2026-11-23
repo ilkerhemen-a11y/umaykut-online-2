@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1536" role="img" aria-labelledby="title desc">
+<title id="title">Orman içindeki surlarla çevrili Umaykut şehri</title>
+<desc id="desc">Taş surlu, kuleli, merkezinde büyük kubbeli saray bulunan, pazar ve atölyeleri olan izometrik Selçuklu şehri.</desc>
+<defs>
+ <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#173b36"/><stop offset=".48" stop-color="#83a85b"/><stop offset="1" stop-color="#25452b"/></linearGradient>
+ <linearGradient id="grass" x2=".15" y2="1"><stop stop-color="#a6bd62"/><stop offset=".45" stop-color="#678b3d"/><stop offset="1" stop-color="#29482d"/></linearGradient>
+ <linearGradient id="stone" x2=".15" y2="1"><stop stop-color="#e2cf9b"/><stop offset=".48" stop-color="#b59b68"/><stop offset="1" stop-color="#746043"/></linearGradient>
+ <linearGradient id="roof" x2=".2" y2="1"><stop stop-color="#9de0e1"/><stop offset=".45" stop-color="#278c9c"/><stop offset="1" stop-color="#124b62"/></linearGradient>
+ <linearGradient id="gold" x2=".2" y2="1"><stop stop-color="#fff0a5"/><stop offset=".45" stop-color="#d7a83e"/><stop offset="1" stop-color="#80521d"/></linearGradient>
+ <linearGradient id="red" x2=".2" y2="1"><stop stop-color="#f4b1a0"/><stop offset=".45" stop-color="#b83f37"/><stop offset="1" stop-color="#612127"/></linearGradient>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur stdDeviation="9"/></filter>
+ <g id="pine">
+  <path d="M0 0L-13 42H-5L-23 75H-7L-29 110H29L7 75H23L5 42H13Z" fill="#173c2c"/>
+  <path d="M0 5L-10 39H-3L-18 68H-5L-22 99H22L5 68H18L3 39H10Z" fill="#28613a"/>
+  <path d="M0 8L-5 37L0 31L5 39Z" fill="#83a45a" opacity=".65"/>
+  <path d="M0 97V132" stroke="#624a2e" stroke-width="9"/>
+ </g>
+ <g id="bush"><circle r="19" fill="#245333"/><circle cx="-10" cy="-5" r="13" fill="#39703a"/><circle cx="9" cy="-9" r="14" fill="#638c40"/><circle cx="3" cy="7" r="13" fill="#477b38"/></g>
+ <g id="tower">
+  <ellipse cx="0" cy="42" rx="34" ry="14" fill="#4b3e2c" opacity=".35"/>
+  <path d="M-26 0H26L22 63Q0 79 -22 63Z" fill="url(#stone)" stroke="#6e5b3d" stroke-width="3"/>
+  <path d="M-18 16H18M-20 38H20M-18 58H18" stroke="#7e6948" stroke-width="3"/>
+  <path d="M-25 1Q0 -28 25 1L18 10H-18Z" fill="url(#roof)" stroke="#174b59" stroke-width="3"/>
+  <path d="M0 -26V-42" stroke="#d7bd76" stroke-width="3"/><path d="M0 -42L16 -36L0 -30Z" fill="#d9b85c"/>
+  <rect x="-7" y="36" width="14" height="27" rx="6" fill="#493b2a"/>
+ </g>
+ <g id="smallhouse">
+  <path d="M-54 5L0 -34L55 5V63H-54Z" fill="url(#stone)" stroke="#66543b" stroke-width="4"/>
+  <path d="M-62 7L0 -43L62 7L53 18L0 -22L-53 18Z" fill="url(#roof)" stroke="#174c59" stroke-width="4"/>
+  <path d="M-25 62V26Q0 -2 25 26V62Z" fill="#55432c" stroke="#e3d2a8" stroke-width="4"/>
+  <path d="M-39 18V44M39 18V44" stroke="#5c4b35" stroke-width="7"/>
+  <rect x="-7" y="29" width="14" height="33" rx="7" fill="#493b2a"/>
+  <path d="M-44 3H44" stroke="#f4e3b6" stroke-width="3"/>
+ </g>
+ <g id="central">
+  <ellipse cx="0" cy="128" rx="130" ry="28" fill="#1c2d1c" opacity=".35"/>
+  <path d="M-100 38H100V126H-100Z" fill="url(#stone)" stroke="#756043" stroke-width="5"/>
+  <path d="M-119 44L-80 8H80L119 44V58H-119Z" fill="#d7c291" stroke="#7d6846" stroke-width="5"/>
+  <path d="M-75 40V-15H75V40" fill="#d5c293" stroke="#7c6746" stroke-width="5"/>
+  <path d="M-60 42V-5H60V42" fill="url(#stone)"/>
+  <path d="M-45 125V78Q0 25 45 78V125Z" fill="#493b29" stroke="#e7d5a9" stroke-width="6"/>
+  <path d="M-18 125V88Q0 62 18 88V125Z" fill="#6d4b2b"/>
+  <path d="M-57 -15Q0 -100 57 -15L43 0H-43Z" fill="url(#roof)" stroke="#164d5c" stroke-width="5"/>
+  <path d="M0 -99V-125" stroke="#e8d49c" stroke-width="4"/><path d="M0 -125L20 -116L0 -107Z" fill="#e7c45f"/>
+  <path d="M-90 35Q-90 -20 -58 -23Q-25 -20 -25 35" fill="url(#stone)" stroke="#7d6746" stroke-width="4"/>
+  <path d="M25 35Q25 -20 58 -23Q90 -20 90 35" fill="url(#stone)" stroke="#7d6746" stroke-width="4"/>
+  <path d="M-87 -22Q-58 -68 -29 -22L-38 -13H-78Z" fill="url(#gold)" stroke="#7b571f" stroke-width="3"/>
+  <path d="M29 -22Q58 -68 87 -22L78 -13H38Z" fill="url(#gold)" stroke="#7b571f" stroke-width="3"/>
+  <g fill="#4a3929" stroke="#f0dfb4" stroke-width="3"><path d="M-77 70V48Q-60 23 -43 48V70Z"/><path d="M43 70V48Q60 23 77 48V70Z"/></g>
+ </g>
+</defs>
+<rect width="1024" height="1536" fill="url(#sky)"/>
+<path d="M0 180Q170 95 340 180T680 150T1024 175V1536H0Z" fill="url(#grass)"/>
+<path d="M0 270Q200 180 390 260T760 245T1024 280" fill="none" stroke="#b3c77a" stroke-width="30" opacity=".12"/>
+<!-- surrounding forest -->
+<g opacity=".98">
+ <use href="#pine" transform="translate(45 55) scale(1.5)"/><use href="#pine" transform="translate(150 20) scale(1.25)"/><use href="#pine" transform="translate(280 30) scale(1.1)"/><use href="#pine" transform="translate(760 35) scale(1.2)"/><use href="#pine" transform="translate(930 20) scale(1.55)"/>
+ <use href="#pine" transform="translate(30 440) scale(1.25)"/><use href="#pine" transform="translate(990 400) scale(1.35)"/><use href="#pine" transform="translate(35 1000) scale(1.2)"/><use href="#pine" transform="translate(990 1050) scale(1.3)"/>
+ <use href="#pine" transform="translate(90 1290) scale(1.25)"/><use href="#pine" transform="translate(235 1430) scale(1.4)"/><use href="#pine" transform="translate(800 1400) scale(1.35)"/><use href="#pine" transform="translate(965 1300) scale(1.45)"/>
+</g>
+<g opacity=".9">
+ <use href="#bush" transform="translate(180 260) scale(1.4)"/><use href="#bush" transform="translate(840 250) scale(1.5)"/><use href="#bush" transform="translate(80 560)"/><use href="#bush" transform="translate(950 600)"/><use href="#bush" transform="translate(95 1120) scale(1.3)"/><use href="#bush" transform="translate(910 1160) scale(1.4)"/><use href="#bush" transform="translate(340 1320)"/><use href="#bush" transform="translate(710 1300)"/>
+</g>
+<!-- rocks and flowers -->
+<g fill="#d2c79a" opacity=".8"><ellipse cx="115" cy="345" rx="40" ry="22"/><ellipse cx="145" cy="360" rx="25" ry="16"/><ellipse cx="870" cy="350" rx="36" ry="19"/><ellipse cx="895" cy="365" rx="23" ry="14"/><ellipse cx="90" cy="1210" rx="35" ry="19"/><ellipse cx="930" cy="1240" rx="38" ry="20"/></g>
+<g fill="#f4df8d"><circle cx="250" cy="240" r="4"/><circle cx="290" cy="310" r="5"/><circle cx="750" cy="270" r="4"/><circle cx="830" cy="420" r="5"/><circle cx="190" cy="1170" r="4"/><circle cx="800" cy="1190" r="4"/><circle cx="410" cy="1380" r="5"/><circle cx="620" cy="1400" r="4"/></g>
+<!-- approach road -->
+<path d="M512 1536Q500 1300 512 1130" stroke="#c6b58b" stroke-width="110" fill="none" opacity=".8"/><path d="M512 1536Q500 1300 512 1130" stroke="#e2d1a6" stroke-width="4" stroke-dasharray="10 18" fill="none"/>
+<!-- city ground -->
+<ellipse cx="512" cy="770" rx="465" ry="330" fill="#1b321f" opacity=".35" filter="url(#shadow)"/>
+<ellipse cx="512" cy="750" rx="455" ry="305" fill="#a9a06f" stroke="#5d573e" stroke-width="16"/>
+<ellipse cx="512" cy="750" rx="440" ry="290" fill="#b4a77b" stroke="#e1d1a4" stroke-width="6"/>
+<ellipse cx="512" cy="750" rx="420" ry="272" fill="#9d9a68"/>
+<ellipse cx="512" cy="750" rx="400" ry="252" fill="#84905c"/>
+<!-- cobblestone ring and roads -->
+<ellipse cx="512" cy="750" rx="355" ry="215" fill="none" stroke="#d6c69d" stroke-width="34"/>
+<ellipse cx="512" cy="750" rx="355" ry="215" fill="none" stroke="#8e7b59" stroke-width="3" stroke-dasharray="3 13"/>
+<path d="M512 750L512 465M512 750L800 750M512 750L512 1010M512 750L220 750" stroke="#d5c59a" stroke-width="35" fill="none"/>
+<path d="M512 750L512 465M512 750L800 750M512 750L512 1010M512 750L220 750" stroke="#8f7e5e" stroke-width="3" stroke-dasharray="3 13" fill="none"/>
+<path d="M512 750L320 570M512 750L705 570M512 750L700 920M512 750L320 920" stroke="#d2c198" stroke-width="23" fill="none"/>
+<!-- wall -->
+<ellipse cx="512" cy="750" rx="438" ry="287" fill="none" stroke="#574a34" stroke-width="42"/>
+<ellipse cx="512" cy="750" rx="438" ry="287" fill="none" stroke="url(#stone)" stroke-width="34"/>
+<ellipse cx="512" cy="750" rx="438" ry="287" fill="none" stroke="#ead7a7" stroke-width="4" stroke-dasharray="12 7"/>
+<g>
+ <use href="#tower" transform="translate(180 560) scale(1.15)"/><use href="#tower" transform="translate(345 478) scale(1.05)"/><use href="#tower" transform="translate(680 478) scale(1.05)"/><use href="#tower" transform="translate(845 560) scale(1.15)"/>
+ <use href="#tower" transform="translate(95 750) scale(1.1)"/><use href="#tower" transform="translate(930 750) scale(1.1)"/>
+ <use href="#tower" transform="translate(205 960) scale(1.15)"/><use href="#tower" transform="translate(820 960) scale(1.15)"/>
+</g>
+<!-- gatehouse -->
+<path d="M430 1015V945Q512 875 594 945V1015Z" fill="url(#stone)" stroke="#594a33" stroke-width="8"/>
+<path d="M470 1015V964Q512 916 554 964V1015Z" fill="#493722" stroke="#e4d2a5" stroke-width="7"/>
+<path d="M512 920V1014" stroke="#b28b4a" stroke-width="5"/><path d="M448 934L420 895L455 900Z" fill="#d8b45a"/><path d="M576 934L604 895L569 900Z" fill="#d8b45a"/>
+<!-- small buildings around central keep -->
+<use href="#smallhouse" transform="translate(350 560) scale(.9)"/>
+<use href="#smallhouse" transform="translate(680 560) scale(.9)"/>
+<use href="#smallhouse" transform="translate(265 700) scale(.88)"/>
+<use href="#smallhouse" transform="translate(760 700) scale(.88)"/>
+<use href="#smallhouse" transform="translate(355 890) scale(.82)"/>
+<use href="#smallhouse" transform="translate(675 890) scale(.82)"/>
+<!-- central palace -->
+<use href="#central" transform="translate(512 735) scale(1.05)"/>
+<!-- bazaar stalls -->
+<g transform="translate(365 950)"><path d="M-90 0H90V56H-90Z" fill="#8d6a3e"/><path d="M-100 0L-70 -48H70L100 0Z" fill="#a94c32"/><path d="M-60 0L-40 -48H-10L-25 0ZM0 0L15 -48H45L30 0Z" fill="#f1d99a"/><path d="M-70 55V10M70 55V10" stroke="#5d4028" stroke-width="8"/></g>
+<g transform="translate(660 955)"><path d="M-75 0H75V54H-75Z" fill="#795632"/><path d="M-85 0L-55 -45H55L85 0Z" fill="#d1a34e"/><path d="M-45 0L-30 -45H0L-12 0ZM18 0L32 -45H52L42 0Z" fill="#f0dca9"/><path d="M-55 54V10M55 54V10" stroke="#503923" stroke-width="8"/></g>
+<!-- forge and archery -->
+<g transform="translate(220 835)"><path d="M-45 20H45V72H-45Z" fill="#5a4933" stroke="#dfc89a" stroke-width="4"/><path d="M-55 20L0 -25L55 20Z" fill="#433b31"/><path d="M-15 72V38Q0 8 15 38V72Z" fill="#f37b25"/><path d="M-10 60Q0 30 10 60" fill="#ffd36d"/></g>
+<g transform="translate(790 830)"><path d="M-40 35V-25M0 35V-25M40 35V-25" stroke="#61452c" stroke-width="7"/><circle cx="-40" cy="-30" r="19" fill="#f0d9a0" stroke="#ad4737" stroke-width="8"/><circle cx="0" cy="-30" r="19" fill="#f0d9a0" stroke="#ad4737" stroke-width="8"/><circle cx="40" cy="-30" r="19" fill="#f0d9a0" stroke="#ad4737" stroke-width="8"/><circle cx="-40" cy="-30" r="5" fill="#a43e32"/><circle cx="0" cy="-30" r="5" fill="#a43e32"/><circle cx="40" cy="-30" r="5" fill="#a43e32"/></g>
+<!-- gardens -->
+<g fill="#34663b"><circle cx="295" cy="620" r="17"/><circle cx="315" cy="640" r="14"/><circle cx="720" cy="625" r="17"/><circle cx="740" cy="645" r="14"/><circle cx="295" cy="900" r="18"/><circle cx="725" cy="900" r="18"/><circle cx="430" cy="650" r="12"/><circle cx="590" cy="650" r="12"/></g>
+<g fill="#7da34d"><circle cx="295" cy="612" r="8"/><circle cx="720" cy="617" r="8"/><circle cx="295" cy="892" r="8"/><circle cx="725" cy="892" r="8"/></g>
+<!-- banners and roof accents -->
+<g stroke="#e7d39c" stroke-width="3"><path d="M434 1000V1080M590 1000V1080"/></g>
+<path d="M434 1000L465 1010L434 1045Z" fill="#27879a"/><path d="M590 1000L559 1010L590 1045Z" fill="#27879a"/>
+<g fill="#e7c46c"><path d="M434 1012L445 1022L434 1032L423 1022Z"/><path d="M590 1012L601 1022L590 1032L579 1022Z"/></g>
+</svg>

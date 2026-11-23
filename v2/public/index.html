@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101a13">
   <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
   <title>Umaykut Online 2 · V2</title>
-  <link rel="stylesheet" href="/app.css?v=20261123-resource-layout-2">
+  <link rel="stylesheet" href="/app.css?v=20261123-world-ranking-4">
   <link rel="stylesheet" href="/factions.css?v=20261117-founding-flow-2">
 </head>
 <body>
@@ -149,6 +149,17 @@
           </div>
         </div>
       </section>
+      <section class="ranking-panel" aria-labelledby="ranking-title">
+        <div class="ranking-heading">
+          <div><small>ORTAK DÜNYA</small><h2 id="ranking-title">🏆 Dünya Sıralaması</h2><p>Gelişim, ordu, fethedilen bölgeler ve kaynak varlığı.</p></div>
+          <button id="refresh-rankings" type="button">Yenile</button>
+        </div>
+        <div class="ranking-weights" aria-label="Puan ağırlıkları">
+          <span>Bina %25</span><span>Ordu %25</span><span>Bölge %25</span><span>Ekonomi %25</span>
+        </div>
+        <p class="ranking-footnote">9 bina ve Sur/Sığınak birlikte puanlanır. Ordu 10.000 güçte, bölge 24 kalıcı fetihte 100 puana ulaşır. Ekonomi altı kaynak hedefini eşit tartar; Okçu depo kapasitesi sağlamaz.</p>
+        <div id="ranking-list" aria-live="polite"><p>Sıralama yükleniyor…</p></div>
+      </section>
       <div id="world-player-list" hidden></div>
       <button id="refresh-world-players" type="button" hidden>Yenile</button>
     </section>
@@ -252,6 +263,6 @@
     </dialog>
   </main>
 
-  <script type="module" src="/app.js?v=20261123-clean-map-workers-1"></script>
+  <script type="module" src="/app.js?v=20261123-world-ranking-4"></script>
 </body>
 </html>
