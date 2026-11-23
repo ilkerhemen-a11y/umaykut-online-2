@@ -308,6 +308,7 @@ const buildingCostStone=document.querySelector("#building-cost-stone");
 const buildingCostIron=document.querySelector("#building-cost-iron");
 const buildingMessage=document.querySelector("#building-message");
 const buildingAction=document.querySelector("#building-action");
+const marketLaunchButton=document.querySelector("#market-launch");
 let selectedBuildingSlot=1;
 function buildingCostFor(targetLevel){
  const multiplier=2*Math.pow(1.7,targetLevel-2);
@@ -419,6 +420,7 @@ function updateBuildingDialog(){
  }else buildingMessage.textContent="Gerekli kaynaklar hazır. İnşaat süresi: "+BUILDING_UPGRADE_MINUTES[targetLevel]+" dakika.";
  buildingAction.textContent=upgrading?"Yükseltiliyor":atMaximum?"Maksimum Seviye":"Seviye "+targetLevel+" Yükselt";
  buildingAction.disabled=upgrading||atMaximum||!enough||!authToken;
+ if(marketLaunchButton)marketLaunchButton.hidden=slot!=="8";
 }
 function openBuildingDialog(slot){
  selectedBuildingSlot=Number(slot);
@@ -1136,6 +1138,54 @@ async function openInventoryDialog(){
 document.querySelector('[data-action="inventory"]')?.addEventListener("click",openInventoryDialog);
 document.querySelector("#inventory-close")?.addEventListener("click",()=>inventoryDialog.close());
 inventoryDialog?.addEventListener("click",event=>{if(event.target===inventoryDialog)inventoryDialog.close();});
+
+
+const marketDialog=document.querySelector("#market-dialog");
+const marketResource=document.querySelector("#market-resource");
+const marketAmount=document.querySelector("#market-amount");
+const marketMessage=document.querySelector("#market-message");
+const marketBalances=document.querySelector("#market-balances");
+const marketBuyButton=document.querySelector("#market-buy");
+const marketSellButton=document.querySelector("#market-sell");
+function renderMarket(){
+ const level=Math.max(1,Number(gameBuildings["8"]?.level)||1);
+ document.querySelector("#market-level").textContent=level+" / 10";
+ document.querySelector("#market-capacity").textContent=formatNumber(level*1000)+" birim / işlem";
+ marketBalances.replaceChildren();
+ for(const [key,label,icon] of [["gold","Altın","🪙"],["wood","Odun","🪵"],["food","Yiyecek","🌾"],["stone","Taş","🪨"],["iron","Demir","⚒️"]]){
+  const item=document.createElement("div");item.className="market-balance";
+  const name=document.createElement("span");name.textContent=icon+" "+label;
+  const value=document.createElement("b");value.textContent=formatNumber(gameResources[key]||0);
+  item.append(name,value);marketBalances.append(item);
+ }
+}
+async function openMarketDialog(){
+ if(!authToken)return;
+ buildingDialog.close();
+ marketMessage.textContent="Pazar bilgileri yenileniyor…";
+ marketDialog.showModal();
+ await loadGameState();
+ renderMarket();
+ marketMessage.textContent="100 birim kaynak satışı 50 altın kazandırır; 100 birim alış 65 altına mal olur.";
+}
+async function executeMarketTrade(side){
+ const amount=Number(marketAmount.value),resource=marketResource.value;
+ if(!Number.isSafeInteger(amount)||amount<100||amount%100!==0){marketMessage.textContent="Miktar 100 ve katları olmalıdır.";return;}
+ const button=side==="buy"?marketBuyButton:marketSellButton;
+ marketBuyButton.disabled=true;marketSellButton.disabled=true;
+ marketMessage.textContent="Pazar işlemi gerçekleştiriliyor…";
+ try{
+  const result=await authRequest("/api/game/market",{method:"POST",token:authToken,body:{side,resource,amount}});
+  gameResources={...gameResources,...result.resources};renderResourceBalances();renderMarket();
+  marketMessage.textContent=(side==="buy"?"Satın alma":"Satış")+" tamamlandı. "+formatNumber(amount)+" birim işlem yapıldı. Altın değişimi: "+(result.goldChange>0?"+":"")+formatNumber(result.goldChange)+".";
+ }catch(error){marketMessage.textContent=error.message||"Pazar işlemi tamamlanamadı.";if(error.resources){gameResources={...gameResources,...error.resources};renderResourceBalances();renderMarket();}}
+ finally{marketBuyButton.disabled=false;marketSellButton.disabled=false;}
+}
+marketLaunchButton?.addEventListener("click",openMarketDialog);
+document.querySelector("#market-close")?.addEventListener("click",()=>marketDialog.close());
+marketDialog?.addEventListener("click",event=>{if(event.target===marketDialog)marketDialog.close();});
+marketBuyButton?.addEventListener("click",()=>executeMarketTrade("buy"));
+marketSellButton?.addEventListener("click",()=>executeMarketTrade("sell"));
 
 async function openArmyDialog(){
  if(!authToken)return;
