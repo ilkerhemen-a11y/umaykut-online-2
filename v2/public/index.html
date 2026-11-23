@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101a13">
   <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
   <title>Umaykut Online 2 · V2</title>
-  <link rel="stylesheet" href="/app.css?v=20261123-resource-layout-2">
+  <link rel="stylesheet" href="/app.css?v=20261123-attack-panels-1">
   <link rel="stylesheet" href="/factions.css?v=20261117-founding-flow-2">
 </head>
 <body>
@@ -158,6 +158,8 @@
       <button type="button" data-action="army"><span>⚔️</span>Ordu</button>
       <button type="button" data-screen="map"><span>🗺️</span>Harita</button>
       <button type="button" data-action="inventory"><span>🎒</span>Envanter</button>
+      <button type="button" data-action="incoming-attacks" aria-haspopup="dialog" aria-controls="incoming-attacks-dialog" aria-label="Gelen saldırılar"><span>🛡️</span>Gelen</button>
+      <button type="button" data-action="outgoing-attacks" aria-haspopup="dialog" aria-controls="outgoing-attacks-dialog" aria-label="Giden saldırılar"><span>⚔️</span>Giden</button>
       <button type="button" data-action="battle-reports" aria-haspopup="dialog" aria-controls="battle-reports-dialog"><span>📜</span>Savaş Raporu</button>
       <button type="button" data-action="settings" aria-haspopup="dialog" aria-controls="settings-dialog"><span>⚙️</span>Ayarlar</button>
     </nav>
@@ -179,6 +181,18 @@
       <section class="report-history-section"><h3>⚔️ Seferler ve savaş raporları</h3><div id="active-raids-list"><p>Aktif sefer bulunmuyor.</p></div></section>
       <section class="report-history-section"><h3 class="scout-section-title"><img src="/assets/IMG-20261117-WA9037.jpg" alt="" aria-hidden="true"> Casus raporları</h3><div id="scout-reports-list"><p>Henüz casus görevi bulunmuyor.</p></div></section>
       <p id="battle-reports-message" class="army-message" role="status" aria-live="polite"></p>
+    </dialog>
+    <dialog id="incoming-attacks-dialog" class="army-dialog attack-list-dialog" aria-labelledby="incoming-attacks-title">
+      <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · SAVUNMA</small><h2 id="incoming-attacks-title">Gelen Saldırılar</h2></div><button type="button" data-close-attack-list="incoming" aria-label="Kapat">×</button></div>
+      <p class="army-message">Köyüne doğru gelen ordular, varış süreleri ve savunma sonuçları.</p>
+      <div id="incoming-attacks-list" class="attack-list-items"><p>Saldırılar yükleniyor…</p></div>
+      <p id="incoming-attacks-message" class="army-message" role="status" aria-live="polite"></p>
+    </dialog>
+    <dialog id="outgoing-attacks-dialog" class="army-dialog attack-list-dialog" aria-labelledby="outgoing-attacks-title">
+      <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · SEFERLER</small><h2 id="outgoing-attacks-title">Giden Saldırılar</h2></div><button type="button" data-close-attack-list="outgoing" aria-label="Kapat">×</button></div>
+      <p class="army-message">Gönderdiğin ordular, hedefleri, varış ve dönüş süreleri, ganimet ve savaş sonuçları.</p>
+      <div id="outgoing-attacks-list" class="attack-list-items"><p>Seferler yükleniyor…</p></div>
+      <p id="outgoing-attacks-message" class="army-message" role="status" aria-live="polite"></p>
     </dialog>
     <dialog id="neutral-region-dialog" class="army-dialog neutral-region-dialog" aria-labelledby="neutral-region-title">
       <div class="army-dialog-head">
@@ -246,6 +260,6 @@
     </dialog>
   </main>
 
-  <script type="module" src="/app.js?v=20261123-clean-map-workers-1"></script>
+  <script type="module" src="/app.js?v=20261123-attack-panels-1"></script>
 </body>
 </html>
