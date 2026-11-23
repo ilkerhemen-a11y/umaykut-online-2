@@ -22,8 +22,8 @@ function safeCount(value) {
   return Number.isSafeInteger(number) && number > 0 ? number : 0;
 }
 
-/** Nine fixed buildings, each contributing equally to a 0-100 score. */
-export function calculateBuildingDevelopmentScore(buildings = {}) {
+/** Nine fixed buildings and the separate wall/shelter structure share a 0-100 score. */
+export function calculateBuildingDevelopmentScore(buildings = {}, wall = { level: 1 }) {
   if (!buildings || typeof buildings !== "object" || Array.isArray(buildings)) {
     throw new TypeError("Bina verisi geçersiz.");
   }
@@ -35,7 +35,9 @@ export function calculateBuildingDevelopmentScore(buildings = {}) {
     const level = Number(building.level);
     if (Number.isSafeInteger(level) && level >= 1 && level <= MAX_BUILDING_LEVEL) totalLevels += level;
   }
-  return Math.round(totalLevels / 90 * 10000) / 100;
+  const wallLevel = Number(wall?.level);
+  if (Number.isSafeInteger(wallLevel) && wallLevel >= 1 && wallLevel <= MAX_BUILDING_LEVEL) totalLevels += wallLevel;
+  return Math.round(totalLevels / 100 * 10000) / 100;
 }
 
 /** Military strength uses each unit's faction-adjusted attack and average defense. */
@@ -109,10 +111,10 @@ export function combineTroopStacks(...stacks) {
   return combined;
 }
 
-export function calculatePlayerRanking({ buildings, troops, factionId, ownedRegionCount, resources }) {
+export function calculatePlayerRanking({ buildings, wall = { level: 1 }, troops, factionId, ownedRegionCount, resources }) {
   const armyStrength = calculateArmyStrength(troops, factionId, buildings);
   const scores = {
-    buildingDevelopment: calculateBuildingDevelopmentScore(buildings),
+    buildingDevelopment: calculateBuildingDevelopmentScore(buildings, wall),
     armyStrength: calculateArmyStrengthScore(armyStrength),
     territorialControl: calculateTerritorialControlScore(ownedRegionCount),
     economy: calculateEconomyScore(resources)
