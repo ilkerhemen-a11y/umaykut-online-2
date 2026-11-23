@@ -2,12 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "../src/server.js";
 import { applyVillageSelection } from "../public/village-selection.js";
-  assert.ok(appScript.includes('from "./village-upgrade-progress.js"'));
-  assert.match(appScript,/function renderBuildingUpgradeProgress\(\)/);
-  assert.match(appScript,/calculateVillageUpgradeProgress\(upgrade,now\)/);
-  const upgradeModule=await fetch(base+"/village-upgrade-progress.js");
-  assert.equal(upgradeModule.status,200);
-  assert.match(await upgradeModule.text(),/export function calculateVillageUpgradeProgress/);
 
 test("village building selection updates only the active marker and its accessible pressed state", () => {
   const makeMarker=(slot)=>{
@@ -153,6 +147,12 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/neutral-regions\/reports/);
   assert.ok(appScript.includes('from "./village-camera.js"'));
   assert.ok(appScript.includes('from "./village-selection.js"'));
+  assert.ok(appScript.includes('from "./village-upgrade-progress.js"'));
+  assert.match(appScript,/function renderBuildingUpgradeProgress\(\)/);
+  assert.match(appScript,/calculateVillageUpgradeProgress\(upgrade,now\)/);
+  const upgradeModule=await fetch(base+"/village-upgrade-progress.js");
+  assert.equal(upgradeModule.status,200);
+  assert.match(await upgradeModule.text(),/export function calculateVillageUpgradeProgress/);
   assert.ok(appScript.includes('applyVillageSelection(document.querySelectorAll("[data-building-slot]"), null)'));
   assert.ok(appScript.includes('applyVillageSelection(document.querySelectorAll("[data-building-slot]"),slot)'));
   const selectionModule=await fetch(base+"/village-selection.js");
