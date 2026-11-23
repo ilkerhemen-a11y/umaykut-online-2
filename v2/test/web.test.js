@@ -60,7 +60,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
   assert.match(html,/href="\/app\.css\?v=20261123-map-menu-top-1"/);
-  assert.ok(html.includes('src="/app.js?v=20261123-map-menu-position-2"'));
+  assert.ok(html.includes('src="/app.js?v=20261123-map-menu-bottom-3"'));
   assert.match(html,/id="production-dialog"/);
   assert.match(html,/id="production-open"/);
   assert.match(html,/id="production-resource-grid"/);
@@ -150,9 +150,9 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,0);
 
-  assert.match(appScript,/mapHeading\.after\(bottomNav\)/);
-  assert.doesNotMatch(appScript,/mapView\.insertBefore\(bottomNav,mapView\.firstChild\)/);
-  const script=await fetch(base+"/app.js?v=20261123-map-menu-position-2");
+  assert.doesNotMatch(appScript,/mapHeading\.after\(bottomNav\)/);
+  assert.doesNotMatch(appScript,/mapView\.insertBefore\(bottomNav,mapView\.firstChild\)/);\n  assert.match(appScript,/Keep the main navigation in its original document position/);
+  const script=await fetch(base+"/app.js?v=20261123-map-menu-bottom-3");
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.match(appScript,/data-faction-choice/);
