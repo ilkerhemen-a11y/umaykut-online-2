@@ -60,3 +60,20 @@ test("offline accumulation is capped at 72 hours and fractional production is re
   assert.equal(capped.resources.wood, 720);
   assert.equal(Date.parse(capped.lastResourceTick), Date.parse("2026-01-05T00:00:00.000Z"));
 });
+
+test("production breakdown exposes worker, node-yield and center bonuses used by hourly totals", () => {
+  const result = settleEconomy({
+    resources: { wood: 0 },
+    workerAssignments: { mine_12: 2 },
+    resourceNodes: [{ id: 12, resource_type: "wood", yield_level: 5 }],
+    buildings: { "1": { level: 3 }, "9": { level: 1 } },
+    lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
+    now: Date.parse("2026-01-01T01:00:00.000Z")
+  });
+  assert.deepEqual(result.productionBreakdown, [{
+    key: "mine_12", nodeId: "12", resourceType: "wood", workers: 2,
+    yieldLevel: 5, workerBaseRate: 10, nodeMultiplier: 1.4,
+    centerMultiplier: 1.1, hourlyProduction: 30.8
+  }]);
+  assert.equal(result.productionPerHour.wood, 30.8);
+});
