@@ -1374,6 +1374,7 @@ worldPlayerList.addEventListener("click",async event=>{
 });
 document.querySelector("#refresh-world-players").addEventListener("click",loadWorldPlayers);
 async function loadRankings(){
+ const rankingScore=value=>new Intl.NumberFormat("tr-TR",{maximumFractionDigits:2}).format(Number(value)||0);
  const list=document.querySelector("#ranking-list");
  if(!authToken||!list)return;
  list.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Sıralama hesaplanıyor…"}));
@@ -1388,11 +1389,11 @@ async function loadRankings(){
    const name=document.createElement("strong");name.textContent=player.username;
    const village=document.createElement("small");village.textContent=player.villageName+" · "+(factions[player.factionId]?.name||"Devlet");
    identity.append(name,village);
-   const overall=document.createElement("strong");overall.className="ranking-total";overall.textContent=reportNumber(player.overall)+" puan";
+   const overall=document.createElement("strong");overall.className="ranking-total";overall.textContent=rankingScore(player.overall)+" puan";
    card.append(position,identity,overall);
    const details=document.createElement("div");details.className="ranking-details";
    [["Bina",player.buildingDevelopment],["Ordu",player.armyStrength],["Bölge",player.territorialControl],["Ekonomi",player.economy]].forEach(([label,value])=>{
-    const item=document.createElement("span");item.textContent=label+" "+reportNumber(value);details.append(item);
+    const item=document.createElement("span");item.textContent=label+" "+rankingScore(value);details.append(item);
    });
    card.append(details);
    if(player.playerId===data.currentPlayerId)card.classList.add("is-current-player");
