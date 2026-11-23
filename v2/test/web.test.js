@@ -167,7 +167,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(appScript.includes("new ResizeObserver(fitVillageImage)"));
   assert.match(appScript,/function renderUpgradeTracker\(\)/);
   assert.doesNotMatch(appScript,/wallPosition|WALL_POSITION_KEY/);
-  assert.match(appScript,/setInterval\(\(\)=>\{updateUpgradeTracking\(\);updateWallUpgradeCountdown\(\);\},1000\)/);
+  assert.match(appScript,/setInterval\(\(\)=>\{updateUpgradeTracking\(\);renderBuildingUpgradeProgress\(\);updateWallUpgradeCountdown\(\);\},1000\)/);
   assert.match(appScript,/function updateWallUpgradeCountdown\(\)/);
   assert.match(appScript,/gameWall\?\.upgrade\?\[\{slot:"wall"/);
   assert.match(appScript,/renderUpgradeTracker\(\);wallMessage\.textContent="Sur yükseltmesi başladı/);
