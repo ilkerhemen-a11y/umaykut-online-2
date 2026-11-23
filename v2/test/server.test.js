@@ -119,7 +119,7 @@ test("game state is returned only to a valid V2 player session", async (t) => {
   assert.equal(Object.keys(state.buildings).length, 9);
 });
 
-test("game state rejects worker assignments above the starting pool", async (t) => {
+test("game state rejects worker assignments above the current worker pool", async (t) => {
   const secret = "test-session-secret-with-at-least-32-characters";
   const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
   const token = createSessionToken(playerId, secret);
@@ -127,6 +127,9 @@ test("game state rejects worker assignments above the starting pool", async (t) 
     query: async (sql) => {
       if (sql.includes("SELECT p.id FROM umaykut_v2.players")) {
         return { rows: [{ id: playerId }], rowCount: 1 };
+      }
+      if (sql.includes("SELECT worker_pool FROM umaykut_v2.player_game_state")) {
+        return { rows: [{ worker_pool: 1800 }], rowCount: 1 };
       }
       throw new Error("Invalid worker payload should not write to the database.");
     }
