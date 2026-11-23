@@ -90,7 +90,10 @@ export function calculateOverallRankingScore(scores) {
   if (!values.every(value => Number.isFinite(value) && value >= 0 && value <= 100)) {
     throw new TypeError("Sıralama bileşen puanları 0 ile 100 arasında olmalı.");
   }
-  return Math.round(values.reduce((sum, value) => sum + value, 0) / 4 * 100) / 100;
+  const keys = ["buildingDevelopment", "armyStrength", "territorialControl", "economy"];
+  const weightedTotal = keys.reduce((sum, key) => sum + scores[key] * RANKING_WEIGHTS[key], 0);
+  const totalWeight = Object.values(RANKING_WEIGHTS).reduce((sum, weight) => sum + weight, 0);
+  return Math.round(weightedTotal / totalWeight * 100) / 100;
 }
 
 /** Merge home, marching, scouting and regional garrison troop stacks. */
