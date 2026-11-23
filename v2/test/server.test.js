@@ -124,7 +124,7 @@ test("quest rewards are granted once after server-side completion validation",as
   },release:()=>{}})
  };
  const server=createServer({pool,sessionSecret:secret});await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
- const url=`http://127.0.0.1:${server.address().port}/api/game/quests`,headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"};
+ const url=`http://127.0.0.1:${server.address().port}/api/game/quests`,headers={Authorization:"Bearer "+token,"Content-Type":"application/json"};
  const first=await fetch(url,{method:"POST",headers,body:JSON.stringify({questId:"center_level_2"})});
  assert.equal(first.status,200);const result=await first.json();assert.equal(result.resources.gold,350);assert.equal(result.resources.wood,500);
  const second=await fetch(url,{method:"POST",headers,body:JSON.stringify({questId:"center_level_2"})});
