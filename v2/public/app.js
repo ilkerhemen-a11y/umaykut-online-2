@@ -1427,7 +1427,8 @@ document.querySelector("#army-unit-detail").addEventListener("click",async event
  button.disabled=true;armyMessageNode.textContent="Askerler orduya katılıyor…";
  try{
   const result=await authRequest("/api/game/army/recruit",{method:"POST",token:authToken,body:{unitId:button.dataset.recruitUnit,amount}});
-  armyState=result;gameResources={...gameResources,...result.resources};renderResourceBalances();
+  armyState=result;currentArmyPopulation=Math.max(0,Number(result.totalUnits)||0);updateWorkerSummary();renderProductionDialog();
+  gameResources={...gameResources,...result.resources};renderResourceBalances();
   renderArmySummary();renderArmyCatalog();renderArmyQueue();
   if(selectedArmyUnitId)renderArmyUnitDetail(selectedArmyUnitId);
   armyMessageNode.textContent=amount+" asker anında orduna katıldı. "+armyNumber(result.idleWorkers)+" işçi boşta kaldı. Kaynaklar hesabından düşüldü.";
