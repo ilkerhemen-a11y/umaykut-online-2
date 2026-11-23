@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101a13">
+  <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
+  <title>Umaykut Online 2 · V2</title>
+  <link rel="stylesheet" href="/app.css?v=20261123-resource-layout-2">
+  <link rel="stylesheet" href="/factions.css?v=20261117-founding-flow-2">
+</head>
+<body>
+  <section id="auth-screen" class="auth-screen" aria-label="Umaykut Online II giriş ve kayıt">
+    <div class="auth-card">
+      <div class="auth-emblem" aria-hidden="true">🐺</div>
+      <h1>UMAYKUT ONLINE II</h1>
+      <p>Bozkırın kaderini sen yaz.</p>
+      <div class="auth-tabs" role="tablist" aria-label="Hesap işlemi">
+        <button id="login-tab" class="selected" type="button" role="tab" aria-selected="true" aria-controls="auth-form">Giriş Yap</button>
+        <button id="register-tab" type="button" role="tab" aria-selected="false" aria-controls="auth-form">Kayıt Ol</button>
+      </div>
+      <form id="auth-form">
+        <label id="auth-username-label" for="auth-username">Oyuncu adı veya e-posta</label>
+        <input id="auth-username" name="username" minlength="3" maxlength="24" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="Oyuncu adın veya e-posta">
+        <div id="auth-email-field" hidden>
+          <label for="auth-email">E-posta adresi</label>
+          <input id="auth-email" name="email" type="email" maxlength="254" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="ornek@eposta.com">
+        </div>
+        <label for="auth-password">Şifre</label>
+        <input id="auth-password" name="password" type="password" minlength="10" maxlength="128" autocomplete="current-password" required placeholder="En az 10 karakter">
+        <button id="auth-submit" class="gold-button" type="submit">Oyuna Giriş</button>
+        <p id="auth-message" class="auth-message" role="status" aria-live="polite"></p>
+      </form>
+      <small>Hesap bilgilerini güvenli tut. Şifren en az 10 karakter olmalı.</small>
+    </div>
+  </section>
+  <main id="game-shell" class="game-shell" inert aria-hidden="true">
+    <header class="top">
+      <div class="brand"><span class="brand-mark">✦</span><div><strong>UMAYKUT</strong><small>BOZKIRIN HÂKİMİYETİ</small></div></div>
+      <div class="resources" aria-label="Kaynaklar">
+        <div class="resource"><span class="resource-icon" aria-hidden="true"><img src="/assets/resources/gold.svg" alt="" width="24" height="20" decoding="async"></span><b id="resource-gold">1.650</b><small>Altın</small></div>
+        <div class="resource"><span class="resource-icon" aria-hidden="true"><img src="/assets/resources/wood.svg" alt="" width="24" height="20" decoding="async"></span><b id="resource-wood">6.900</b><small>Odun</small></div>
+        <div class="resource"><span class="resource-icon" aria-hidden="true"><img src="/assets/resources/grain.svg" alt="" width="24" height="20" decoding="async"></span><b id="resource-food">9.350</b><small>Tahıl</small></div>
+        <div class="resource"><span class="resource-icon" aria-hidden="true"><img src="/assets/resources/stone.svg" alt="" width="24" height="20" decoding="async"></span><b id="resource-stone">7.480</b><small>Taş</small></div>
+        <div class="resource"><span class="resource-icon" aria-hidden="true"><img src="/assets/resources/iron.svg" alt="" width="24" height="20" decoding="async"></span><b id="resource-iron">8.040</b><small>Demir</small></div>
+      </div>
+      <div class="realm"><span id="realm-player-name">YENİ YURDUM</span><b>SEVİYE 1</b><span class="realm-sub" id="realm-faction">Devlet seçilmedi</span></div>
+      <button class="top-settings" id="open-settings" type="button" aria-haspopup="dialog" aria-controls="settings-dialog" aria-label="Ayarları aç">⚙️</button>
+    </header>
+
+    <section class="village-wrap" aria-label="Köy görünümü">
+      <div class="village-heading"><div><small>HOŞ GELDİN, BEYİM</small><h1 id="village-name-title">Yeni Yurdum</h1></div><div class="player-level">✦ <span><b id="player-display-name">Oyuncu Bey</b><br><small>Seviye 1 · İlk adım</small></span></div></div>
+
+      <div class="city-frame" aria-label="Göktürk köyü ve numaralandırılmış binalar">
+        <div class="city-stage">
+          <img class="city-art" src="/assets/IMG-20261117-WA0073.jpg" alt="Orman içinde dairesel taş surlarla çevrili, merkez binası ve sekiz çevre binası bulunan Göktürk köyü" fetchpriority="high">
+          <div class="building-numbers" aria-label="Köy binaları ve inşa alanları">
+          <button class="building-number is-center" type="button" data-building-slot="1" style="left:50%;top:45%" aria-label="1 numaralı Merkez Binası"><img class="building-marker-art" src="/assets/seljuk-center.svg" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="building-index">1</span><span class="building-label">Merkez</span></button>
+          <button class="building-number" type="button" data-building-slot="2" style="left:41.82%;top:33.31%" aria-label="2 numaralı Kışla"><img class="building-marker-art" src="/assets/buildings/barracks.svg" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="building-index">2</span><span class="building-label">Kışla</span></button>
+          <button class="building-number" type="button" data-building-slot="3" style="left:66.68%;top:52.21%" aria-label="3 numaralı Ahır"><img class="building-marker-art" src="/assets/buildings/stable.svg" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="building-index">3</span><span class="building-label">Ahır</span></button>
+          <button class="building-number" type="button" data-building-slot="4" style="left:23.79%;top:40.14%" aria-label="4 numaralı Demirci"><img class="building-marker-art" src="/assets/buildings/blacksmith.svg" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="building-index">4</span><span class="building-label">Demirci</span></button>
+          <button class="building-number" type="button" data-building-slot="5" style="left:72.58%;top:28.4%" aria-label="5 numaralı Okul"><img class="building-marker-art" src="/assets/buildings/school.svg" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="building-index">5</span><span class="building-label">Okul</span></button>
+          <button class="building-number" type="button" data-building-slot="6" style="left:28.35%;top:24.67%" aria-label="6 numaralı Keresteci"><img class="building-marker-art" src="/assets/buildings/lumberjack.svg" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="building-index">6</span><span class="building-label">Keresteci</span></button>
+          <button class="building-number" type="button" data-building-slot="7" style="left:58.59%;top:14.65%" aria-label="7 numaralı Tapınak"><img class="building-marker-art" src="/assets/buildings/temple.svg" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="building-index">7</span><span class="building-label">Tapınak</span></button>
+          <button class="building-number" type="button" data-building-slot="8" style="left:37.46%;top:33.92%" aria-label="8 numaralı Pazar"><img class="building-marker-art" src="/assets/buildings/market.svg" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="building-index">8</span><span class="building-label">Pazar</span></button>
+          <button class="building-number" type="button" data-building-slot="9" style="left:76.55%;top:21.87%" aria-label="9 numaralı Okçu"><img class="building-marker-art" src="/assets/buildings/archery.svg" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="building-index">9</span><span class="building-label">Okçu</span></button>
+          <button class="wall-number" id="wall-position-marker" type="button" style="left:50.3%;top:75.3%" aria-label="Sur / Sığınak bilgilerini aç" title="Sur / Sığınak"><img class="wall-marker-art" src="/assets/buildings/wall.svg" alt="" aria-hidden="true" loading="lazy" decoding="async"><span>1</span><small>Sur / Sığınak</small></button>
+          </div>
+        </div>
+        <div class="village-camera-controls" role="group" aria-label="Köy görünümü yakınlaştırma kontrolleri">
+          <button id="village-zoom-out" type="button" aria-label="Köyü uzaklaştır" disabled>−</button>
+          <span id="village-zoom-label" aria-live="polite">100%</span>
+          <button id="village-zoom-in" type="button" aria-label="Köyü yakınlaştır">+</button>
+          <button id="village-zoom-reset" type="button" aria-label="Köy görünümünü sıfırla">Sıfırla</button>
+        </div>
+      </div>
+      <section id="building-upgrade-tracker" class="building-upgrade-tracker" aria-live="polite" aria-label="Devam eden bina yükseltmeleri" hidden>
+        <div class="upgrade-tracker-heading"><div><small>İNŞAAT MERKEZİ</small><h2>Yükseltme Takibi</h2></div><span id="building-upgrade-count">CANLI</span></div>
+        <div id="building-upgrade-list" class="building-upgrade-list"></div>
+      </section>
+      <dialog id="building-dialog" class="building-dialog" aria-labelledby="building-title">
+        <button id="building-close" class="close" type="button" aria-label="Pencereyi kapat">×</button>
+        <img class="dialog-emblem" id="building-emblem" src="/assets/seljuk-center.svg" alt="Selçuklu merkez sarayı" loading="lazy" decoding="async">
+        <div class="eyebrow" id="building-eyebrow">KÖY YAPILARI</div>
+        <h2 id="building-title">Merkez Binası</h2>
+        <p class="dialog-copy" id="building-description">Yurdunun kalbi. Diğer yapıların gelişimini yönetir.</p>
+        <div class="level-row"><span>Mevcut seviye</span><strong id="building-level">1 / 10</strong></div>
+        <div class="level-track"><span id="building-level-fill"></span></div>
+        <div class="building-cost-title" id="building-cost-title">Seviye 2 yükseltme maliyeti</div>
+        <div class="building-costs">
+          <span>🪵 Odun <b id="building-cost-wood">30</b></span>
+          <span>🪨 Taş <b id="building-cost-stone">20</b></span>
+          <span>⛏️ Demir <b id="building-cost-iron">5</b></span>
+        </div>
+        <p class="building-message" id="building-message" role="status" aria-live="polite"></p>
+        <button class="primary-action" id="building-action" type="button">Seviye 2 Yükselt</button>
+      </dialog>
+      <dialog id="wall-dialog" class="building-dialog wall-dialog" aria-labelledby="wall-title">
+        <button id="wall-close" class="close" type="button" aria-label="Pencereyi kapat">×</button>
+        <img class="dialog-emblem wall-dialog-emblem" src="/assets/buildings/wall.svg" alt="Selçuklu suru"><div class="eyebrow">ŞEHİR SAVUNMASI</div>
+        <h2 id="wall-title">Sur / Sığınak</h2>
+        <p class="dialog-copy">Sur saldırı gücünü azaltır; sığınak kaynaklarını yağmadan korur.</p>
+        <div class="level-row"><span>Sur seviyesi</span><strong id="wall-level">1 / 10</strong></div>
+        <div class="level-track"><span id="wall-level-fill"></span></div>
+        <div class="wall-stat-grid"><div><b id="wall-defense">5%</b><small>Saldırı hasarı azaltma</small></div><div><b id="wall-shelter">500</b><small>Her kaynak türünden korunan miktar</small></div></div><p class="wall-shelter-breakdown" id="wall-shelter-breakdown">Altın 500 · Odun 500 · Yiyecek 500 · Taş 500 · Demir 500</p>
+        <p class="building-cost-title" id="wall-upgrade-title">Seviye 2 sur yükseltme maliyeti</p>
+        <div class="building-costs"><span>🪵 Odun <b id="wall-cost-wood">250</b></span><span>🪨 Taş <b id="wall-cost-stone">220</b></span><span>⛏️ Demir <b id="wall-cost-iron">90</b></span><span>🪙 Altın <b id="wall-cost-gold">100</b></span></div>
+        <p class="building-message" id="wall-message" role="status" aria-live="polite"></p>
+        <button class="primary-action" id="wall-action" type="button">Sur seviyesini yükselt</button>
+      </dialog>
+      <section class="army-strip">
+        <div class="army-title">⚔ ORDU BİRLİKLERİ <span>·</span> <small>Birlik seç ve ordunu güçlendir</small></div>
+        <div class="army-units" id="army-units">
+          <div><span>🪓</span><b>0</b><small>Piyade</small></div>
+          <div><span>🏹</span><b>0</b><small>Okçu</small></div>
+          <div><span>🛡️</span><b>0</b><small>Kalkanlı</small></div>
+          <div><span>⚔️</span><b>0</b><small>Muhafız</small></div>
+          <div><span>🐎</span><b>0</b><small>Süvari</small></div>
+          <div><span>🎯</span><b>0</b><small>Atlı okçu</small></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="map-view" id="map-view" hidden aria-label="Ortak dünya haritası">
+      <div class="map-heading">
+        <div><small>UMAYKUT DÜNYASI</small><h1>Geniş Dünya Haritası</h1><p>Haritada gezin, rakip yurtları ve zengin maden yataklarını keşfet</p></div>
+        <div class="worker-summary"><span>👷</span><strong id="workers-available">1.800</strong><small>Boştaki işçi</small><em id="workers-assigned-total">0 görevde</em></div>
+      </div>
+      <div class="world-map" aria-label="Gezilebilir ortak dünya haritası. Kaydırarak haritada ilerleyebilirsin." tabindex="0">
+        <div class="map-zoom-controls" role="group" aria-label="Harita yakınlaştırma kontrolleri"><button type="button" id="map-zoom-out" aria-label="Haritayı uzaklaştır" title="Uzaklaştır">−</button><button type="button" id="map-zoom-reset" aria-label="Harita görünümünü sıfırla" title="Görünümü sıfırla">⤢</button><button type="button" id="map-zoom-in" aria-label="Haritayı yakınlaştır" title="Yakınlaştır">+</button><span id="map-zoom-level" aria-live="polite">55%</span></div>
+        <div class="map-world-canvas" id="map-world-canvas">
+        <img class="map-landscape map-terrain-image" src="/assets/IMG-20261117-WA7167.jpg" alt="" aria-hidden="true" fetchpriority="high" decoding="async">
+        
+        <svg class="map-geography-overlay" viewBox="0 0 1800 1200" preserveAspectRatio="none" aria-hidden="true"></svg>
+        
+        
+        
+        <div class="map-own-city" style="left:47%;top:51%"><img id="map-city-image" src="/assets/IMG-20261117-WA2419.jpg" alt="Yeni Yurdum kalesi" width="58" height="58" decoding="async"><b id="map-city-name">Yeni Yurdum</b><small>Senin şehrin</small></div>
+        </div>
+      </div>
+      <section class="map-detail" id="map-detail">
+        <p id="map-prompt">İşçi göndermek için köyünün erişim alanındaki bir kaynak görseline dokun.</p>
+        <div id="resource-selection" hidden>
+          <div class="selected-resource-heading"><small id="resource-type">KAYNAK BÖLGESİ</small><h2 id="resource-name">Tahıl Ovası</h2><p id="resource-description">Tahıl üretimi için işçi görevlendir.</p></div>
+          <div class="worker-control">
+            <label for="worker-count">İşçi sayısı</label>
+            <div class="worker-actions"><input id="worker-count" type="number" inputmode="numeric" min="1" max="1800" value="1"><button id="assign-workers" type="button">Gönder</button><button id="recall-workers" type="button">Geri çağır</button></div>
+            <small id="worker-status">İşçi dağılımın hesabına kaydedilir ve diğer cihazlarında da kullanılabilir.</small>
+          </div>
+        </div>
+      </section>
+      <div id="world-player-list" hidden></div>
+      <button id="refresh-world-players" type="button" hidden>Yenile</button>
+    </section>
+
+    <nav class="bottom-nav" aria-label="Ana menü">
+      <button class="active" type="button" data-screen="village"><span>🏰</span>Köy</button>
+      <button type="button" data-action="army"><span>⚔️</span>Ordu</button>
+      <button type="button" data-screen="map"><span>🗺️</span>Harita</button>
+      <button type="button" data-action="inventory"><span>🎒</span>Envanter</button>
+      <button type="button" data-action="battle-reports" aria-haspopup="dialog" aria-controls="battle-reports-dialog"><span>📜</span>Savaş Raporu</button>
+      <button type="button" data-action="settings" aria-haspopup="dialog" aria-controls="settings-dialog"><span>⚙️</span>Ayarlar</button>
+    </nav>
+    <dialog id="army-dialog" class="army-dialog" aria-labelledby="army-dialog-title">
+  <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · SAVAŞ HAZIRLIĞI</small><h2 id="army-dialog-title">Ordu Birlikleri</h2></div><button id="army-close" type="button" aria-label="Kapat">×</button></div>
+  <div class="army-summary"><div><strong id="army-total-units">0</strong><small>Toplam asker</small></div><div><strong id="army-total-power">0</strong><small>Ordu gücü</small></div><div><strong id="army-faction-name">Göktürk</strong><small>Devlet</small></div></div>
+  <section class="army-training-queue"><h3>⚔️ Ordu durumu</h3><div id="army-queue-list"><p>Askerler yetiştirildiğinde doğrudan orduna katılır.</p></div></section>
+  <section class="army-recruit-section" id="army-unit-list-section"><h3>⚔️ Birlik seç</h3><p id="army-building-hint">İncelemek ve yetiştirmek istediğin birliği seç.</p><div id="army-unit-catalog" class="army-unit-catalog"><p>Ordu bilgileri yükleniyor…</p></div></section>
+  <section class="army-unit-detail" id="army-unit-detail" hidden>
+    <button type="button" id="army-unit-back" class="army-unit-back">← Birlik listesine dön</button>
+    <div id="army-unit-detail-content"></div>
+  </section>
+  <p id="army-message" class="army-message" role="status" aria-live="polite"></p>
+</dialog>
+\n    <dialog id="battle-reports-dialog" class="army-dialog battle-reports-dialog" aria-labelledby="battle-reports-title">
+      <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · TARİHÇE</small><h2 id="battle-reports-title">Savaş Raporları</h2></div><button id="battle-reports-close" type="button" aria-label="Kapat">×</button></div>
+      <p class="army-message">Katıldığın saldırılar ve savunmalar burada kayıt altında tutulur.</p>
+      <div id="battle-reports-list" class="battle-reports-list"><p>Savaş kayıtları yükleniyor…</p></div>
+      <section class="report-history-section">
+        <h3>⚔️ Seferler ve savaş raporları</h3>
+        <div id="active-raids-list"><p>Aktif sefer bulunmuyor.</p></div>
+      </section>
+      <section class="report-history-section">
+        <h3 class="scout-section-title"><img src="/assets/IMG-20261117-WA9037.jpg" alt="" aria-hidden="true"> Casus raporları</h3>
+        <div id="scout-reports-list"><p>Henüz casus görevi bulunmuyor.</p></div>
+      </section>
+      <p id="battle-reports-message" class="army-message" role="status" aria-live="polite"></p>
+    </dialog>
+    <dialog id="neutral-region-dialog" class="army-dialog neutral-region-dialog" aria-labelledby="neutral-region-title">
+      <div class="army-dialog-head">
+        <div><small>UMAYKUT ONLINE II · TOPRAK FETHİ</small><h2 id="neutral-region-title">Tarafsız Bölge</h2></div>
+        <button id="neutral-region-close" type="button" aria-label="Kapat">×</button>
+      </div>
+      <div class="neutral-region-stats">
+        <div><small>MUHAFIZ</small><strong id="neutral-guard-count">0</strong></div>
+        <div><small>GARNİZON</small><strong id="neutral-garrison-count">0 / 100.000</strong></div>
+      </div>
+      <p id="neutral-region-owner" class="army-message">Tarafsız bölge</p>
+      <p id="neutral-region-countdown" class="neutral-region-countdown" aria-live="polite">İlk garnizon dört saatlik mücadeleyi başlatır.</p>
+      <section id="neutral-region-troop-section">
+        <h3>Gönderilecek birlikler</h3>
+        <div id="neutral-region-unit-list"></div>
+      </section>
+      <p id="neutral-region-message" class="army-message" role="status" aria-live="polite"></p>
+      <button id="neutral-region-action" class="founding-submit" type="button">⚔️ Garnizon kur</button>
+      <button id="neutral-region-challenge" class="founding-submit" type="button" hidden>⚔️ Muhafızlara saldır ve fethet</button>
+    </dialog>
+    <dialog id="attack-dialog" class="army-dialog" aria-labelledby="attack-dialog-title">
+      <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · SEFER HAZIRLIĞI</small><h2 id="attack-dialog-title">Saldırı Ordusu</h2></div><button id="attack-close" type="button" aria-label="Kapat">×</button></div>
+      <p id="attack-target-name" class="army-message">Hedef köy</p>
+      <section><h3>Gönderilecek birlikler</h3><div id="attack-unit-list"></div></section>
+      <p id="attack-message" class="army-message" role="status" aria-live="polite"></p>
+      <button id="send-attack" class="founding-submit" type="button">⚔️ Saldırı emrini gönder</button>
+    </dialog>
+    <dialog id="founding-dialog" class="founding-dialog" aria-labelledby="founding-title">
+      <div class="founding-heading"><small>UMAYKUT ONLINE II · YENİ BİR BAŞLANGIÇ</small><h2 id="founding-title">Yurdunu Kur</h2><p>Önce devletini seç, sonra köyüne ad ver. Bu seçimler hesabına kaydedilir.</p></div>
+      <form id="founding-form">
+        <label for="founding-village-name">Köyünün adı</label>
+        <input id="founding-village-name" name="villageName" minlength="3" maxlength="32" required placeholder="Örn. Bozkır Kartalları" autocomplete="off">
+        <div class="founding-factions" role="group" aria-label="Devlet seçimi">
+          <button class="founding-faction" type="button" data-faction-choice="hun" aria-pressed="false">
+            <img src="/assets/IMG-20261117-WA7162.jpg" alt="Hun devleti">
+            <strong>Hun</strong><small>Kızıl Bozkır</small><span>Atlı birlikler, hızlı akınlar ve hareket kabiliyeti.</span>
+          </button>
+          <button class="founding-faction" type="button" data-faction-choice="seljuk" aria-pressed="false">
+            <img src="/assets/IMG-20261117-WA0581.jpg" alt="Selçuklu devleti">
+            <strong>Selçuklu</strong><small>Altın Hâkimiyet</small><span>Ticaret, üretim, şehirleşme ve güçlü savunma.</span>
+          </button>
+          <button class="founding-faction" type="button" data-faction-choice="gokturk" aria-pressed="false">
+            <img class="founding-gokturk-image" src="/assets/IMG-20261117-WA0073.jpg" alt="Göktürk devletinin köy ve merkez bina görseli" loading="lazy">
+            <strong>Göktürk</strong><small>Göklerin Hâkimiyeti</small><span>Dengeli gelişim, casus ve bozkır hâkimiyeti.</span>
+          </button>
+        </div>
+        <p id="founding-message" class="founding-message" role="status" aria-live="polite">Devletini seç ve köyüne bir isim ver.</p>
+        <button id="founding-submit" class="founding-submit" type="submit" disabled>Yurdumu Kur ve Oyuna Başla</button>
+      </form>
+    </dialog>
+    <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+      <div class="settings-head"><div><small>UMAYKUT ONLINE II</small><h2 id="settings-title">Oyun Ayarları</h2></div><button class="settings-close" id="close-settings" type="button" aria-label="Ayarları kapat">×</button></div>
+      <section class="settings-account">
+        <span class="settings-avatar">👤</span><div><small>OTURUM AÇIK</small><strong id="settings-player-name">Oyuncu</strong><span id="settings-player-email">Hesap bilgileri</span></div>
+      </section>
+      <section class="settings-group">
+        <h3>Görünüm</h3>
+        <label class="settings-option"><span><b>Azaltılmış animasyon</b><small>Hareketleri ve geçişleri azaltır.</small></span><input id="setting-reduced-motion" type="checkbox"></label>
+        <label class="settings-option"><span><b>Sıkışık kaynak çubuğu</b><small>Kaynak alanını daha kompakt gösterir.</small></span><input id="setting-compact-resources" type="checkbox"></label>
+        <div class="settings-option settings-static"><span><b>Devlet teması</b><small>Seçtiğin devletin rengi otomatik kullanılır.</small></span><strong id="settings-theme-name">Devlet seçilmedi</strong></div>
+      </section>
+      <p class="settings-note">Ayarların bu cihazda saklanır. Hesabın ve şehir ilerlemen çıkış yaptığında silinmez.</p>
+      <button class="logout-action" id="logout-button" type="button">↪ Güvenli Çıkış Yap</button>
+      <p id="settings-message" class="settings-message" role="status" aria-live="polite"></p>
+    </dialog>
+  </main>
+
+  <script type="module" src="/app.js?v=20261123-clean-map-workers-1"></script>
+</body>
+</html>
