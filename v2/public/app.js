@@ -565,8 +565,9 @@ const recallButton=document.querySelector("#recall-workers");
 function formatNumber(value){return new Intl.NumberFormat("tr-TR").format(value);}
 function totalAssigned(){return Object.values(assigned).reduce((sum,value)=>sum+value,0);}
 function updateWorkerSummary(){
- const armyWorkers=Number(armyState?.totalUnits)||0;
- availableWorkers=Math.max(0,WORKER_POOL-totalAssigned()-armyWorkers);
+ const completedArmyWorkers=Number(armyState?.totalUnits)||0;
+ const queuedArmyWorkers=Array.isArray(armyState?.trainingQueue)?armyState.trainingQueue.reduce((sum,job)=>sum+Math.max(0,Number(job.amount)||0),0):0;
+ availableWorkers=Math.max(0,WORKER_POOL-totalAssigned()-completedArmyWorkers-queuedArmyWorkers);
  availableLabel.textContent=formatNumber(availableWorkers);
  assignedTotalLabel.textContent=formatNumber(totalAssigned())+" görevde";
  updateWorkerActions();
