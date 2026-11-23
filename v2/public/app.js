@@ -1074,6 +1074,69 @@ async function loadArmyState(){
   if(armyMessageNode)armyMessageNode.textContent=error.message||"Ordu bilgileri yüklenemedi.";
  }
 }
+
+const inventoryDialog=document.querySelector("#inventory-dialog");
+const inventoryContent=document.querySelector("#inventory-content");
+const inventoryMessage=document.querySelector("#inventory-message");
+const INVENTORY_RESOURCE_META=[
+ ["gold","Altın","🪙"],["wood","Odun","🪵"],["food","Yiyecek","🌾"],["stone","Taş","🪨"],["iron","Demir","⚒️"],["horses","At","🐎"]
+];
+function inventoryCard(label,value,icon,detail=""){
+ const card=document.createElement("article");card.className="inventory-item";
+ const emblem=document.createElement("span");emblem.className="inventory-item-icon";emblem.textContent=icon;
+ const info=document.createElement("span");info.className="inventory-item-info";
+ const name=document.createElement("strong");name.textContent=label;
+ const amount=document.createElement("b");amount.textContent=armyNumber(value);
+ info.append(name,amount);
+ if(detail){const note=document.createElement("small");note.textContent=detail;info.append(note);}
+ card.append(emblem,info);return card;
+}
+function inventorySection(title,items,emptyText){
+ const section=document.createElement("section");section.className="inventory-section";
+ const heading=document.createElement("h3");heading.textContent=title;section.append(heading);
+ if(!items.length){const empty=document.createElement("p");empty.className="inventory-empty";empty.textContent=emptyText;section.append(empty);}
+ else{const grid=document.createElement("div");grid.className="inventory-grid";items.forEach(item=>grid.append(item));section.append(grid);}
+ return section;
+}
+function renderInventory(){
+ if(!inventoryContent)return;
+ inventoryContent.replaceChildren();
+ const resources=INVENTORY_RESOURCE_META.map(([key,label,icon])=>inventoryCard(label,gameResources[key]||0,icon,key==="horses"?"Ordu ve sefer kaynağı":"Depodaki miktar"));
+ inventoryContent.append(inventorySection("🧺 Kaynaklar",resources,"Henüz kaynak bulunmuyor."));
+ const troopItems=armyState?.catalog?.map(unit=>inventoryCard(unit.name,armyState.troops?.[unit.id]||0,unit.icon,unit.unlocked?"Orduda hazır":"Kilitli birlik"))||[];
+ inventoryContent.append(inventorySection("⚔️ Askerler",troopItems,"Ordu bilgisi yüklenemedi."));
+ const lootNote=document.createElement("p");lootNote.className="inventory-note";
+ lootNote.textContent="Savaşlardan kazanılan ganimetler, köy kaynaklarına eklendiğinde Kaynaklar bölümünde görünür. Ayrı ganimet geçmişi henüz etkin değil.";
+ inventoryContent.append(inventorySection("🎁 Ganimetler",[lootNote],"Henüz ganimet kaydı bulunmuyor."));
+ const specialNote=document.createElement("p");specialNote.className="inventory-note";
+ specialNote.textContent="Özel eşya sistemi henüz oyuna eklenmedi. Bu bölüm yeni eşyalar açıldığında burada listelenecek.";
+ inventoryContent.append(inventorySection("💎 Özel Eşyalar",[specialNote],"Henüz özel eşya bulunmuyor."));
+ const totalTroops=Number(armyState?.totalUnits)||0;
+ const summary=[
+  inventoryCard("Toplam asker",totalTroops,"🛡️"),
+  inventoryCard("Depo kapasitesi",gameStorageCapacity,"🏚️"),
+  inventoryCard("Serbest işçi",Math.max(0,currentWorkerPool-totalAssigned()),"👷"),
+  inventoryCard("Saatlik yiyecek üretimi",gameProductionPerHour.food||0,"🌾","Saatlik")
+ ];
+ const buildingLevel=Object.values(gameBuildings).reduce((sum,item)=>sum+(Number(item.level)||0),0);
+ summary.push(inventoryCard("Toplam bina seviyesi",buildingLevel,"🏰"));
+ inventoryContent.append(inventorySection("📊 Genel Durum",summary,"Genel durum bilgisi hazırlanıyor."));
+}
+async function openInventoryDialog(){
+ if(!authToken)return;
+ inventoryMessage.textContent="Envanter bilgileri yenileniyor…";
+ if(!inventoryDialog.open)inventoryDialog.showModal();
+ try{
+  await loadGameState();
+  await loadArmyState();
+  renderInventory();
+  inventoryMessage.textContent="Envanterin güncel oyun verilerinden yüklendi.";
+ }catch(error){inventoryMessage.textContent=error.message||"Envanter bilgileri yüklenemedi.";}
+}
+document.querySelector('[data-action="inventory"]')?.addEventListener("click",openInventoryDialog);
+document.querySelector("#inventory-close")?.addEventListener("click",()=>inventoryDialog.close());
+inventoryDialog?.addEventListener("click",event=>{if(event.target===inventoryDialog)inventoryDialog.close();});
+
 async function openArmyDialog(){
  if(!authToken)return;
  armyMessageNode.textContent="Ordu bilgileri yükleniyor…";
