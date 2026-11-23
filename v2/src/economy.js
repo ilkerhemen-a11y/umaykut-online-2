@@ -34,6 +34,8 @@ export function settleEconomy({
   const warehouseLevel = Math.max(1, Math.min(10, Number(buildings["9"]?.level) || 1));
   const centerLevel = Math.max(1, Math.min(10, Number(buildings["1"]?.level) || 1));
   const templeLevel = Math.max(1, Math.min(10, Number(buildings["7"]?.level) || 1));
+  const lumberyardLevel = Math.max(1, Math.min(10, Number(buildings["6"]?.level) || 1));
+  const lumberyardMultiplier = 1 + lumberyardLevel * 0.05;
   const storageCapacity = 15000 + (warehouseLevel - 1) * 10000;
   const previousTick = lastResourceTick ? new Date(lastResourceTick).getTime() : now;
   const safePreviousTick = Number.isFinite(previousTick) ? previousTick : now;
@@ -63,7 +65,8 @@ export function settleEconomy({
     const resourceKey = RESOURCE_ALIASES[resourceType] || resourceType;
     const rate = RESOURCE_PRODUCTION_PER_WORKER_HOUR[resourceType];
     if (!RESOURCE_KEYS.includes(resourceKey) || !Number.isFinite(rate)) continue;
-    productionPerHour[resourceKey] += count * rate * nodeMultiplier;
+    const buildingMultiplier = resourceKey === "wood" ? lumberyardMultiplier : 1;
+    productionPerHour[resourceKey] += count * rate * nodeMultiplier * buildingMultiplier;
   }
 
   const centerMultiplier = 1 + (centerLevel - 1) * 0.05;
@@ -95,7 +98,8 @@ export function settleEconomy({
       workerBaseRate,
       nodeMultiplier: Number(nodeMultiplier.toFixed(2)),
       centerMultiplier: Number(centerMultiplier.toFixed(2)),
-      hourlyProduction: Number((workers * workerBaseRate * nodeMultiplier * centerMultiplier).toFixed(2))
+      buildingMultiplier: resourceKey === "wood" ? Number(lumberyardMultiplier.toFixed(2)) : 1,
+      hourlyProduction: Number((workers * workerBaseRate * nodeMultiplier * centerMultiplier * (resourceKey === "wood" ? lumberyardMultiplier : 1)).toFixed(2))
     });
   }
 
@@ -121,6 +125,7 @@ export function settleEconomy({
     workersProduced: newWorkers,
     productionApplied,
     storageCapacity,
+    lumberyardBonusPercent: lumberyardLevel * 5,
     lastResourceTick: new Date(lastTick).toISOString()
   };
 }
