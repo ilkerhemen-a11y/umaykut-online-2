@@ -58,7 +58,7 @@ export function getTroopCatalog(factionId, buildings = {}) {
     const level = Number(buildingState?.level || 1);
     const blacksmithState = buildings.blacksmith || Object.values(buildings).find(item => item?.type === "blacksmith");
     const blacksmithLevel = Math.max(1, Math.min(10, Number(blacksmithState?.level) || 1));
-    const blacksmithMultiplier = 1 + blacksmithLevel * 0.02;
+    const blacksmithMultiplier = 1 + (blacksmithLevel - 1) * 0.02;
     const attack = Math.round(unit.attack * (faction === "gokturk" && id.includes("archer") ? 1.10 : 1) * blacksmithMultiplier);
     const infantryDefense = Math.round(unit.infantryDefense * (faction === "seljuk" ? 1.10 : 1) * blacksmithMultiplier);
     const speed = Math.round(unit.speed * (faction === "hun" && base.building === "stable" ? 1.15 : 1));
@@ -67,7 +67,7 @@ export function getTroopCatalog(factionId, buildings = {}) {
       requiredLevel: base.level, unlocked: level >= base.level,
       buildingLevel: level, attack, infantryDefense,
       cavalryDefense: Math.round(unit.cavalryDefense * blacksmithMultiplier), speed, carry: unit.carry, cost: { ...base.cost },
-      blacksmithLevel, blacksmithBonusPercent: blacksmithLevel * 2
+      blacksmithLevel, blacksmithBonusPercent: (blacksmithLevel - 1) * 2
     };
   });
 }
