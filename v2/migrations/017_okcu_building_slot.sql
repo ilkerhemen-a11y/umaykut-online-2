@@ -1,3 +1,14 @@
+-- Preserve the storage capacity earned under the legacy warehouse before slot 9 becomes Okçu.
+ALTER TABLE umaykut_v2.player_game_state
+  ADD COLUMN IF NOT EXISTS storage_capacity integer NOT NULL DEFAULT 15000;
+
+UPDATE umaykut_v2.player_game_state
+SET storage_capacity = GREATEST(
+  storage_capacity,
+  15000 + (LEAST(10, GREATEST(1, COALESCE((buildings->'9'->>'level')::integer, 1))) - 1) * 10000
+)
+WHERE buildings->'9'->>'type' = 'warehouse';
+
 -- Slot 9 is the Okçu building, not a warehouse.
 -- Preserve every existing level and upgrade timer while correcting the legacy type.
 ALTER TABLE umaykut_v2.player_game_state
