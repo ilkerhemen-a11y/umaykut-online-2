@@ -46,6 +46,9 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/data-action="inventory"/);
   assert.match(html,/id="neutral-region-dialog"/);
   assert.match(html,/id="neutral-region-action"/);
+  assert.doesNotMatch(html,/class="map-legend"/);
+  assert.doesNotMatch(html,/data-resource="(?:grain|wood|stone)"/);
+  assert.match(html,/köyünün erişim alanındaki bir kaynak görseline dokun/);
   assert.match(html,/id="open-settings"/);
   assert.match(html,/data-action="settings"/);
   assert.match(html,/id="logout-button"/);
@@ -237,7 +240,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.deepEqual(Array.from(bytes.slice(0,3)),[0xff,0xd8,0xff]);
 });
 
-test("resource bar uses the six matching isometric SVG icons and serves each asset", async (t) => {
+test("resource bar uses the five matching isometric SVG icons and serves each asset", async (t) => {
   const server=createServer({ pool: null });
   await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
   t.after(()=>new Promise(resolve=>server.close(resolve)));
@@ -246,8 +249,8 @@ test("resource bar uses the six matching isometric SVG icons and serves each ass
   assert.equal(page.status,200);
   const html=await page.text();
   const resources=[
-    ["gold","resource-gold"],["wood","resource-wood"],["food","resource-food"],
-    ["stone","resource-stone"],["iron","resource-iron"],["horses","resource-horses"]
+    ["gold","resource-gold"],["wood","resource-wood"],["grain","resource-food"],
+    ["stone","resource-stone"],["iron","resource-iron"]
   ];
   for(const [asset,id] of resources){
     assert.match(html,new RegExp(`<span class="resource-icon" aria-hidden="true"><img src="/assets/resources/${asset}\\.svg" alt="" width="24" height="20"`));
