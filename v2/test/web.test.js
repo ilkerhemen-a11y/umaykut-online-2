@@ -60,7 +60,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
   assert.match(html,/href="\/app\.css\?v=20261123-attack-panels-1"/);
-  assert.ok(html.includes('src="/app.js?v=20261123-attack-panels-1"'));
+  assert.ok(html.includes('src="/app.js?v=20261123-instant-recruit-1"'));
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n      <section id="building-upgrade-tracker"',stageStart);
   assert.ok(stageEnd>stageStart);
@@ -144,7 +144,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,0);
 
-  const script=await fetch(base+"/app.js?v=20261123-attack-panels-1");
+  const script=await fetch(base+"/app.js?v=20261123-instant-recruit-1");
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.match(appScript,/data-faction-choice/);
