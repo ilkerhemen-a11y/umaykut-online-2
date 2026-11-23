@@ -60,6 +60,10 @@ test("authenticated leaderboard returns one overall score and sorted category de
   assert.equal(data.rankings[1].buildingDevelopment, 1.11);
   assert.equal(data.rankings[1].armyRawStrength, 729.5, "army ranking must include deployed, garrisoned and scouting units");
   assert.equal(data.scoring.weights.economy, 25);
+  assert.equal(data.scoring.scales.armyStrength.fullScoreAt, 10000);
+  assert.equal(data.scoring.scales.territorialControl.fullScoreAtOwnedRegions, 24);
+  assert.equal(data.scoring.scales.buildingDevelopment.buildingCount, 9);
+  assert.equal(data.scoring.scales.economy.resourceTargets.horses, 1000);
 });
 
 test("leaderboard rejects unauthenticated requests", async t => {
