@@ -36,7 +36,7 @@ export async function handleRankingRequest({ req, res, url, pool, sessionSecret 
   if (!valid.rowCount) { json(res, 401, { error: "Oyuncu oturumu bulunamadı." }); return true; }
 
   const result = await pool.query(`
-    SELECT p.id, p.username, p.village_name, s.faction_id, s.buildings, s.troops, s.resources,
+    SELECT p.id, p.username, p.village_name, s.faction_id, s.buildings, s.wall, s.troops, s.resources,
            COALESCE(regions.owned_regions, 0)::integer AS owned_regions,
            COALESCE(raids.troop_stacks, '[]'::jsonb) AS deployed_troops,
            COALESCE(garrisons.troop_stacks, '[]'::jsonb) AS stationed_troops,
@@ -87,6 +87,7 @@ export async function handleRankingRequest({ req, res, url, pool, sessionSecret 
     const factionId = row.faction_id || "gokturk";
     const score = calculatePlayerRanking({
       buildings: parse(row.buildings, {}),
+      wall: parse(row.wall, { level: 1 }),
       troops: combineTroopStacks(
         parse(row.troops, {}),
         ...parse(row.deployed_troops, []),
@@ -119,7 +120,7 @@ export async function handleRankingRequest({ req, res, url, pool, sessionSecret 
     scoring: {
       weights: RANKING_WEIGHTS,
       scales: {
-        buildingDevelopment: { buildingCount: 9, maxLevel: 10 },
+        buildingDevelopment: { buildingCount: 9, wallAndShelterCount: 1, maxLevel: 10 },
         armyStrength: { fullScoreAt: 10000, includesHomeDeployedScoutingAndGarrisonTroops: true },
         territorialControl: { fullScoreAtOwnedRegions: 24, temporaryClaimsCount: false },
         economy: { resourceTargets: { gold: 20000, wood: 20000, food: 20000, stone: 20000, iron: 20000, horses: 1000 }, resourceTypesWeightedEqually: true }
