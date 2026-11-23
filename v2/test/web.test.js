@@ -98,11 +98,13 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="workers-available">1\.800/);
   assert.match(html,/id="workers-assigned-total">0 görevde/);
   assert.match(html,/id="recall-workers"/);
-  assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,3);
+  assert.match(html,/id="resource-selection"/); // Resource markers are populated from the live world-map API.
 
   const script=await fetch(base+"/app.js?v=20261123-world-ranking-4");
   assert.equal(script.status,200);
   const appScript=await script.text();
+  assert.match(appScript,/const resourceInfo=\\{[\\s\\S]*grain:[\\s\\S]*wood:[\\s\\S]*stone:[\\s\\S]*gold:[\\s\\S]*iron:/);
+  assert.match(appScript,/resource-node-marker/);
   assert.match(appScript,/data-faction-choice/);
   assert.match(appScript,/function renderBattleReports\(attacks\)/);
   assert.match(appScript,/async function loadRankings\(\)/);
