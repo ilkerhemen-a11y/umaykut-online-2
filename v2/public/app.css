@@ -382,3 +382,9 @@
  .map-mine-point.resource-node-marker.is-selected{width:42px;min-width:42px;height:42px}
  .map-mine-point.resource-node-marker.is-selected>img{width:34px;height:34px}
 }
+
+
+/* Keep campaign and scout history grouped inside the reports dialog. */
+.report-history-section{margin-top:1rem;padding-top:.85rem;border-top:1px solid rgba(221,190,130,.2)}
+.report-history-section>h3{margin:0 0 .75rem;font-size:1.05rem;color:var(--gold,#d9b66d)}
+.report-history-section #active-raids-list,.report-history-section #scout-reports-list{display:grid;gap:.65rem}
