@@ -522,6 +522,7 @@ compactResourcesToggle.addEventListener("change",saveSettings);
 applySettings();
 
 const WORKER_POOL=1800;
+let currentWorkerPool=WORKER_POOL;
 const WORKER_STORAGE_KEY="umaykut-worker-state-v3";
 const RESOURCE_KEYS=["grain","wood","stone","gold","iron"];
 const resourceInfo={
@@ -544,12 +545,12 @@ function restoreWorkerState(){
    if((RESOURCE_KEYS.includes(key)||/^mine_\d+$/.test(key))&&Number.isSafeInteger(saved.assigned[key])&&saved.assigned[key]>=0)assigned[key]=saved.assigned[key];
   });
   const total=totalAssigned();
-  if(total>WORKER_POOL){Object.keys(assigned).forEach(key=>assigned[key]=0);return;}
-  availableWorkers=WORKER_POOL-total;
+  if(total>currentWorkerPool){Object.keys(assigned).forEach(key=>assigned[key]=0);return;}
+  availableWorkers=currentWorkerPool-total;
  }catch{}
 }
 function saveWorkerState(){
- try{localStorage.setItem(WORKER_STORAGE_KEY,JSON.stringify({version:3,workerPool:WORKER_POOL,assigned}));}catch{}
+ try{localStorage.setItem(WORKER_STORAGE_KEY,JSON.stringify({version:3,workerPool:currentWorkerPool,assigned}));}catch{}
  if(gameStateReady)persistGameState().catch(()=>{
   if(workerStatus)workerStatus.textContent="Bağlantı kurulamadı; değişiklik bu cihazda saklandı.";
  });
@@ -568,7 +569,7 @@ const recallButton=document.querySelector("#recall-workers");
 function formatNumber(value){return new Intl.NumberFormat("tr-TR").format(value);}
 function totalAssigned(){return Object.values(assigned).reduce((sum,value)=>sum+value,0);}
 function updateWorkerSummary(){
- availableWorkers=Math.max(0,WORKER_POOL-totalAssigned());
+ availableWorkers=Math.max(0,currentWorkerPool-totalAssigned());
  availableLabel.textContent=formatNumber(availableWorkers);
  assignedTotalLabel.textContent=formatNumber(totalAssigned())+" görevde";
  updateWorkerActions();
@@ -752,6 +753,7 @@ async function authRequest(path,{method="GET",body,token}={}){
 
 
 function applyProductionState(state){
+ if(Number.isFinite(Number(state.workerPool)))currentWorkerPool=Math.max(WORKER_POOL,Number(state.workerPool));
  gameProductionPerHour={...gameProductionPerHour,...(state.productionPerHour||{})};
  gameProductionBreakdown=Array.isArray(state.productionBreakdown)?state.productionBreakdown:[];
  gameResourceNodes=Array.isArray(state.resourceNodes)?state.resourceNodes:[];
@@ -769,6 +771,7 @@ async function refreshProductionState(){
 }
 async function persistGameState(){
  if(!authToken||!gameStateReady)return;
+ await refreshProductionState();
  const saved=await authRequest("/api/game/state",{
   method:"PUT",
   token:authToken,
@@ -802,13 +805,15 @@ async function loadGameState(){
     if((RESOURCE_KEYS.includes(key)||/^mine_\d+$/.test(key))&&Number.isSafeInteger(Number(value))&&Number(value)>=0)assigned[key]=Number(value);
    });
    RESOURCE_KEYS.forEach(key=>{if(!Number.isSafeInteger(assigned[key]))assigned[key]=0;});
-   availableWorkers=Math.max(0,Number(state.workerPool||WORKER_POOL)-totalAssigned());
+   currentWorkerPool=Math.max(WORKER_POOL,Number(state.workerPool||WORKER_POOL));
+   availableWorkers=Math.max(0,currentWorkerPool-totalAssigned());
   }else{
    await authRequest("/api/game/state",{
     method:"PUT",token:authToken,
     body:{factionId:shell.dataset.faction,workerAssignments:{...assigned}}
    });
-   availableWorkers=Math.max(0,WORKER_POOL-totalAssigned());
+   currentWorkerPool=Math.max(WORKER_POOL,Number(state.workerPool||WORKER_POOL));
+   availableWorkers=Math.max(0,currentWorkerPool-totalAssigned());
   }
   gameStateReady=true;
   saveWorkerState();
