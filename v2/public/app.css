@@ -235,3 +235,24 @@
 
 .battle-report-card[data-kind="territory"]{border-color:#b18d4b}
 .battle-report-kind{display:inline-block;margin-top:7px;color:#e3c77f;font:700 9px Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+
+
+/* World leaderboard */
+.ranking-panel{margin:18px 12px 30px;padding:16px;border:1px solid rgba(202,165,91,.38);border-radius:18px;background:linear-gradient(145deg,rgba(25,38,31,.96),rgba(10,18,17,.96));color:#f4e9d2;box-shadow:0 12px 34px #0005}
+.ranking-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ranking-heading small{color:#c6a15b;letter-spacing:.14em;font-size:.68rem}
+.ranking-heading h2{margin:4px 0;font-size:1.12rem;color:#f3d58c}
+.ranking-heading p{margin:0 0 10px;color:#c2b79f;font:11px/1.4 Arial,sans-serif}
+.ranking-heading button{flex:0 0 auto;border:1px solid #b8914b;border-radius:10px;background:#33291a;color:#f8e6bf;padding:9px 12px;font-weight:700}
+.ranking-weights{display:flex;flex-wrap:wrap;gap:6px;margin:5px 0 10px}
+.ranking-weights span,.ranking-details span{padding:5px 7px;border:1px solid rgba(202,165,91,.22);border-radius:8px;background:#0a120f;color:#d9c89f;font:10px Arial,sans-serif}
+.ranking-card{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:8px;padding:10px 2px;border-top:1px solid rgba(255,255,255,.1)}
+.ranking-card.is-current-player{margin:0 -7px;padding:10px 7px;border-radius:9px;background:rgba(197,155,75,.13);border-top-color:rgba(221,183,104,.45)}
+.ranking-position{color:#e7c779;font:700 16px Georgia,serif;text-align:center}
+.ranking-identity{min-width:0}
+.ranking-identity strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#f5e6c5}
+.ranking-identity small{display:block;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#bcb29b;font:10px Arial,sans-serif}
+.ranking-total{color:#f1d48c;font:700 12px Georgia,serif;white-space:nowrap}
+.ranking-details{grid-column:2 / -1;display:flex;flex-wrap:wrap;gap:5px}
+.ranking-details span{font-size:9px;padding:4px 6px}
+@media(max-width:360px){.ranking-panel{padding:12px}.ranking-card{grid-template-columns:27px minmax(0,1fr) auto;gap:6px}.ranking-total{font-size:10px}.ranking-identity strong{font-size:11px}}
