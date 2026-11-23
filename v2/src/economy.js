@@ -25,6 +25,7 @@ export function settleEconomy({
   lastResourceTick,
   productionRemainders: storedRemainders,
   workerPool = 1800,
+  storedStorageCapacity = 15000,
   now = Date.now()
 }) {
   const resources = parseObject(storedResources);
@@ -35,7 +36,7 @@ export function settleEconomy({
   const templeLevel = Math.max(1, Math.min(10, Number(buildings["7"]?.level) || 1));
   const lumberyardLevel = Math.max(1, Math.min(10, Number(buildings["6"]?.level) || 1));
   const lumberyardMultiplier = 1 + (lumberyardLevel - 1) * 0.05;
-  const storageCapacity = 15000;
+  const storageCapacity = Math.max(15000, Math.floor(Number(storedStorageCapacity) || 15000));
   const previousTick = lastResourceTick ? new Date(lastResourceTick).getTime() : now;
   const safePreviousTick = Number.isFinite(previousTick) ? previousTick : now;
   const elapsedMs = Math.max(0, Math.min(now - safePreviousTick, MAX_OFFLINE_HOURS * 3600000));
