@@ -90,7 +90,7 @@ test("game state is returned only to a valid V2 player session", async (t) => {
             "6": { type: "lumberyard", level: 1 },
             "7": { type: "temple", level: 1 },
             "8": { type: "market", level: 1 },
-            "9": { type: "warehouse", level: 4, upgrade: { targetLevel: 5, startedAt: "2026-11-23T10:00:00.000Z", completesAt: "2026-11-23T11:00:00.000Z" } }
+            "9": { type: "warehouse", level: 4, upgrade: { targetLevel: 5, startedAt: "2099-11-23T10:00:00.000Z", completesAt: "2099-11-23T11:00:00.000Z" } }
           },
           updated_at: "2026-11-17T12:00:00.000Z"
         }], rowCount: 1 };
