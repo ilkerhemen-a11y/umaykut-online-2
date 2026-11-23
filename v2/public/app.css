@@ -256,3 +256,5 @@
 .ranking-details{grid-column:2 / -1;display:flex;flex-wrap:wrap;gap:5px}
 .ranking-details span{font-size:9px;padding:4px 6px}
 @media(max-width:360px){.ranking-panel{padding:12px}.ranking-card{grid-template-columns:27px minmax(0,1fr) auto;gap:6px}.ranking-total{font-size:10px}.ranking-identity strong{font-size:11px}}
+
+.ranking-footnote{margin:0 0 9px;color:#a99e86;font:9px/1.4 Arial,sans-serif}
