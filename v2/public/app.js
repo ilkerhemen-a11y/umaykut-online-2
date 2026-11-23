@@ -537,7 +537,7 @@ function restoreWorkerState(){
   const saved=JSON.parse(localStorage.getItem(WORKER_STORAGE_KEY)||localStorage.getItem("umaykut-worker-state-v2")||"null");
   if(!saved||!saved.assigned)return;
   Object.keys(saved.assigned).forEach(key=>{
-   if((RESOURCE_KEYS.includes(key)||/^mine_\\d+$/.test(key))&&Number.isSafeInteger(saved.assigned[key])&&saved.assigned[key]>=0)assigned[key]=saved.assigned[key];
+   if((RESOURCE_KEYS.includes(key)||/^mine_\d+$/.test(key))&&Number.isSafeInteger(saved.assigned[key])&&saved.assigned[key]>=0)assigned[key]=saved.assigned[key];
   });
   const total=totalAssigned();
   if(total>WORKER_POOL){Object.keys(assigned).forEach(key=>assigned[key]=0);return;}
@@ -706,7 +706,7 @@ async function loadGameState(){
   if(state.workerStateInitialized){
    Object.keys(assigned).forEach(key=>delete assigned[key]);
    Object.entries(state.workerAssignments||{}).forEach(([key,value])=>{
-    if((RESOURCE_KEYS.includes(key)||/^mine_\\d+$/.test(key))&&Number.isSafeInteger(Number(value))&&Number(value)>=0)assigned[key]=Number(value);
+    if((RESOURCE_KEYS.includes(key)||/^mine_\d+$/.test(key))&&Number.isSafeInteger(Number(value))&&Number(value)>=0)assigned[key]=Number(value);
    });
    RESOURCE_KEYS.forEach(key=>{if(!Number.isSafeInteger(assigned[key]))assigned[key]=0;});
    availableWorkers=Math.max(0,Number(state.workerPool||WORKER_POOL)-totalAssigned());
