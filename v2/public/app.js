@@ -1143,6 +1143,63 @@ document.querySelector("#inventory-close")?.addEventListener("click",()=>invento
 inventoryDialog?.addEventListener("click",event=>{if(event.target===inventoryDialog)inventoryDialog.close();});
 
 
+const questsDialog=document.querySelector("#quests-dialog");
+const questsContent=document.querySelector("#quests-content");
+const questsMessage=document.querySelector("#quests-message");
+function renderQuests(quests){
+ questsContent.replaceChildren();
+ const completed=quests.filter(q=>q.completed).length;
+ const summary=document.createElement("div");summary.className="quests-summary";
+ const summaryText=document.createElement("strong");summaryText.textContent=completed+" / "+quests.length+" görev tamamlandı";
+ const summaryTrack=document.createElement("div");summaryTrack.className="quests-summary-track";
+ const summaryFill=document.createElement("span");summaryFill.style.width=(quests.length?completed/quests.length*100:0)+"%";
+ summaryTrack.append(summaryFill);summary.append(summaryText,summaryTrack);questsContent.append(summary);
+ for(const quest of quests){
+  const card=document.createElement("article");card.className="quest-card"+(quest.claimed?" is-claimed":quest.completed?" is-completed":"");
+  const head=document.createElement("div");head.className="quest-card-head";
+  const title=document.createElement("strong");title.textContent=quest.title;
+  const status=document.createElement("span");status.className="quest-status";status.textContent=quest.claimed?"Ödül alındı":quest.completed?"Tamamlandı":"Devam ediyor";
+  head.append(title,status);
+  const description=document.createElement("p");description.textContent=quest.description;
+  const progress=document.createElement("div");progress.className="quest-progress";
+  const fill=document.createElement("span");fill.style.width=(quest.target?Math.max(0,Math.min(100,quest.progress/quest.target*100)):0)+"%";progress.append(fill);
+  const values=document.createElement("small");values.className="quest-progress-label";values.textContent=formatNumber(quest.progress)+" / "+formatNumber(quest.target);
+  const reward=document.createElement("div");reward.className="quest-reward";
+  reward.textContent="Ödül: "+Object.entries(quest.reward).map(([key,value])=>({gold:"🪙 Altın",wood:"🪵 Odun",food:"🌾 Yiyecek",stone:"🪨 Taş",iron:"⚒️ Demir"}[key]+" "+formatNumber(value)).join(" · ");
+  card.append(head,description,progress,values,reward);
+  if(quest.completed&&!quest.claimed){
+   const claim=document.createElement("button");claim.type="button";claim.className="quest-claim";claim.textContent="Ödülü Topla";claim.dataset.questId=quest.id;card.append(claim);
+  }
+  questsContent.append(card);
+ }
+}
+async function loadQuests(){
+ const result=await authRequest("/api/game/quests",{token:authToken});
+ renderQuests(result.quests||[]);
+ return result.quests||[];
+}
+async function openQuestsDialog(){
+ if(!authToken)return;
+ questsMessage.textContent="Görev ilerlemesi yenileniyor…";
+ if(!questsDialog.open)questsDialog.showModal();
+ try{await loadQuests();questsMessage.textContent="Görevlerin güncel oyun durumuna göre hesaplandı.";}
+ catch(error){questsMessage.textContent=error.message||"Görevler yüklenemedi.";}
+}
+document.querySelector("#open-quests")?.addEventListener("click",openQuestsDialog);
+document.querySelector("#quests-close")?.addEventListener("click",()=>questsDialog.close());
+questsDialog?.addEventListener("click",event=>{if(event.target===questsDialog)questsDialog.close();});
+questsContent?.addEventListener("click",async event=>{
+ const button=event.target.closest("[data-quest-id]");
+ if(!button||button.disabled)return;
+ button.disabled=true;questsMessage.textContent="Ödül doğrulanıyor…";
+ try{
+  const result=await authRequest("/api/game/quests",{method:"POST",token:authToken,body:{questId:button.dataset.questId}});
+  gameResources={...gameResources,...result.resources};renderResourceBalances();
+  await loadQuests();questsMessage.textContent="Ödül hesabına eklendi!";
+ }catch(error){questsMessage.textContent=error.message||"Ödül alınamadı.";button.disabled=false;}
+});
+
+
 const marketDialog=document.querySelector("#market-dialog");
 const marketResource=document.querySelector("#market-resource");
 const marketAmount=document.querySelector("#market-amount");
