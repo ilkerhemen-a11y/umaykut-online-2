@@ -1,5 +1,5 @@
 import { bearerToken, sessionTokenHash, verifySessionToken } from "./auth.js";
-import { calculatePlayerRanking, combineTroopStacks } from "./ranking.js";
+import { calculatePlayerRanking, combineTroopStacks, RANKING_WEIGHTS } from "./ranking.js";
 
 function json(res, status, body) {
   res.writeHead(status, {
@@ -117,7 +117,7 @@ export async function handleRankingRequest({ req, res, url, pool, sessionSecret 
     rankings,
     currentPlayerId: session.id,
     scoring: {
-      weights: { buildingDevelopment: 25, armyStrength: 25, territorialControl: 25, economy: 25 },
+      weights: RANKING_WEIGHTS,
       scales: {
         buildingDevelopment: { buildingCount: 9, maxLevel: 10 },
         armyStrength: { fullScoreAt: 10000, includesHomeDeployedScoutingAndGarrisonTroops: true },
