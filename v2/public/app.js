@@ -530,6 +530,7 @@ applySettings();
 
 const WORKER_POOL=1800;
 let currentWorkerPool=WORKER_POOL;
+let currentArmyPopulation=0;
 let workerProductionPerHour=25;
 const WORKER_STORAGE_KEY="umaykut-worker-state-v3";
 const RESOURCE_KEYS=["grain","wood","stone","gold","iron"];
@@ -578,7 +579,7 @@ const recallButton=document.querySelector("#recall-workers");
 function formatNumber(value){return new Intl.NumberFormat("tr-TR").format(value);}
 function totalAssigned(){return Object.values(assigned).reduce((sum,value)=>sum+value,0);}
 function updateWorkerSummary(){
- availableWorkers=Math.max(0,currentWorkerPool-totalAssigned());
+ availableWorkers=Math.max(0,currentWorkerPool-totalAssigned()-currentArmyPopulation);
  availableLabel.textContent=formatNumber(availableWorkers);
  assignedTotalLabel.textContent=formatNumber(totalAssigned())+" görevde";
  updateWorkerActions();
@@ -660,7 +661,7 @@ function renderProductionDialog(){
  if(!productionResourceGrid)return;
  const total=totalAssigned();
  productionWorkerTotal.textContent=formatNumber(total);
- productionWorkerFree.textContent=formatNumber(Math.max(0,WORKER_POOL-total))+" işçi boştadır";
+ productionWorkerFree.textContent=formatNumber(Math.max(0,currentWorkerPool-total-currentArmyPopulation))+" işçi boştadır";
  productionResourceGrid.replaceChildren();
  for(const key of ["gold","wood","food","stone","iron"]){
   const current=Number(gameResources[key]||0),rate=Number(gameProductionPerHour[key]||0);
@@ -1075,6 +1076,8 @@ async function loadArmyState(){
  if(!authToken)return;
  try{
   armyState=await authRequest("/api/game/army",{token:authToken});
+  currentArmyPopulation=Math.max(0,Number(armyState.totalUnits)||0);
+  updateWorkerSummary();renderProductionDialog();
   if(armyState.resources){gameResources={...gameResources,...armyState.resources};renderResourceBalances();}
   renderArmySummary();renderArmyCatalog();renderArmyQueue();
  }catch(error){
