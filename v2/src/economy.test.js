@@ -77,3 +77,35 @@ test("production breakdown exposes worker, node-yield and center bonuses used by
   }]);
   assert.equal(result.productionPerHour.wood, 30.8);
 });
+
+test("temple produces 25 workers per hour per level and accrues offline", () => {
+  for (let level = 1; level <= 10; level += 1) {
+    const result = settleEconomy({
+      resources: {}, workerAssignments: {},
+      buildings: { "1": { level: 1 }, "7": { level }, "9": { level: 1 } },
+      workerPool: 1800,
+      lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
+      now: Date.parse("2026-01-01T01:00:00.000Z")
+    });
+    assert.equal(result.workerProductionPerHour, level * 25);
+    assert.equal(result.workerPool, 1800 + level * 25);
+  }
+  const offline = settleEconomy({
+    resources: {}, workerAssignments: {}, buildings: { "7": { level: 10 } },
+    workerPool: 1800, lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
+    now: Date.parse("2026-01-01T02:30:00.000Z")
+  });
+  assert.equal(offline.workerPool, 2425);
+  assert.equal(offline.workersProduced, 625);
+});
+
+test("worker production retains fractional accrual between state checks", () => {
+  const result = settleEconomy({
+    resources: {}, workerAssignments: {}, buildings: { "7": { level: 1 } },
+    workerPool: 1800, productionRemainders: { workers: 0 },
+    lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
+    now: Date.parse("2026-01-01T00:30:00.000Z")
+  });
+  assert.equal(result.workerPool, 1812);
+  assert.equal(result.remainders.workers, 0.5);
+});
