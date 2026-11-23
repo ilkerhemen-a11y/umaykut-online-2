@@ -384,16 +384,17 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           `INSERT INTO umaykut_v2.world_resource_nodes
              (id,resource_type,world_x,world_y,yield_level,owner_player_id)
            SELECT nextval('umaykut_v2.world_resource_node_id_seq'),v.resource_type,
-                  GREATEST(1,LEAST(99,s.world_x+v.dx)),GREATEST(1,LEAST(99,s.world_y+v.dy)),
+                  GREATEST(1,LEAST(99,s.world_x+cos(spawn.angle+v.resource_slot*2*pi()/5)*spawn.radius)),
+                      GREATEST(1,LEAST(99,s.world_y+sin(spawn.angle+v.resource_slot*2*pi()/5)*spawn.radius)),
                   5,s.player_id::text
            FROM umaykut_v2.player_game_state s
            CROSS JOIN (VALUES
-             ('stone'::varchar,-1.15::double precision,-1.05::double precision),
-             ('wood'::varchar,1.15::double precision,-1.05::double precision),
-             ('iron'::varchar,-1.15::double precision,1.05::double precision),
-             ('gold'::varchar,1.15::double precision,1.05::double precision),
-             ('grain'::varchar,0.00::double precision,1.65::double precision)
-           ) AS v(resource_type,dx,dy)
+                 ('stone'::varchar,0),('wood'::varchar,1),('iron'::varchar,2),
+                 ('gold'::varchar,3),('grain'::varchar,4)
+               ) AS v(resource_type,resource_slot)
+               CROSS JOIN LATERAL (
+                 SELECT random()*2*pi() AS angle, 1.25+random()*0.45 AS radius
+               ) AS spawn
            WHERE s.player_id=$1
              AND NOT EXISTS(SELECT 1 FROM umaykut_v2.world_resource_nodes n WHERE n.owner_player_id=s.player_id::text)`,
           [session.id]
@@ -902,16 +903,17 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
               `INSERT INTO umaykut_v2.world_resource_nodes
                  (id,resource_type,world_x,world_y,yield_level,owner_player_id)
                SELECT nextval('umaykut_v2.world_resource_node_id_seq'),v.resource_type,
-                      GREATEST(1,LEAST(99,s.world_x+v.dx)),GREATEST(1,LEAST(99,s.world_y+v.dy)),
+                      GREATEST(1,LEAST(99,s.world_x+cos(spawn.angle+v.resource_slot*2*pi()/5)*spawn.radius)),
+                      GREATEST(1,LEAST(99,s.world_y+sin(spawn.angle+v.resource_slot*2*pi()/5)*spawn.radius)),
                       5,s.player_id::text
                FROM umaykut_v2.player_game_state s
                CROSS JOIN (VALUES
-                 ('stone'::varchar,-1.15::double precision,-1.05::double precision),
-                 ('wood'::varchar,1.15::double precision,-1.05::double precision),
-                 ('iron'::varchar,-1.15::double precision,1.05::double precision),
-                 ('gold'::varchar,1.15::double precision,1.05::double precision),
-                 ('grain'::varchar,0.00::double precision,1.65::double precision)
-               ) AS v(resource_type,dx,dy)
+                 ('stone'::varchar,0),('wood'::varchar,1),('iron'::varchar,2),
+                 ('gold'::varchar,3),('grain'::varchar,4)
+               ) AS v(resource_type,resource_slot)
+               CROSS JOIN LATERAL (
+                 SELECT random()*2*pi() AS angle, 1.25+random()*0.45 AS radius
+               ) AS spawn
                WHERE s.player_id=$1
                  AND NOT EXISTS(SELECT 1 FROM umaykut_v2.world_resource_nodes n WHERE n.owner_player_id=s.player_id::text)`,
               [session.id]
