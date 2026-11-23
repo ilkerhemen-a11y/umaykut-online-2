@@ -439,6 +439,3 @@
 .map-view>.bottom-nav{position:relative;z-index:20;left:auto;bottom:auto;transform:none;width:100%;margin:0 0 12px;padding:7px 8px;border:1px solid #927642;border-radius:13px;box-shadow:0 5px 18px #0007;grid-template-columns:repeat(4,minmax(0,1fr))}
 .map-view>.bottom-nav button{min-height:48px}
 @media(max-width:420px){.map-view>.bottom-nav{gap:5px;margin-bottom:10px}.map-view>.bottom-nav button{min-height:43px;padding:5px 2px}.map-view>.bottom-nav button span{font-size:19px}.map-view>.bottom-nav button{font-size:9px}}
-/* 10x10 shared world: repeat the terrain tile instead of stretching one image across the full world. */
-.map-world-canvas{width:18000px;height:12000px;background-color:#526344;background-image:url("/assets/IMG-20261117-WA7167.jpg");background-repeat:repeat;background-size:1800px 1200px}
-.map-world-canvas .map-terrain-image{display:none}
