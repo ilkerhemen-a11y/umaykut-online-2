@@ -8,6 +8,7 @@ import { handleNeutralRegionRequest } from "./neutral-regions-api.js";
 import { createPool } from "./database.js";
 import { settleEconomy } from "./economy.js";
 import { handleArmyRequest, getTroopCatalog, settleTrainingQueue } from "./army.js";
+import { rankPlayers } from "./ranking.js";
 import {
   bearerToken,
   createSessionToken,
@@ -198,6 +199,70 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
     if (await handleArmyRequest({ req, res, url, pool, sessionSecret })) return;
     if (await handleNeutralRegionRequest({ req, res, url, pool, sessionSecret })) return;
 
+
+    if (url.pathname === "/api/game/ranking") {
+      if (!pool) return sendJson(res, 503, { error: "Sıralama servisi henüz yapılandırılmadı." });
+      if (req.method !== "GET") {
+        res.setHeader("allow", "GET");
+        return sendJson(res, 405, { error: "Yöntem desteklenmiyor." });
+      }
+      if (!sessionSecret || sessionSecret.length < 32) {
+        return sendJson(res, 503, { error: "Oturum güvenlik ayarı eksik." });
+      }
+      const token = bearerToken(req);
+      const session = verifySessionToken(token, sessionSecret);
+      if (!session) return sendJson(res, 401, { error: "Oturum geçersiz veya süresi dolmuş." });
+      try {
+        const valid = await pool.query(
+          "SELECT 1 FROM umaykut_v2.player_sessions WHERE player_id=$1 AND token_hash=$2 AND expires_at>NOW()",
+          [session.id, sessionTokenHash(token)]
+        );
+        if (!valid.rowCount) return sendJson(res, 401, { error: "Oyuncu oturumu bulunamadı." });
+
+        const result = await pool.query(
+          `SELECT p.id, p.username, p.username_normalized, p.village_name, p.created_at,
+                  s.faction_id, s.resources, s.buildings, s.troops,
+                  COALESCE(regions.territory_count, 0)::integer AS territory_count
+             FROM umaykut_v2.players p
+             JOIN umaykut_v2.player_game_state s ON s.player_id = p.id
+             LEFT JOIN (
+               SELECT owner_player_id, COUNT(*)::integer AS territory_count
+                 FROM umaykut_v2.world_neutral_regions
+                WHERE owner_player_id IS NOT NULL
+                GROUP BY owner_player_id
+             ) regions ON regions.owner_player_id = p.id
+            WHERE p.village_name IS NOT NULL AND s.faction_id IS NOT NULL`
+        );
+        const ranked = rankPlayers(result.rows);
+        const current = ranked.find(player => player.id === String(session.id));
+        const topPlayers = ranked.slice(0, 50).map(player => ({
+          rank: player.rank,
+          username: player.username,
+          villageName: player.villageName,
+          factionId: player.factionId,
+          score: player.score,
+          isMe: player.id === String(session.id)
+        }));
+        return sendJson(res, 200, {
+          totalPlayers: ranked.length,
+          topPlayers,
+          me: current ? {
+            rank: current.rank,
+            username: current.username,
+            villageName: current.villageName,
+            factionId: current.factionId,
+            score: current.score
+          } : null,
+          serverNow: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error("V2 ranking request failed", {
+          code: error.code || "UNKNOWN",
+          message: String(error.message || "Unknown ranking error").slice(0, 180)
+        });
+        return sendJson(res, 500, { error: "Oyuncu sıralaması yüklenemedi." });
+      }
+    }
 
     if (url.pathname === "/api/game/players" || url.pathname === "/api/game/attacks" || url.pathname === "/api/game/attack" || url.pathname === "/api/game/scouting") {
       if (!pool) return sendJson(res,503,{error:"Oyun kayıt servisi henüz yapılandırılmadı."});
