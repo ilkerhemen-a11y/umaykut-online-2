@@ -1146,7 +1146,7 @@ inventoryDialog?.addEventListener("click",event=>{if(event.target===inventoryDia
 const questsDialog=document.querySelector("#quests-dialog");
 const questsContent=document.querySelector("#quests-content");
 const questsMessage=document.querySelector("#quests-message");
-function renderQuests(quests){
+function renderQuests(quests,achievements=[]){
  questsContent.replaceChildren();
  const completed=quests.filter(q=>q.completed).length;
  const summary=document.createElement("div");summary.className="quests-summary";
@@ -1172,10 +1172,20 @@ function renderQuests(quests){
   }
   questsContent.append(card);
  }
+ const achievementHeading=document.createElement("h3");achievementHeading.className="achievement-heading";achievementHeading.textContent="🏅 Başarımlar";questsContent.append(achievementHeading);
+ for(const achievement of achievements){
+  const card=document.createElement("article");card.className="achievement-card"+(achievement.unlocked?" is-unlocked":"");
+  const emblem=document.createElement("span");emblem.className="achievement-emblem";emblem.textContent=achievement.unlocked?"🏅":"🔒";
+  const details=document.createElement("span");details.className="achievement-details";
+  const title=document.createElement("strong");title.textContent=achievement.title;
+  const description=document.createElement("small");description.textContent=achievement.description;
+  const status=document.createElement("small");status.className="achievement-status";status.textContent=achievement.unlocked?"Kazanıldı":"Henüz açılmadı";
+  details.append(title,description,status);card.append(emblem,details);questsContent.append(card);
+ }
 }
 async function loadQuests(){
  const result=await authRequest("/api/game/quests",{token:authToken});
- renderQuests(result.quests||[]);
+ renderQuests(result.quests||[],result.achievements||[]);
  return result.quests||[];
 }
 async function openQuestsDialog(){
