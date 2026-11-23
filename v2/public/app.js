@@ -951,13 +951,7 @@ function renderArmyUnitDetail(unitId){
 function renderArmyQueue(){
  if(!armyState)return;
  armyQueueNode.replaceChildren();
- if(!armyState.trainingQueue.length){const p=document.createElement("p");p.textContent="Askerler yetiştirildiğinde doğrudan orduna katılır.";armyQueueNode.append(p);return;}
- armyState.trainingQueue.forEach(job=>{
-  const item=document.createElement("div");item.className="army-queue-item";
-  const title=document.createElement("strong");title.textContent=job.name+" × "+armyNumber(job.amount);
-  const time=document.createElement("small");const remainingMs=Date.parse(job.completesAt)-getServerNow();const remaining=Math.max(0,Math.ceil(remainingMs/1000));const hours=Math.floor(remaining/3600),minutes=Math.floor((remaining%3600)/60),seconds=remaining%60;time.textContent=remainingMs<=0?"Tamamlanıyor…":"Yetiştiriliyor · "+(hours?hours+" sa ":"")+(minutes?minutes+" dk ":"")+seconds+" sn kaldı";
-  item.append(title,time);armyQueueNode.append(item);
- });
+ const p=document.createElement("p");p.textContent="Yetiştirdiğin askerler beklemeden doğrudan orduna katılır.";armyQueueNode.append(p);
 }
 async function loadArmyState(){
  if(!authToken)return;
@@ -1136,7 +1130,7 @@ document.querySelector("#army-unit-detail").addEventListener("click",async event
   armyState=result;gameResources={...gameResources,...result.resources};renderResourceBalances();
   renderArmySummary();renderArmyCatalog();renderArmyQueue();
   if(selectedArmyUnitId)renderArmyUnitDetail(selectedArmyUnitId);
-  armyMessageNode.textContent=amount+" asker eğitim kuyruğuna eklendi. Kaynaklar hesabından düşüldü.";
+  armyMessageNode.textContent=amount+" asker anında orduna katıldı. Kaynaklar hesabından düşüldü.";
  }catch(error){armyMessageNode.textContent=error.message||"Asker yetiştirme başlatılamadı.";button.disabled=false;}
 });
 
