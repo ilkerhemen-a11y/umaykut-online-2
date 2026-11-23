@@ -48,6 +48,53 @@ function createMarketPool({playerId,row,onUpdate=()=>{}}){
 }
 
 
+test("overall ranking API returns the authenticated player's position and one combined score", async t => {
+  const secret = "test-session-secret-with-at-least-32-characters";
+  const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+  const token = createSessionToken(playerId, secret);
+  const buildings = Object.fromEntries([
+    ["1","center"],["2","barracks"],["3","stable"],["4","blacksmith"],["5","school"],
+    ["6","lumberyard"],["7","temple"],["8","market"],["9","warehouse"]
+  ].map(([slot,type]) => [slot,{type,level:1}]));
+  const rows = [
+    {
+      id: playerId, username: "Bey", username_normalized: "bey", village_name: "Ötüken",
+      created_at: "2026-01-01T00:00:00.000Z", faction_id: "gokturk",
+      resources: {gold:15000,wood:15000,food:15000,stone:15000,iron:15000},
+      buildings, troops: {infantry:100}, territory_count: 2
+    },
+    {
+      id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", username: "Rakip",
+      username_normalized: "rakip", village_name: "Yeni Yurt",
+      created_at: "2026-02-01T00:00:00.000Z", faction_id: "hun",
+      resources: {gold:0,wood:0,food:0,stone:0,iron:0},
+      buildings, troops: {}, territory_count: 0
+    }
+  ];
+  const pool = {
+    query: async sql => {
+      if (sql.includes("SELECT 1 FROM umaykut_v2.player_sessions")) return {rows:[{}],rowCount:1};
+      if (sql.includes("FROM umaykut_v2.players p") && sql.includes("world_neutral_regions")) return {rows,rowCount:rows.length};
+      throw new Error("Unexpected ranking query: " + sql);
+    }
+  };
+  const server = createServer({pool,sessionSecret:secret});
+  await new Promise(resolve => server.listen(0,"127.0.0.1",resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const response = await fetch(`http://127.0.0.1:${server.address().port}/api/game/ranking`, {
+    headers: {Authorization:"Bearer "+token}
+  });
+  assert.equal(response.status,200);
+  const result = await response.json();
+  assert.equal(result.totalPlayers,2);
+  assert.equal(result.me.rank,1);
+  assert.equal(result.topPlayers[0].isMe,true);
+  assert.equal(result.topPlayers[0].score,result.me.score);
+  assert.equal(result.topPlayers[0].villageName,"Ötüken");
+  assert.equal("id" in result.topPlayers[0],false);
+  assert.ok(result.topPlayers[0].score>result.topPlayers[1].score);
+});
+
 test("lumberyard level increases wood production without changing other resources", () => {
   const base = settleEconomy({
     resources:{gold:0,wood:0,food:0,stone:0,iron:0},
