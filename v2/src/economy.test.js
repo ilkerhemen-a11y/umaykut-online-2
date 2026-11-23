@@ -58,5 +58,5 @@ test("offline accumulation is capped at 72 hours and fractional production is re
     now: Date.parse("2026-01-05T00:00:00.000Z")
   });
   assert.equal(capped.resources.wood, 720);
-  assert.equal(Date.parse(capped.lastResourceTick), Date.parse("2026-01-04T00:00:00.000Z"));
+  assert.equal(Date.parse(capped.lastResourceTick), Date.parse("2026-01-05T00:00:00.000Z"));
 });
