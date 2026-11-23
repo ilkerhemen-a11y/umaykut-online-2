@@ -28,10 +28,13 @@ CROSS JOIN LATERAL generate_series(1,GREATEST(0,t.target_count-c.current_count))
 -- spread around the village at randomized angles and remain inside the level-1 range.
 WITH positions AS (
   SELECT n.id,
-         s.world_x+cos(random()*2*pi())*(1.25+random()*0.45) AS next_x,
-         s.world_y+sin(random()*2*pi())*(1.25+random()*0.45) AS next_y
+         s.world_x+cos(spawn.angle)*spawn.radius AS next_x,
+         s.world_y+sin(spawn.angle)*spawn.radius AS next_y
   FROM umaykut_v2.world_resource_nodes n
   JOIN umaykut_v2.player_game_state s ON s.player_id::text=n.owner_player_id
+  CROSS JOIN LATERAL (
+    SELECT random()*2*pi()+n.id*0 AS angle,1.25+random()*0.45+n.id*0 AS radius
+  ) AS spawn
   WHERE n.owner_player_id IS NOT NULL
 )
 UPDATE umaykut_v2.world_resource_nodes n
@@ -53,7 +56,7 @@ CROSS JOIN (VALUES
   ('stone'::varchar,0),('wood'::varchar,1),('iron'::varchar,2),('grain'::varchar,3)
 ) AS v(resource_type,resource_slot)
 CROSS JOIN LATERAL (
-  SELECT random()*2*pi() AS angle,1.25+random()*0.45 AS radius
+  SELECT random()*2*pi()+v.resource_slot*0 AS angle,1.25+random()*0.45+v.resource_slot*0 AS radius
 ) AS spawn
 WHERE NOT EXISTS (
   SELECT 1 FROM umaykut_v2.world_resource_nodes n
