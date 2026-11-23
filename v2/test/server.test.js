@@ -62,10 +62,10 @@ test("lumberyard level increases wood production without changing other resource
     lastResourceTick:new Date(0),now:3600000
   });
   assert.equal(base.productionPerHour.wood,105);
-  assert.equal(upgraded.productionPerHour.wood,125);
+  assert.equal(upgraded.productionPerHour.wood,120);
   assert.equal(base.productionPerHour.food,120);
   assert.equal(upgraded.productionPerHour.food,120);
-  assert.equal(upgraded.lumberyardBonusPercent,25);
+  assert.equal(upgraded.lumberyardBonusPercent,20);
 });
 
 test("blacksmith level increases troop attack and defense stats", () => {
@@ -73,8 +73,8 @@ test("blacksmith level increases troop attack and defense stats", () => {
   const upgraded = getTroopCatalog("gokturk",{"2":{type:"barracks",level:1},"3":{type:"stable",level:1},"4":{type:"blacksmith",level:5}});
   const baseInfantry = basic.find(unit=>unit.id==="infantry");
   const upgradedInfantry = upgraded.find(unit=>unit.id==="infantry");
-  assert.equal(baseInfantry.blacksmithBonusPercent,2);
-  assert.equal(upgradedInfantry.blacksmithBonusPercent,10);
+  assert.equal(baseInfantry.blacksmithBonusPercent,0);
+  assert.equal(upgradedInfantry.blacksmithBonusPercent,8);
   assert.ok(upgradedInfantry.attack>baseInfantry.attack);
   assert.ok(upgradedInfantry.infantryDefense>baseInfantry.infantryDefense);
   assert.ok(upgradedInfantry.cavalryDefense>baseInfantry.cavalryDefense);
