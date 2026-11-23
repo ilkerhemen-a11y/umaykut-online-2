@@ -463,11 +463,17 @@ renderBuildingMarkers();
 
 const villageView=document.querySelector(".village-wrap");
 const mapView=document.querySelector("#map-view");
+const bottomNav=document.querySelector(".bottom-nav");
+const navHomeParent=bottomNav.parentElement;
+const navHomeNext=bottomNav.nextSibling;
 const navButtons=document.querySelectorAll(".bottom-nav button");
 function showScreen(screen){
  const isMap=screen==="map";
  villageView.hidden=isMap;
  mapView.hidden=!isMap;
+ if(isMap){mapView.insertBefore(bottomNav,mapView.firstChild);}
+ else{navHomeParent.insertBefore(bottomNav,navHomeNext);}
+ document.body.classList.toggle("map-screen-active",isMap);
  navButtons.forEach(button=>button.classList.toggle("active",button.dataset.screen===screen));
  if(isMap&&authToken)loadWorldPlayers();
 }
