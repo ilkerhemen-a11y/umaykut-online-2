@@ -60,7 +60,6 @@ export function settleEconomy({
   }
 
   const centerMultiplier = 1 + (centerLevel - 1) * 0.05;
-  const centerMultiplier = 1 + (centerLevel - 1) * 0.05;
   const productionBreakdown = [];
   for (const [workerKey, rawCount] of Object.entries(assignments)) {
     const workers = Number(rawCount);
@@ -68,7 +67,7 @@ export function settleEconomy({
     let resourceType = workerKey;
     let nodeId = null;
     let yieldLevel = 1;
-    const nodeMatch = /^mine_([1-9]\\d*)$/.exec(workerKey);
+    const nodeMatch = /^mine_([1-9]\d*)$/.exec(workerKey);
     if (nodeMatch) {
       const node = nodeById.get(nodeMatch[1]);
       if (!node) continue;
