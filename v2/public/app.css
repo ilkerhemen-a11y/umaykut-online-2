@@ -350,3 +350,17 @@
 .building-number.is-selected .building-marker-art{z-index:1;transform:translateY(-2px) scale(1.08);filter:drop-shadow(0 0 6px #ffd875) drop-shadow(0 2px 3px #071008c9)}
 .building-number.is-selected .building-index{border-color:#fff8d6;box-shadow:0 0 0 2px #8a622b,0 0 9px #ffe6a0}
 .building-number.is-selected .building-label{border-color:#ffe39a;background:#46351def;color:#fff5cf}
+
+
+/* Five illustrated primary resources matching the supplied Umaykut reference */
+.resources{grid-template-columns:repeat(5,minmax(0,1fr))}
+.resource .resource-icon{display:grid;place-items:center;width:100%;height:34px}
+.resource .resource-icon img{display:block;width:38px;height:34px;object-fit:contain;filter:drop-shadow(0 2px 2px #0009)}
+@media(max-width:390px){
+ .resources{grid-template-columns:repeat(5,minmax(0,1fr));gap:3px}
+ .resource{padding:4px 1px}
+ .resource .resource-icon{height:28px}
+ .resource .resource-icon img{width:31px;height:28px}
+ .resource b{font-size:10px}
+ .resource small{font-size:7px}
+}
