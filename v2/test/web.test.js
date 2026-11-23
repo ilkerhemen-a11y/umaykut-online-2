@@ -32,7 +32,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="ranking-panel"|class="ranking-panel"/);
   assert.match(html,/id="ranking-list"/);
   assert.match(html,/id="refresh-rankings"/);
-  assert.match(html,/10\.000 toplam güçte/);
+  assert.match(html,/9 bina ve Sur\/Sığınak birlikte puanlanır/);
+  assert.match(html,/10\.000 güçte/);
   assert.match(html,/24 kalıcı fetihte/);
   assert.match(html,/id="open-settings"/);
   assert.match(html,/data-action="settings"/);
@@ -40,8 +41,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261123-world-ranking-3"/);
-  assert.ok(html.includes('src="/app.js?v=20261123-world-ranking-3"'));
+  assert.match(html,/href="\/app\.css\?v=20261123-world-ranking-4"/);
+  assert.ok(html.includes('src="/app.js?v=20261123-world-ranking-4"'));
   const stageStart=html.indexOf('<div class="city-stage">');
   const stageEnd=html.indexOf('\n      <section id="building-upgrade-tracker"',stageStart);
   assert.ok(stageEnd>stageStart);
@@ -74,7 +75,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
 
   // Building markers must overlay the image itself, not flow after it.
-  const styles=await fetch(base+"/app.css?v=20261123-world-ranking-3");
+  const styles=await fetch(base+"/app.css?v=20261123-world-ranking-4");
   assert.equal(styles.status,200);
   const css=await styles.text();
   assert.ok(css.includes(".city-frame{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:2/3;max-height:min(67dvh,760px);min-height:410px;"));
@@ -99,7 +100,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,3);
 
-  const script=await fetch(base+"/app.js?v=20261123-world-ranking-3");
+  const script=await fetch(base+"/app.js?v=20261123-world-ranking-4");
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.match(appScript,/data-faction-choice/);
