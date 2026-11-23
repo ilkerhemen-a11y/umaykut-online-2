@@ -125,12 +125,12 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     const workerPool = Math.max(0, Number(row.worker_pool ?? 1800) || 0);
     const workerAssignments = parseJson(row.worker_assignments, {});
     const assignedWorkers = Object.values(workerAssignments).reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
-    const idleWorkers = Math.max(0, workerPool - assignedWorkers);
     const buildings = parseJson(row.buildings, {});
     let troops = parseJson(row.troops, {});
     const storedQueue = parseJson(row.training_queue, []);
     const settledQueue = settleTrainingQueue(troops, storedQueue);
     troops = settledQueue.troops;
+    let idleWorkers = Math.max(0, workerPool - assignedWorkers - Object.values(troops).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0));
     let queue = settledQueue.trainingQueue;
     if (settledQueue.changed) {
       await client.query("UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb, training_queue=$3::jsonb WHERE player_id=$1",
@@ -154,6 +154,7 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
       if (Object.keys(missing).length) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: "Asker yetiştirmek için yeterli kaynak yok.", missing, cost }); return true; }
       for (const [key, value] of Object.entries(cost)) resources[key] = Number(resources[key] || 0) - value;
       troops[unit.id] = Number(troops[unit.id] || 0) + amount;
+      idleWorkers = Math.max(0, workerPool - assignedWorkers - Object.values(troops).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0));
       queue = [];
       await client.query("UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb, training_queue=$3::jsonb, troops=$4::jsonb, updated_at=NOW() WHERE player_id=$1",
         [session.id, JSON.stringify(resources), JSON.stringify(queue), JSON.stringify(troops)]);
