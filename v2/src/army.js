@@ -79,7 +79,8 @@ export function getTroopUpgradeCost(stat, currentLevel) {
 }
 export function getTroopCatalog(factionId, buildings = {}, troopUpgrades = {}) {
   const faction = FACTIONS[factionId] ? factionId : "gokturk";
-  const upgrades = normalizeTroopUpgrades(troopUpgrades);\n  return Object.entries(UNIT_BASE).map(([id, base]) => {
+  const upgrades = normalizeTroopUpgrades(troopUpgrades);
+  return Object.entries(UNIT_BASE).map(([id, base]) => {
     const unique = FACTION_UNITS[faction][id] || {};
     const unit = { ...base, ...unique };
     // V2 persists buildings by fixed numeric slot; also accept type-keyed data for compatibility.
