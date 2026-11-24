@@ -104,7 +104,7 @@ async function loadWorldMap(){
     const icons={food:"🌾",wood:"🪵",stone:"🪨",iron:"⛏️",gold:"🪙",horses:"🐎"};
     const names={food:"Tahıl",wood:"Odun",stone:"Taş",iron:"Demir",gold:"Altın",horses:"At"};
     (data.resources||[]).filter(node=>Object.hasOwn(icons,node.resource_type)).forEach(node=>{
-      const marker=document.createElement("button");
+      const marker=document.createElement("div");
       marker.className="resource-node";marker.style.pointerEvents="none";
       marker.style.left=Number(node.x)+"%";marker.style.top=Number(node.y)+"%";
       marker.title=names[node.resource_type]+" · 6 Puan";
@@ -223,7 +223,7 @@ $("#openUnits").addEventListener("click",openUnits);
 $("#backVillageFromUnits").addEventListener("click",()=>show("village"));
 
 
-let villageEconomy=null, marketItems=[], constructionWorkers={active:0,max:3,available:3};
+let marketItems=[], constructionWorkers={active:0,max:3,available:3};
 let selectedUpgradeBuilding=null, buildingSpeedupsAvailable=0, buildingTimerInterval=null;
 const buildingCatalog={center:{name:"Merkez Binası",purpose:"Köyünün kalbi. Tüm şehir gelişimini yönetir."},school:{name:"Medrese",purpose:"Selçuklu çinileriyle süslü ilim merkezi."},barracks:{name:"Kışla",purpose:"Askerî birliklerin konuşlandığı ve eğitildiği merkez."},market:{name:"Pazar",purpose:"Ticaret ve kaynak alışverişi."},stonemason:{name:"Maden Ocağı",purpose:"Taş ve maden kaynaklarının çıkarıldığı ocak."},stable:{name:"At Ahırı",purpose:"At yetiştiriciliği ve süvari birlikleri."},blacksmith:{name:"Demirci",purpose:"Silah, zırh ve metal eşya üretimi."},mill:{name:"Yel Değirmeni",purpose:"Tahılın öğütülmesi ve un üretimi."},farm:{name:"Çiftlik",purpose:"Tahıl ve yiyecek üretimi."}};
 const buildingArt={school:"seljuk-hall",barracks:"barracks",market:"market",stonemason:"mine",stable:"stable",blacksmith:"blacksmith",mill:"mill",farm:"farm"};
