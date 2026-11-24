@@ -630,28 +630,3 @@
   scrollbar-gutter:stable;
 }
 
-/* Kesin mobil konumlandırma: bina yükseltme penceresini viewport merkezine sabitle */
-#building-dialog[open]{
-  position:fixed !important;
-  top:50% !important;
-  left:50% !important;
-  right:auto !important;
-  bottom:auto !important;
-  transform:translate(-50%,-50%) !important;
-  margin:0 !important;
-  width:min(90vw,360px) !important;
-  max-width:calc(100vw - 24px) !important;
-  max-height:calc(100dvh - 24px) !important;
-  overflow-x:hidden !important;
-  overflow-y:auto !important;
-  box-sizing:border-box !important;
-  overscroll-behavior:contain;
-  scrollbar-gutter:stable;
-}
-@supports not (height:100dvh){
-  #building-dialog[open]{max-height:calc(100vh - 24px) !important;}
-}
-@media(max-width:500px){
-  #building-dialog[open]{padding:16px !important;}
-  #building-dialog[open] .dialog-emblem{height:112px;width:min(100%,180px);}
-}
