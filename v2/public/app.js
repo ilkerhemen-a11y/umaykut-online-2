@@ -1179,6 +1179,7 @@ function renderArmyUnitDetail(unitId){
  const workerLimit=document.createElement("p");workerLimit.className="army-unlock";workerLimit.textContent="Boşta işçi: "+armyNumber(idleWorkers)+" · Kaynaklarınla en fazla "+armyNumber(maxRecruit)+" asker yetiştirebilirsin.";content.append(workerLimit);
  const amount=document.createElement("input");amount.type="number";amount.min="1";amount.max=String(maxRecruit);amount.value=maxRecruit>0?"1":"0";amount.inputMode="numeric";amount.id="army-selected-amount";amount.setAttribute("aria-label",unit.name+" yetiştirilecek asker sayısı");
  const preview=document.createElement("div");preview.className="army-recruit-preview";preview.setAttribute("aria-live","polite");
+ let recruitButton=null;
  const refreshRecruitPreview=()=>{
   const requested=Math.max(0,Math.floor(Number(amount.value)||0));
   const safeAmount=Math.min(requested,maxRecruit);
@@ -1186,11 +1187,12 @@ function renderArmyUnitDetail(unitId){
   const title=document.createElement("strong");title.textContent=safeAmount+" asker için gereken kaynak:";preview.append(title);
   const list=document.createElement("span");list.textContent=Object.entries(unit.cost||{}).filter(([key,cost])=>Number(cost)>0).map(([key,cost])=>resourceNames[key]+" "+armyNumber(Number(cost)*safeAmount)).join(" · ")||"Kaynak maliyeti yok";preview.append(list);
   amount.setCustomValidity(requested>maxRecruit?"Mevcut kaynak ve işçi sayınla en fazla "+maxRecruit+" asker yetiştirebilirsin.":"");
+  if(recruitButton)recruitButton.disabled=!unit.unlocked||safeAmount<1||requested>maxRecruit;
  };
  amount.addEventListener("input",refreshRecruitPreview);
  const actions=document.createElement("div");actions.className="army-recruit-actions";
  const maxButton=document.createElement("button");maxButton.type="button";maxButton.className="army-recruit-max";maxButton.textContent="Maksimum";maxButton.disabled=!unit.unlocked||maxRecruit<1;maxButton.addEventListener("click",()=>{amount.value=String(maxRecruit);refreshRecruitPreview();});
- const button=document.createElement("button");button.type="button";button.textContent=unit.unlocked?(maxRecruit>0?"Bu askeri yetiştir":"Kaynak veya işçi yetersiz"):"Birlik kilitli";button.disabled=!unit.unlocked||maxRecruit<1;button.dataset.recruitUnit=unit.id;button.dataset.amountInput="army-selected-amount";
+ const button=document.createElement("button");recruitButton=button;button.type="button";button.textContent=unit.unlocked?(maxRecruit>0?"Bu askeri yetiştir":"Kaynak veya işçi yetersiz"):"Birlik kilitli";button.disabled=!unit.unlocked||maxRecruit<1;button.dataset.recruitUnit=unit.id;button.dataset.amountInput="army-selected-amount";
  actions.append(maxButton,button);controls.append(amount,actions);content.append(controls,preview);refreshRecruitPreview();
 }
 async function loadArmyState(){
