@@ -1188,17 +1188,26 @@ const hunTroopPortraitFiles={
  mounted_archer:"IMG-20261124-WA2441.jpg", // Talakan
  heavy_cavalry:"IMG-20261124-WA5716.jpg" // Tarkan
 };
+const seljukTroopPortraitFiles={
+ infantry:"IMG-20261124-WA4122.jpg", // Nefer
+ archer:"IMG-20261124-WA7363.jpg", // Tirkendaz
+ shield:"IMG-20261124-WA0216.jpg", // Kargılı
+ guard:"IMG-20261124-WA5709.jpg", // Azap
+ light_cavalry:"IMG-20261124-WA2818.jpg", // Akıncı
+ mounted_archer:"IMG-20261124-WA5083.jpg", // Deli
+ heavy_cavalry:"IMG-20261124-WA1381.jpg" // Sipahi
+};
 function activeFactionId(){return ["gokturk","hun","seljuk"].includes(shell.dataset.faction)?shell.dataset.faction:"gokturk";}
 function applyTroopPortrait(node,unitId,factionId=activeFactionId()){
  const faction=["gokturk","hun","seljuk"].includes(factionId)?factionId:"gokturk";
  node.classList.add("troop-portrait-sprite");
- const hunPortraitFile=faction==="hun"?hunTroopPortraitFiles[unitId]:null;
- const useHunPortrait=Boolean(hunPortraitFile);
- const portraitUrl=useHunPortrait?'/assets/factions/'+hunPortraitFile:'/assets/soldiers/soldier-sprite.webp';
+ const factionPortraitFile=faction==="hun"?hunTroopPortraitFiles[unitId]:faction==="seljuk"?seljukTroopPortraitFiles[unitId]:null;
+ const useFactionPortrait=Boolean(factionPortraitFile);
+ const portraitUrl=useFactionPortrait?'/assets/factions/'+factionPortraitFile:'/assets/soldiers/soldier-sprite.webp';
  node.style.setProperty("--unit-portrait",'url("'+portraitUrl+'")');
- node.style.setProperty("--unit-size",useHunPortrait?"cover":"400% 200%");
- node.style.setProperty("--unit-position",useHunPortrait?"center":(troopPortraitPositions[unitId]||"0% 0%"));
- const tint=faction==="hun"&&!useHunPortrait?"sepia(.34) saturate(1.55) hue-rotate(315deg) contrast(1.04)":faction==="seljuk"?"sepia(.2) saturate(1.25) hue-rotate(8deg) brightness(1.06)":faction==="gokturk"?"saturate(1.12) hue-rotate(0deg)":"none";
+ node.style.setProperty("--unit-size",useFactionPortrait?"cover":"400% 200%");
+ node.style.setProperty("--unit-position",useFactionPortrait?"center":(troopPortraitPositions[unitId]||"0% 0%"));
+ const tint=faction==="hun"&&!useFactionPortrait?"sepia(.34) saturate(1.55) hue-rotate(315deg) contrast(1.04)":faction==="gokturk"?"saturate(1.12) hue-rotate(0deg)":"none";
  node.style.setProperty("--unit-filter",tint);
  node.setAttribute("role","img");
  node.setAttribute("aria-label",faction+" "+(unitId||"")+" asker portresi");
