@@ -63,7 +63,7 @@ export function getTroopCatalog(factionId, buildings = {}) {
     const infantryDefense = Math.round(unit.infantryDefense * (faction === "seljuk" ? 1.10 : 1) * blacksmithMultiplier);
     const speed = Math.round(unit.speed * (faction === "hun" && base.building === "stable" ? 1.15 : 1));
     return {
-      id, name: unit.name, icon: unit.icon, building: base.building,
+      id, name: unit.name, icon: unit.icon, portrait: unit.portrait, portraitIndex: unit.portraitIndex, building: base.building,
       requiredLevel: base.level, unlocked: level >= base.level,
       buildingLevel: level, attack, infantryDefense,
       cavalryDefense: Math.round(unit.cavalryDefense * blacksmithMultiplier), speed, carry: unit.carry, cost: { ...base.cost },
