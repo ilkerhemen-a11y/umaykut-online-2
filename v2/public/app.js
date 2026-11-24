@@ -1070,14 +1070,16 @@ let armyState=null;
 let armyRefreshTimer=null;
 function armyNumber(value){return new Intl.NumberFormat("tr-TR").format(Number(value)||0);}
 function armyUnitPortrait(unit,className){
- const image=document.createElement("img");
  if(unit.portrait){
-  image.className=className+" army-portrait-image";
-  image.src=unit.portrait;
-  image.alt=unit.name;
-  image.loading="lazy";
-  image.decoding="async";
-  return image;
+  const portrait=document.createElement("span");
+  portrait.className=className+" army-portrait-image";
+  portrait.setAttribute("role","img");
+  portrait.setAttribute("aria-label",unit.name);
+  portrait.style.backgroundImage="url('"+unit.portrait+"')";
+  portrait.style.backgroundSize="400% 200%";
+  const index=Math.max(0,Math.min(6,Number(unit.portraitIndex)||0));
+  portrait.style.backgroundPosition=((index%4)*100/3)+"% "+(Math.floor(index/4)*100)+"%";
+  return portrait;
  }
  const fallback=document.createElement("span");
  fallback.className=className;
