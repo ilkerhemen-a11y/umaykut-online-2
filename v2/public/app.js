@@ -1236,29 +1236,48 @@ function inventorySection(title,items,emptyText){
  else{const grid=document.createElement("div");grid.className="inventory-grid";items.forEach(item=>grid.append(item));section.append(grid);}
  return section;
 }
+let starterInventory={speedup_10m:0,speedup_30m:0,speedup_1h:0,village_protection_24h:0};
+let villageProtectionExpiresAt=null;
+const STARTER_ITEMS=[
+ {code:"speedup_10m",name:"10 Dakika Hızlandırma",icon:"⏩",description:"Devam eden bir bina geliştirmesinden 10 dakika düşürür.",seconds:600},
+ {code:"speedup_30m",name:"30 Dakika Hızlandırma",icon:"⚡",description:"Devam eden bir bina geliştirmesinden 30 dakika düşürür.",seconds:1800},
+ {code:"speedup_1h",name:"1 Saat Hızlandırma",icon:"🚀",description:"Devam eden bir bina geliştirmesinden 1 saat düşürür.",seconds:3600},
+ {code:"village_protection_24h",name:"24 Saat Köy Koruması",icon:"🛡️",description:"Köyüne 24 saat boyunca yeni saldırı gönderilmesini engeller."}
+];
 function renderInventory(){
  if(!inventoryContent)return;
  inventoryContent.replaceChildren();
- const resources=INVENTORY_RESOURCE_META.map(([key,label,icon])=>inventoryCard(label,gameResources[key]||0,icon,key==="horses"?"Ordu ve sefer kaynağı":"Depodaki miktar"));
- inventoryContent.append(inventorySection("🧺 Kaynaklar",resources,"Henüz kaynak bulunmuyor."));
- const troopItems=armyState?.catalog?.map(unit=>inventoryCard(unit.name,armyState.troops?.[unit.id]||0,unit.icon,unit.unlocked?"Orduda hazır":"Kilitli birlik"))||[];
- inventoryContent.append(inventorySection("⚔️ Askerler",troopItems,"Ordu bilgisi yüklenemedi."));
- const lootNote=document.createElement("p");lootNote.className="inventory-note";
- lootNote.textContent="Savaşlardan kazanılan ganimetler, köy kaynaklarına eklendiğinde Kaynaklar bölümünde görünür. Ayrı ganimet geçmişi henüz etkin değil.";
- inventoryContent.append(inventorySection("🎁 Ganimetler",[lootNote],"Henüz ganimet kaydı bulunmuyor."));
- const specialNote=document.createElement("p");specialNote.className="inventory-note";
- specialNote.textContent="Özel eşya sistemi henüz oyuna eklenmedi. Bu bölüm yeni eşyalar açıldığında burada listelenecek.";
- inventoryContent.append(inventorySection("💎 Özel Eşyalar",[specialNote],"Henüz özel eşya bulunmuyor."));
- const totalTroops=Number(armyState?.totalUnits)||0;
- const summary=[
-  inventoryCard("Toplam asker",totalTroops,"🛡️"),
-  inventoryCard("Depo kapasitesi",gameStorageCapacity,"🏚️"),
-  inventoryCard("Serbest işçi",Math.max(0,currentWorkerPool-totalAssigned()),"👷"),
-  inventoryCard("Saatlik yiyecek üretimi",gameProductionPerHour.food||0,"🌾","Saatlik")
- ];
- const buildingLevel=Object.values(gameBuildings).reduce((sum,item)=>sum+(Number(item.level)||0),0);
- summary.push(inventoryCard("Toplam bina seviyesi",buildingLevel,"🏰"));
- inventoryContent.append(inventorySection("📊 Genel Durum",summary,"Genel durum bilgisi hazırlanıyor."));
+ const cards=STARTER_ITEMS.map(item=>{
+  const card=inventoryCard(item.name,starterInventory[item.code]||0,item.icon,item.description);
+  const button=document.createElement("button");button.type="button";button.className="inventory-use-button";
+  button.textContent=item.code==="village_protection_24h"&&villageProtectionExpiresAt&&new Date(villageProtectionExpiresAt)>new Date()?"Koruma aktif":"Kullan";
+  button.disabled=(starterInventory[item.code]||0)<1||(item.code==="village_protection_24h"&&villageProtectionExpiresAt&&new Date(villageProtectionExpiresAt)>new Date());
+  button.addEventListener("click",()=>useStarterItem(item,button));
+  card.append(button);return card;
+ });
+ inventoryContent.append(inventorySection("🎁 Başlangıç Paketi",cards,"Başlangıç eşyası bulunmuyor."));
+ if(villageProtectionExpiresAt&&new Date(villageProtectionExpiresAt)>new Date()){
+  const status=document.createElement("p");status.className="inventory-note";
+  status.textContent="🛡️ Köy koruması aktif · "+new Date(villageProtectionExpiresAt).toLocaleString("tr-TR")+" tarihine kadar";
+  inventoryContent.append(status);
+ }
+}
+async function useStarterItem(item,button){
+ button.disabled=true;inventoryMessage.textContent="Eşya uygulanıyor…";
+ try{
+  let payload={code:item.code};
+  if(item.seconds){
+   const active=Object.entries(gameBuildings).find(([,building])=>building.upgrade?.completesAt&&new Date(building.upgrade.completesAt)>new Date());
+   if(!active)throw new Error("Hızlandırmak için devam eden bir bina geliştirmesi bulunmuyor.");
+   payload.slot=Number(active[0]);
+  }
+  const result=await authRequest("/api/game/items",{method:"POST",token:authToken,body:payload});
+  starterInventory=result.inventory||starterInventory;
+  villageProtectionExpiresAt=result.protectionExpiresAt||villageProtectionExpiresAt;
+  if(item.seconds)await loadGameState();
+  renderInventory();
+  inventoryMessage.textContent=result.message||"Eşya kullanıldı.";
+ }catch(error){inventoryMessage.textContent=error.message||"Eşya kullanılamadı.";button.disabled=false;}
 }
 async function openInventoryDialog(){
  if(!authToken)return;
@@ -1266,7 +1285,9 @@ async function openInventoryDialog(){
  if(!inventoryDialog.open)inventoryDialog.showModal();
  try{
   await loadGameState();
-  await loadArmyState();
+  const items=await authRequest("/api/game/items",{token:authToken});
+  starterInventory=items.inventory||starterInventory;
+  villageProtectionExpiresAt=items.protectionExpiresAt||null;
   renderInventory();
   inventoryMessage.textContent="Envanterin güncel oyun verilerinden yüklendi.";
  }catch(error){inventoryMessage.textContent=error.message||"Envanter bilgileri yüklenemedi.";}
