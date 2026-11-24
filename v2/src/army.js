@@ -156,7 +156,8 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     const workerAssignments = parseJson(row.worker_assignments, {});
     const assignedWorkers = Object.values(workerAssignments).reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
     const buildings = parseJson(row.buildings, {});
-    let troops = parseJson(row.troops, {});\n    let troopUpgrades = normalizeTroopUpgrades(row.troop_upgrades);
+    let troops = parseJson(row.troops, {});
+    let troopUpgrades = normalizeTroopUpgrades(row.troop_upgrades);
     const storedQueue = parseJson(row.training_queue, []);
     const settledQueue = settleTrainingQueue(troops, storedQueue);
     troops = settledQueue.troops;
