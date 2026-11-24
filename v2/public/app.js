@@ -823,7 +823,10 @@ function setAuthMode(mode){
  authEmail.required=registering;
  authUsernameLabel.textContent=registering?"Oyuncu adı":"Oyuncu adı veya e-posta";
  authUsername.placeholder=registering?"Oyuncu adın":"Oyuncu adın veya e-posta";
+ authUsername.maxLength=registering?24:254;
+ authPassword.minLength=registering?10:1;
  authPassword.autocomplete=registering?"new-password":"current-password";
+ authPassword.placeholder=registering?"En az 10 karakter":"Şifren";
  authSubmit.textContent=registering?"Hesap Oluştur":"Oyuna Giriş";
  authMessage.textContent="";
 }
