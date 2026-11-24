@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getTroopCatalog, settleTrainingQueue, handleArmyRequest } from "../src/army.js";
+import { getTroopCatalog, getTroopUpgradeCost, normalizeTroopUpgrades, settleTrainingQueue, handleArmyRequest } from "../src/army.js";
 import { createSessionToken } from "../src/auth.js";
 
 test("level-one barracks and stable only unlock their first units", () => {
@@ -173,4 +173,30 @@ test("army recruitment is capped by the number of idle workers on the server", a
   assert.equal(allowed.body.idleWorkers, 0);
   assert.equal(allowed.body.totalUnits, 100);
   assert.equal(writes.length, 1);
+});
+
+test("Hun troop upgrades start at exact base values and improve only the selected stat", () => {
+  const base = getTroopCatalog("hun", { "2": { type: "barracks", level: 10 }, "3": { type: "stable", level: 10 } });
+  const tarkan = base.find(unit => unit.id === "heavy_cavalry");
+  assert.equal(tarkan.attack, 150);
+  assert.equal(tarkan.infantryDefense, 110);
+  assert.equal(tarkan.cavalryDefense, 80);
+  assert.deepEqual(tarkan.upgradeLevels, { attack: 0, infantryDefense: 0, cavalryDefense: 0 });
+  const improved = getTroopCatalog("hun", { "2": { type: "barracks", level: 10 }, "3": { type: "stable", level: 10 } }, {
+    heavy_cavalry: { attack: 1 }
+  }).find(unit => unit.id === "heavy_cavalry");
+  assert.equal(improved.attack, 158);
+  assert.equal(improved.infantryDefense, 110);
+  assert.equal(improved.cavalryDefense, 80);
+  assert.equal(improved.upgradeLevels.attack, 1);
+  assert.deepEqual(getTroopUpgradeCost("attack", 0), { gold: 100, iron: 80, wood: 40 });
+  assert.deepEqual(getTroopUpgradeCost("infantryDefense", 0), { gold: 80, iron: 100, wood: 40 });
+});
+test("troop upgrades are bounded and ignore invalid stored values", () => {
+  const unit = getTroopCatalog("hun", {}, {
+    heavy_cavalry: { attack: 99, infantryDefense: -1, cavalryDefense: 2.5 },
+    unknown_unit: { attack: 10 }
+  }).find(item => item.id === "heavy_cavalry");
+  assert.deepEqual(unit.upgradeLevels, { attack: 0, infantryDefense: 0, cavalryDefense: 0 });
+  assert.throws(() => getTroopUpgradeCost("attack", 10), /en yüksek/);
 });
