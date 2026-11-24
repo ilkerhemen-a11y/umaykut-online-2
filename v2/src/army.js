@@ -149,7 +149,7 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
       const unit = catalog.find(item => item.id === input.unitId);
       const amount = Number(input.amount);
       if (!unit) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 400, { error: "Geçersiz asker türü." }); return true; }
-      if (!unit.unlocked) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: unit.name + " için " + (unit.building === "barracks" ? "Kışla" : "Ahır") + " seviyesi " + unit.requiredLevel + " olmalı." }); return true; }
+      if (!unit.unlocked) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: unit.name + " için " + (unit.building === "barracks" ? "Kışla" : unit.building === "archery" ? "Okçu" : "Ahır") + " seviyesi " + unit.requiredLevel + " olmalı." }); return true; }
       if (!Number.isSafeInteger(amount) || amount < 1) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 400, { error: "Yetiştirilecek asker sayısı en az 1 olmalıdır.", idleWorkers }); return true; }
       if (amount > idleWorkers) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: "Boşta yalnızca " + idleWorkers + " işçin var. Daha fazla asker yetiştiremezsin.", idleWorkers }); return true; }
       const cost = Object.fromEntries(Object.entries(unit.cost).map(([key, value]) => [key, value * amount]));
