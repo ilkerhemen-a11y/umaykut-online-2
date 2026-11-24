@@ -585,3 +585,25 @@
  .battle-report-unit-portrait{height:66px}
  .battle-report-unit{padding:6px 3px}
 }
+
+
+/* Original Turkic soldier portrait sprite sheet */
+.troop-portrait-sprite{
+ background-image:url('/assets/soldiers/soldier-sprite.webp')!important;
+ background-size:400% 200%!important;
+ background-repeat:no-repeat!important;
+ background-color:#151b20!important;
+ text-shadow:none!important;
+}
+.army-strip-unit .troop-portrait-sprite{
+ display:block;width:34px;height:38px;border:1px solid #9b814e;border-radius:5px;
+}
+.army-unit-emblem.troop-portrait-sprite{
+ display:block;overflow:hidden;border:1px solid #b08c4d;border-radius:8px;
+}
+.army-detail-emblem.troop-portrait-sprite{
+ display:block;overflow:hidden;border:1px solid #c19a54;border-radius:10px;
+}
+.battle-report-unit-portrait.troop-portrait-sprite{
+ display:block;background-size:400% 200%!important;border:1px solid #7b6846;
+}
