@@ -65,7 +65,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
   assert.match(html,/href="\/app\.css\?v=20261124-marker-editor-1"/);
-  assert.ok(html.includes('src="/app.js?v=20261124-marker-editor-2"'));
+  assert.ok(html.includes('src="/app.js?v=20261124-village-coordinates-1"'));
   assert.match(html,/id="production-dialog"/);
   assert.match(html,/id="production-open"/);
   assert.match(html,/id="production-resource-grid"/);
@@ -109,7 +109,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
   assert.ok(stageHtml.includes('class="wall-marker-art" src="/assets/buildings/wall.svg"'));
 
-  const expectedPositions=[["1",50,45],["2",41.82,33.31],["3",66.68,52.21],["4",23.79,40.14],["5",72.58,28.4],["6",28.35,24.67],["7",58.59,14.65],["8",45.03,58.37],["9",76.55,21.87]];
+  const expectedPositions=[["1",50,45],["2",42.23,38.35],["3",67.92,59.54],["4",24.62,53.54],["5",72.69,44.7],["6",28.04,43.46],["7",59.22,39.25],["8",45.03,58.37],["9",78.9,52.57]];
   // Check the 375px-wide mobile layout: the 2D hit areas must not overlap.
   const mobileMarkers=expectedPositions.map(([slot,x,y])=>({slot,x,y,width:slot==="1"?48:34,height:slot==="1"?40:30}));
   for(let i=0;i<mobileMarkers.length;i++){
