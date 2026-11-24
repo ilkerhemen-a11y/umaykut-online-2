@@ -192,3 +192,71 @@ test("Seljuk roster matches the approved stat table and building unlock levels",
   });
   assert.ok(ids.every(id => levelTen.find(unit => unit.id === id).unlocked));
 });
+
+
+test("cavalry requires horses and does not consume idle workers", async () => {
+  const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+  const secret = "test-session-secret-with-at-least-32-characters";
+  const token = createSessionToken(playerId, secret);
+  const state = {
+    faction_id: "seljuk",
+    resources: { wood: 10000, food: 10000, iron: 10000, gold: 10000, horses: 5 },
+    buildings: { "3": { type: "stable", level: 1 } },
+    troops: {},
+    training_queue: [],
+    worker_pool: 100,
+    worker_assignments: { grain: 100 }
+  };
+  const pool = {
+    query: async sql => sql.includes("SELECT p.id FROM umaykut_v2.players")
+      ? { rows: [{ id: playerId }], rowCount: 1 }
+      : sql.includes("SELECT resources FROM umaykut_v2.player_game_state")
+        ? { rows: [{ resources: state.resources }], rowCount: 1 }
+        : (() => { throw new Error("Unexpected pool query: " + sql); })(),
+    connect: async () => ({
+      query: async (sql, values = []) => {
+        if (["BEGIN", "COMMIT", "ROLLBACK"].includes(sql)) return { rows: [] };
+        if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) return { rows: [], rowCount: 1 };
+        if (sql.includes("SELECT faction_id, resources, buildings, troops, training_queue")) return { rows: [state], rowCount: 1 };
+        if (sql.includes("UPDATE umaykut_v2.player_game_state SET resources=")) {
+          state.resources = JSON.parse(values[1]);
+          state.training_queue = JSON.parse(values[2]);
+          state.troops = JSON.parse(values[3]);
+          return { rows: [], rowCount: 1 };
+        }
+        throw new Error("Unexpected client query: " + sql);
+      },
+      release: () => {}
+    })
+  };
+  const invoke = async amount => {
+    const req = {
+      method: "POST",
+      headers: { authorization: "Bearer " + token },
+      [Symbol.asyncIterator]: async function* () {
+        yield JSON.stringify({ unitId: "light_cavalry", amount });
+      }
+    };
+    const response = {
+      statusCode: 200, headers: {}, body: "",
+      writeHead(status, headers) { this.statusCode = status; this.headers = headers; },
+      end(body) { this.body = body; }
+    };
+    await handleArmyRequest({ req, res: response, url: new URL("http://localhost/api/game/army/recruit"), pool, sessionSecret: secret });
+    return { status: response.statusCode, body: JSON.parse(response.body) };
+  };
+  const catalogUnit = getTroopCatalog("seljuk", state.buildings).find(unit => unit.id === "light_cavalry");
+  assert.equal(catalogUnit.requiresHorse, true);
+  assert.equal(catalogUnit.workersPerUnit, 0);
+  assert.equal(catalogUnit.cost.horses, 1);
+  const recruited = await invoke(5);
+  assert.equal(recruited.status, 200);
+  assert.equal(recruited.body.troops.light_cavalry, 5);
+  assert.equal(recruited.body.idleWorkers, 0);
+  assert.equal(recruited.body.workerConsumingUnits, 0);
+  assert.equal(recruited.body.resources.horses, 0);
+  const withoutHorses = await invoke(1);
+  assert.equal(withoutHorses.status, 409);
+  assert.equal(withoutHorses.body.missing.horses, 1);
+  assert.equal(state.troops.light_cavalry, 5);
+});

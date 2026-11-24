@@ -2,16 +2,20 @@ import {
   bearerToken, sessionTokenHash, verifySessionToken
 } from "./auth.js";
 
-const RESOURCES = ["wood", "food", "iron", "gold"];
+const RESOURCES = ["wood", "food", "iron", "gold", "horses"];
+const HORSE_UNITS = new Set(["light_cavalry", "mounted_archer", "heavy_cavalry"]);
+function countWorkerConsumingTroops(troops) {
+  return Object.entries(troops).reduce((sum, [id, count]) => sum + (HORSE_UNITS.has(id) ? 0 : Math.max(0, Number(count) || 0)), 0);
+}
 const UNIT_BASE = {
   scout: { name: "Casus", icon: "🕵️", building: "barracks", level: 2, attack: 8, infantryDefense: 8, cavalryDefense: 6, speed: 12, carry: 0, cost: { wood: 45, food: 35, iron: 10 } },
   infantry: { name: "Piyade", icon: "🪓", building: "barracks", level: 1, attack: 28, infantryDefense: 24, cavalryDefense: 18, speed: 6, carry: 30, cost: { wood: 35, food: 45, iron: 15 } },
   archer: { name: "Okçu", icon: "🏹", building: "barracks", level: 3, attack: 34, infantryDefense: 15, cavalryDefense: 12, speed: 7, carry: 20, cost: { wood: 55, food: 35, iron: 20 } },
   shield: { name: "Kalkanlı", icon: "🛡️", building: "barracks", level: 5, attack: 20, infantryDefense: 42, cavalryDefense: 35, speed: 5, carry: 25, cost: { wood: 30, food: 60, iron: 45 } },
   guard: { name: "Elit Muhafız", icon: "⚔️", building: "barracks", level: 10, attack: 58, infantryDefense: 48, cavalryDefense: 40, speed: 6, carry: 35, cost: { wood: 75, food: 90, iron: 70, gold: 10 } },
-  light_cavalry: { name: "Hafif Süvari", icon: "🐎", building: "stable", level: 1, attack: 42, infantryDefense: 18, cavalryDefense: 22, speed: 14, carry: 70, cost: { wood: 45, food: 90, iron: 35 } },
-  mounted_archer: { name: "Atlı Okçu", icon: "🎯", building: "stable", level: 5, attack: 48, infantryDefense: 24, cavalryDefense: 20, speed: 16, carry: 55, cost: { wood: 75, food: 100, iron: 30 } },
-  heavy_cavalry: { name: "Ağır Süvari", icon: "🐴", building: "stable", level: 10, attack: 76, infantryDefense: 48, cavalryDefense: 55, speed: 9, carry: 90, cost: { wood: 90, food: 130, iron: 100, gold: 15 } }
+  light_cavalry: { name: "Hafif Süvari", icon: "🐎", building: "stable", level: 1, attack: 42, infantryDefense: 18, cavalryDefense: 22, speed: 14, carry: 70, cost: { wood: 45, food: 90, iron: 35, horses: 1 } },
+  mounted_archer: { name: "Atlı Okçu", icon: "🎯", building: "stable", level: 5, attack: 48, infantryDefense: 24, cavalryDefense: 20, speed: 16, carry: 55, cost: { wood: 75, food: 100, iron: 30, horses: 1 } },
+  heavy_cavalry: { name: "Ağır Süvari", icon: "🐴", building: "stable", level: 10, attack: 76, infantryDefense: 48, cavalryDefense: 55, speed: 9, carry: 90, cost: { wood: 90, food: 130, iron: 100, gold: 15, horses: 2 } }
 };
 const FACTIONS = {
   gokturk: { name: "Göktürk", bonuses: { archerAttack: 1.10, cavalrySpeed: 1, infantryDefense: 1 } },
@@ -67,7 +71,7 @@ export function getTroopCatalog(factionId, buildings = {}) {
     const speed = Math.round(unit.speed);
     return {
       id, name: unit.name, icon: unit.icon, attackDisplay: unit.attackDisplay || null, building: requiredBuilding,
-      requiredLevel, unlocked: level >= requiredLevel,
+      requiredLevel, unlocked: level >= requiredLevel, requiresHorse: HORSE_UNITS.has(id), workersPerUnit: HORSE_UNITS.has(id) ? 0 : 1,
       buildingLevel: level, attack, infantryDefense,
       cavalryDefense: Math.round(unit.cavalryDefense * blacksmithMultiplier), speed, carry: unit.carry, cost: { ...base.cost },
       blacksmithLevel, blacksmithBonusPercent: (blacksmithLevel - 1) * 2
@@ -133,7 +137,8 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     const storedQueue = parseJson(row.training_queue, []);
     const settledQueue = settleTrainingQueue(troops, storedQueue);
     troops = settledQueue.troops;
-    let idleWorkers = Math.max(0, workerPool - assignedWorkers - Object.values(troops).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0));
+    let workerConsumingUnits = countWorkerConsumingTroops(troops);
+    let idleWorkers = Math.max(0, workerPool - assignedWorkers - workerConsumingUnits);
     let queue = settledQueue.trainingQueue;
     if (settledQueue.changed) {
       await client.query("UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb, training_queue=$3::jsonb WHERE player_id=$1",
@@ -151,13 +156,14 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
       if (!unit) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 400, { error: "Geçersiz asker türü." }); return true; }
       if (!unit.unlocked) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: unit.name + " için " + (unit.building === "barracks" ? "Kışla" : unit.building === "archery" ? "Okçu" : "Ahır") + " seviyesi " + unit.requiredLevel + " olmalı." }); return true; }
       if (!Number.isSafeInteger(amount) || amount < 1) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 400, { error: "Yetiştirilecek asker sayısı en az 1 olmalıdır.", idleWorkers }); return true; }
-      if (amount > idleWorkers) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: "Boşta yalnızca " + idleWorkers + " işçin var. Daha fazla asker yetiştiremezsin.", idleWorkers }); return true; }
+      if (!unit.requiresHorse && amount > idleWorkers) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: "Boşta yalnızca " + idleWorkers + " işçin var. Daha fazla asker yetiştiremezsin.", idleWorkers }); return true; }
       const cost = Object.fromEntries(Object.entries(unit.cost).map(([key, value]) => [key, value * amount]));
       const missing = Object.fromEntries(Object.entries(cost).filter(([key, value]) => Number(resources[key] || 0) < value).map(([key, value]) => [key, value - Number(resources[key] || 0)]));
       if (Object.keys(missing).length) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: "Asker yetiştirmek için yeterli kaynak yok.", missing, cost }); return true; }
       for (const [key, value] of Object.entries(cost)) resources[key] = Number(resources[key] || 0) - value;
       troops[unit.id] = Number(troops[unit.id] || 0) + amount;
-      idleWorkers = Math.max(0, workerPool - assignedWorkers - Object.values(troops).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0));
+      workerConsumingUnits = countWorkerConsumingTroops(troops);
+      idleWorkers = Math.max(0, workerPool - assignedWorkers - workerConsumingUnits);
       queue = [];
       await client.query("UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb, training_queue=$3::jsonb, troops=$4::jsonb, updated_at=NOW() WHERE player_id=$1",
         [session.id, JSON.stringify(resources), JSON.stringify(queue), JSON.stringify(troops)]);
@@ -167,7 +173,7 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     const finalResources = parseJson(latest.rows[0]?.resources, resources);
     sendJson(res, 200, {
       factionId, factionName: FACTIONS[factionId].name, troops,
-      workerPool, assignedWorkers, idleWorkers,
+      workerPool, assignedWorkers, idleWorkers, workerConsumingUnits,
       trainingQueue: queue.map(job => ({ ...job, name: catalog.find(unit => unit.id === job.unitId)?.name || job.unitId })), catalog,
       totalUnits: Object.values(troops).reduce((sum, count) => sum + Number(count || 0), 0),
       armyPower: armyPower(troops, catalog), resources: finalResources,
