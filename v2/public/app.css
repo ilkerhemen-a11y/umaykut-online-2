@@ -830,3 +830,6 @@
   .bottom-nav button{min-height:42px;font-size:9px}
   .bottom-nav button span{font-size:18px}
 }
+
+/* The compact navigation is in document flow, so no reserved fixed-bar space is needed. */
+.game-shell{padding-bottom:0}
