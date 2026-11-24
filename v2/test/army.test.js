@@ -143,11 +143,11 @@ test("Hun roster uses the seven approved names and exact base battle values", ()
   const catalog = getTroopCatalog("hun", { barracks: { level: 10 }, stable: { level: 10 } });
   const byId = Object.fromEntries(catalog.map(unit => [unit.id, unit]));
   assert.deepEqual(
-    ["infantry", "archer", "shield", "guard", "mounted_archer", "light_cavalry", "heavy_cavalry"].map(id => byId[id].name),
+    ["infantry", "archer", "shield", "guard", "light_cavalry", "mounted_archer", "heavy_cavalry"].map(id => byId[id].name),
     ["Toygun", "Kemankeş", "Tarık", "Barlas", "Tunga", "Talakan", "Tarkan"]
   );
   assert.deepEqual(
-    ["infantry", "archer", "shield", "guard", "mounted_archer", "light_cavalry", "heavy_cavalry"].map(id => [
+    ["infantry", "archer", "shield", "guard", "light_cavalry", "mounted_archer", "heavy_cavalry"].map(id => [
       byId[id].attack, byId[id].infantryDefense, byId[id].cavalryDefense, byId[id].speed
     ]),
     [[35,25,15,16],[60,80,35,16],[20,25,90,14],[120,60,90,24],[65,50,110,32],[95,85,60,50],[150,110,80,40]]
