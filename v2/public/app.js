@@ -765,7 +765,10 @@ function renderProductionDialog(){
    row.append(title,detail,output);productionBreakdownList.append(row);
   });
  }
- const stableLevel=Math.max(1,Math.min(10,Number(gameBuildings["3"]?.level)||1));\n const stableRate=Math.round(Math.min(9,stableLevel)*1000/9);\n const stableNote=document.createElement("p");stableNote.className="production-stable-note";stableNote.textContent="Ahır seviye "+stableLevel+" · İşçi kullanmadan +"+formatNumber(stableRate)+" at/saat üretir (seviye 9’da en fazla 1.000).";productionBreakdownList.append(stableNote);\n const centerLevel=Number(gameBuildings["1"]?.level)||1;
+ const stableLevel=Math.max(1,Math.min(10,Number(gameBuildings["3"]?.level)||1));
+ const stableRate=Math.round(Math.min(9,stableLevel)*1000/9);
+ const stableNote=document.createElement("p");stableNote.className="production-stable-note";stableNote.textContent="Ahır seviye "+stableLevel+" · İşçi kullanmadan +"+formatNumber(stableRate)+" at/saat üretir (seviye 9’da en fazla 1.000).";productionBreakdownList.append(stableNote);
+ const centerLevel=Number(gameBuildings["1"]?.level)||1;
  const archeryLevel=Number(gameBuildings["9"]?.level)||1;
  const lumberyardLevel=Number(gameBuildings["6"]?.level)||1;
  const centerBonus=(centerLevel-1)*5;
