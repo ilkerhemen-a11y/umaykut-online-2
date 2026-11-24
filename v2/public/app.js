@@ -210,11 +210,11 @@ const BUILDING_TYPES={
  farm:{name:"Çiftlik",shortName:"Çiftlik",icon:"🌾",description:"Yiyecek üretimini geliştirecek yapı."},
  stable:{name:"Ahır",shortName:"Ahır",icon:"🐎",description:"Atlı birlikler için gerekli altyapı."},
  market:{name:"Pazar",shortName:"Pazar",icon:"🏪",description:"Kaynak ve ticaret işlemlerinin merkezi."},
- warehouse:{name:"Okçu",shortName:"Okçu",icon:"🏹",description:"Okçu birliklerinin eğitildiği ve hazırlandığı yapı."}
+ archery:{name:"Okçu",shortName:"Okçu",icon:"🏹",description:"Okçu birliklerinin eğitildiği ve hazırlandığı yapı."}
 };
 const BUILDING_SLOT_TYPES={
  "1":"center","2":"barracks","3":"stable","4":"blacksmith",
- "5":"school","6":"lumberyard","7":"temple","8":"market","9":"warehouse"
+ "5":"school","6":"lumberyard","7":"temple","8":"market","9":"archery"
 };
 const BUILDING_ART={
  "1":"/assets/seljuk-center.svg",
@@ -236,7 +236,7 @@ const DEFAULT_BUILDINGS={
  "6":{type:"lumberyard",level:1},
  "7":{type:"temple",level:1},
  "8":{type:"market",level:1},
- "9":{type:"warehouse",level:1}
+ "9":{type:"archery",level:1}
 };
 const BUILDING_BASE_COST={wood:30,stone:20,iron:5};
 const MAX_BUILDING_LEVEL=10;
@@ -518,6 +518,7 @@ compactResourcesToggle.addEventListener("change",saveSettings);
 applySettings();
 
 const WORKER_POOL=1800;
+let armyState=null;
 const WORKER_STORAGE_KEY="umaykut-worker-state-v3";
 const RESOURCE_KEYS=["grain","wood","stone","gold","iron"];
 const resourceInfo={
@@ -564,7 +565,9 @@ const recallButton=document.querySelector("#recall-workers");
 function formatNumber(value){return new Intl.NumberFormat("tr-TR").format(value);}
 function totalAssigned(){return Object.values(assigned).reduce((sum,value)=>sum+value,0);}
 function updateWorkerSummary(){
- availableWorkers=Math.max(0,WORKER_POOL-totalAssigned());
+ const completedArmyWorkers=Number(armyState?.totalUnits)||0;
+ const queuedArmyWorkers=Array.isArray(armyState?.trainingQueue)?armyState.trainingQueue.reduce((sum,job)=>sum+Math.max(0,Number(job.amount)||0),0):0;
+ availableWorkers=Math.max(0,WORKER_POOL-totalAssigned()-completedArmyWorkers-queuedArmyWorkers);
  availableLabel.textContent=formatNumber(availableWorkers);
  assignedTotalLabel.textContent=formatNumber(totalAssigned())+" görevde";
  updateWorkerActions();
@@ -875,7 +878,6 @@ const armyCatalogNode=document.querySelector("#army-unit-catalog");
 let selectedArmyUnitId=null;
 const armyQueueNode=document.querySelector("#army-queue-list");
 const armyMessageNode=document.querySelector("#army-message");
-let armyState=null;
 let armyRefreshTimer=null;
 function armyNumber(value){return new Intl.NumberFormat("tr-TR").format(Number(value)||0);}
 function renderArmySummary(){
@@ -943,9 +945,11 @@ function renderArmyUnitDetail(unitId){
  const unlock=document.createElement("p");unlock.className="army-unlock";
  unlock.textContent=unit.unlocked?(unit.building==="barracks"?"Kışla seviyesi ":"Ahır seviyesi ")+unit.requiredLevel+" · Birlik yetiştirilebilir":(unit.building==="barracks"?"Kışla seviye ":"Ahır seviye ")+unit.requiredLevel+" gerekli";
  content.append(unlock);
+ const availableForTraining=Math.min(100,availableWorkers);
+ const capacity=document.createElement("p");capacity.className="army-unlock";capacity.textContent="Köyde boşta işçi: "+armyNumber(availableWorkers)+" · En fazla "+armyNumber(availableForTraining)+" asker yetiştirebilirsin.";content.append(capacity);
  const controls=document.createElement("div");controls.className="army-recruit-controls army-detail-controls";
- const amount=document.createElement("input");amount.type="number";amount.min="1";amount.max="100";amount.value="1";amount.inputMode="numeric";amount.id="army-selected-amount";amount.setAttribute("aria-label",unit.name+" yetiştirilecek asker sayısı");
- const button=document.createElement("button");button.type="button";button.textContent=unit.unlocked?"Bu askeri yetiştir":"Birlik kilitli";button.disabled=!unit.unlocked;button.dataset.recruitUnit=unit.id;button.dataset.amountInput="army-selected-amount";
+ const amount=document.createElement("input");amount.type="number";amount.min="1";amount.max=String(Math.max(1,availableForTraining));amount.value=availableForTraining>0?"1":"0";amount.inputMode="numeric";amount.id="army-selected-amount";amount.setAttribute("aria-label",unit.name+" yetiştirilecek asker sayısı");
+ const button=document.createElement("button");button.type="button";button.textContent=unit.unlocked?"Bu askeri yetiştir":"Birlik kilitli";button.disabled=!unit.unlocked||availableWorkers<1;button.dataset.recruitUnit=unit.id;button.dataset.amountInput="army-selected-amount";
  controls.append(amount,button);content.append(controls);
 }
 function renderArmyQueue(){
@@ -965,6 +969,7 @@ async function loadArmyState(){
   armyState=await authRequest("/api/game/army",{token:authToken});
   if(armyState.resources){gameResources={...gameResources,...armyState.resources};renderResourceBalances();}
   renderArmySummary();renderArmyCatalog();renderArmyQueue();
+  updateWorkerSummary();
  }catch(error){
   if(armyMessageNode)armyMessageNode.textContent=error.message||"Ordu bilgileri yüklenemedi.";
  }
@@ -1056,6 +1061,60 @@ async function openBattleReports(){
   battleReportsMessage.textContent="Bağlantını kontrol edip yeniden dene.";
  }
 }
+
+const incomingAttacksDialog=document.querySelector("#incoming-attacks-dialog");
+const outgoingAttacksDialog=document.querySelector("#outgoing-attacks-dialog");
+function attackTimeLabel(raid){
+ const now=Date.now(),arrival=Date.parse(raid.arrives_at)-now,returning=raid.return_at?Date.parse(raid.return_at)-now:0;
+ if(raid.status==="marching")return arrival>0?"Hedefe varış: yaklaşık "+Math.ceil(arrival/60000)+" dk":"Hedefe ulaştı · savaş sonucu bekleniyor";
+ if(raid.status==="resolved")return returning>0?"Savaş tamamlandı · dönüş: yaklaşık "+Math.ceil(returning/60000)+" dk":"Savaş tamamlandı · dönüş sürecinde";
+ return "Sefer tamamlandı · ordu köye döndü";
+}
+function attackDetailCard(raid,direction){
+ const outgoing=direction==="outgoing",card=document.createElement("article");card.className="attack-detail-card";
+ const heading=document.createElement("div");heading.className="attack-detail-heading";
+ const title=document.createElement("strong");title.textContent=(outgoing?"⚔️ Hedef: ":"🛡️ Saldıran: ")+(outgoing?(raid.defender_village||"Rakip köy"):(raid.attacker_village||"Bilinmeyen oyuncu"));
+ const status=document.createElement("span");status.className="attack-status";status.textContent=raid.status==="marching"?"Yolda":raid.status==="resolved"?"Savaş bitti":"Tamamlandı";heading.append(title,status);card.append(heading);
+ const timing=document.createElement("p");timing.className="attack-detail-timing";timing.textContent=attackTimeLabel(raid);card.append(timing);
+ const dates=document.createElement("div");dates.className="attack-detail-meta";
+ if(raid.departed_at){const x=document.createElement("small");x.textContent="Çıkış: "+new Date(raid.departed_at).toLocaleString("tr-TR");dates.append(x);}
+ if(raid.arrives_at){const x=document.createElement("small");x.textContent="Varış: "+new Date(raid.arrives_at).toLocaleString("tr-TR");dates.append(x);}
+ if(raid.return_at){const x=document.createElement("small");x.textContent="Dönüş: "+new Date(raid.return_at).toLocaleString("tr-TR");dates.append(x);}
+ if(dates.children.length)card.append(dates);
+ if(raid.battle_report){
+  const report=raid.battle_report,grid=document.createElement("div");grid.className="attack-detail-stats";
+  const ownLoss=outgoing?report.attackerLostCount:report.defenderLostCount,enemyLoss=outgoing?report.defenderLostCount:report.attackerLostCount;
+  [["Senin asker kaybın",ownLoss],["Rakip asker kaybı",enemyLoss],["Savunma gücü",report.defenderPower],["Sur azaltması","%"+(report.wallDefensePercent||0)]].forEach(([label,value])=>{const cell=document.createElement("div"),v=document.createElement("strong"),l=document.createElement("small");v.textContent=reportNumber(value??0);l.textContent=label;cell.append(v,l);grid.append(cell);});
+  card.append(grid);
+  const ownBreakdown=outgoing?report.attackerLosses:report.defenderLosses,enemyBreakdown=outgoing?report.defenderLosses:report.attackerLosses;
+  const format=losses=>Object.entries(losses||{}).filter(([,n])=>Number(n)>0).map(([id,n])=>id+": "+reportNumber(n)).join(" · ")||"Kayıp yok";
+  const losses=document.createElement("p");losses.className="attack-detail-copy";losses.textContent="Senin kayıpların: "+format(ownBreakdown)+" | Rakip kayıpları: "+format(enemyBreakdown);card.append(losses);
+  if(report.outcomeText){const outcome=document.createElement("p");outcome.className="attack-detail-copy";outcome.textContent=report.outcomeText;card.append(outcome);}
+  if(outgoing&&raid.loot){const loot=Object.entries(raid.loot).filter(([,n])=>Number(n)>0).map(([key,n])=>key+": "+reportNumber(n));if(loot.length){const lootLine=document.createElement("p");lootLine.className="attack-detail-loot";lootLine.textContent="🏆 Ganimet: "+loot.join(" · ");card.append(lootLine);}}
+ }else{
+  const waiting=document.createElement("p");waiting.className="attack-detail-copy";waiting.textContent=raid.status==="marching"?"Savaş sonucu henüz oluşmadı. Ordu hedefe ulaştığında sonuç burada gösterilecek.":"Bu sefer için ayrıntılı savaş raporu bulunmuyor.";card.append(waiting);
+ }
+ return card;
+}
+async function openAttackList(direction){
+ if(!authToken)return;
+ const dialog=direction==="incoming"?incomingAttacksDialog:outgoingAttacksDialog;
+ const list=document.querySelector("#"+direction+"-attacks-list"),message=document.querySelector("#"+direction+"-attacks-message");
+ list.replaceChildren(Object.assign(document.createElement("p"),{textContent:"Saldırı kayıtları yükleniyor…"}));message.textContent="";
+ dialog.showModal();
+ try{
+  const data=await authRequest("/api/game/attacks",{token:authToken});
+  const raids=(data.attacks||[]).filter(raid=>raid.direction===direction).sort((a,b)=>Date.parse(b.departed_at||b.arrives_at)-Date.parse(a.departed_at||a.arrives_at));
+  list.replaceChildren();
+  if(!raids.length){list.append(Object.assign(document.createElement("p"),{textContent:direction==="incoming"?"Köyüne gelen saldırı bulunmuyor.":"Henüz bir saldırı göndermedin."}));}
+  else raids.forEach(raid=>list.append(attackDetailCard(raid,direction)));
+  message.textContent=raids.length+" kayıt bulundu.";
+ }catch(error){list.replaceChildren(Object.assign(document.createElement("p"),{textContent:error.message||"Saldırı kayıtları yüklenemedi."}));message.textContent="Bağlantını kontrol edip yeniden dene.";}
+}
+document.querySelector('[data-action="incoming-attacks"]').addEventListener("click",()=>openAttackList("incoming"));
+document.querySelector('[data-action="outgoing-attacks"]').addEventListener("click",()=>openAttackList("outgoing"));
+document.querySelectorAll("[data-close-attack-list]").forEach(button=>button.addEventListener("click",()=>{(button.dataset.closeAttackList==="incoming"?incomingAttacksDialog:outgoingAttacksDialog).close();}));
+
 document.querySelector('[data-action="battle-reports"]').addEventListener("click",openBattleReports);
 document.querySelector("#battle-reports-close").addEventListener("click",()=>battleReportsDialog.close());
 battleReportsDialog.addEventListener("click",event=>{if(event.target===battleReportsDialog)battleReportsDialog.close();});
@@ -1076,10 +1135,11 @@ document.querySelector("#army-unit-detail").addEventListener("click",async event
  if(!button)return;
  const amount=Number(document.querySelector("#"+button.dataset.amountInput).value);
  if(!Number.isSafeInteger(amount)||amount<1||amount>100){armyMessageNode.textContent="Bir seferde 1 ile 100 arasında asker seçebilirsin.";return;}
+ if(amount>availableWorkers){armyMessageNode.textContent="Köyünde yalnızca "+armyNumber(availableWorkers)+" boşta işçi var. Daha fazla asker yetiştiremezsin.";return;}
  button.disabled=true;armyMessageNode.textContent="Askerler orduya katılıyor…";
  try{
   const result=await authRequest("/api/game/army/recruit",{method:"POST",token:authToken,body:{unitId:button.dataset.recruitUnit,amount}});
-  armyState=result;gameResources={...gameResources,...result.resources};renderResourceBalances();
+  armyState=result;updateWorkerSummary();gameResources={...gameResources,...result.resources};renderResourceBalances();
   renderArmySummary();renderArmyCatalog();renderArmyQueue();
   if(selectedArmyUnitId)renderArmyUnitDetail(selectedArmyUnitId);
   armyMessageNode.textContent=amount+" asker eğitim kuyruğuna eklendi. Kaynaklar hesabından düşüldü.";
