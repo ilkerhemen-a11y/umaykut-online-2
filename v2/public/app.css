@@ -630,3 +630,15 @@
   scrollbar-gutter:stable;
 }
 
+
+
+/* Geçici koordinat ölçer paneli */
+.coordinate-inspector{position:fixed;z-index:10000;top:calc(env(safe-area-inset-top,0px) + 12px);right:10px;width:min(250px,calc(100vw - 20px));padding:11px;border:1px solid #d0ad63;border-radius:12px;background:rgba(10,18,13,.97);color:#f4e5bf;box-shadow:0 8px 28px #000c;font:12px/1.4 Arial,sans-serif;}
+.coordinate-inspector[hidden]{display:none}
+.coordinate-inspector-head{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#f4d58b}
+.coordinate-inspector button{width:100%;margin-top:7px;padding:8px;border:1px solid #9d8048;border-radius:7px;background:#3a2d1b;color:#ffedc3;font-weight:bold}
+.coordinate-inspector-head button{width:28px;margin:0;padding:2px;font-size:18px}
+.coordinate-inspector button.is-active{background:#76501f;border-color:#f0ce79}
+.coordinate-inspector p{margin:7px 0;color:#d9cfb6}
+.coordinate-inspector pre{margin:8px 0 3px;padding:8px;border-radius:7px;background:#17251b;color:#ffe29a;font:bold 16px/1.2 monospace;white-space:pre-wrap}
+.coordinate-inspector small{display:block;color:#c9bea2;overflow-wrap:anywhere}
