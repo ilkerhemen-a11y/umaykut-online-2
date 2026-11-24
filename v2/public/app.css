@@ -715,3 +715,61 @@
 .map-shortcuts-dots i:first-child{width:15px;border-radius:5px;background:#e4c477}
 @media(min-width:560px){.map-shortcut-card{flex-basis:260px}.map-shortcuts-track{scrollbar-width:auto}}
 @media(max-width:380px){.map-shortcut-card{flex-basis:88%;min-height:82px;padding:10px}.map-shortcut-icon{flex-basis:42px;width:42px;height:42px;font-size:24px}.map-shortcut-copy strong{font-size:13px}}
+
+
+/* Refined two-row mobile navigation dock */
+.game-shell{padding-bottom:calc(124px + env(safe-area-inset-bottom))}
+.bottom-nav{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-rows:repeat(2,auto);
+  gap:7px;
+  padding:10px 10px calc(10px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,#1b2b22f2 0%,#0b120efc 78%);
+  border-top:1px solid #b99551;
+  box-shadow:0 -10px 30px #000b,0 0 0 1px #f2d58b12 inset;
+  backdrop-filter:blur(16px);
+}
+.bottom-nav button{
+  min-width:0;
+  min-height:48px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  padding:5px 3px;
+  border:1px solid #8f784b88;
+  border-radius:12px;
+  background:linear-gradient(145deg,#27382b,#111b14);
+  color:#cfc5a7;
+  font:700 9px/1.1 Arial,sans-serif;
+  letter-spacing:.15px;
+  text-transform:none;
+  box-shadow:inset 0 1px #ffffff0b,0 2px 5px #0005;
+  transition:background .18s ease,border-color .18s ease,transform .18s ease,box-shadow .18s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.bottom-nav button span{font-size:20px;line-height:1}
+.bottom-nav button:nth-child(5){grid-column:2}
+.bottom-nav button:nth-child(6){grid-column:3}
+.bottom-nav button:nth-child(7){grid-column:4}
+.bottom-nav button.active{
+  border-color:#e6c574;
+  background:linear-gradient(145deg,#80612e,#3b2c18);
+  color:#fff0bd;
+  box-shadow:inset 0 0 0 1px #f8dfa044,0 0 13px #d4a94b35,0 3px 8px #0008;
+}
+.bottom-nav button:active{transform:translateY(1px) scale(.98)}
+.bottom-nav button:focus-visible{outline:2px solid #f5df9c;outline-offset:2px}
+@media(max-width:390px){
+  .game-shell{padding-bottom:calc(118px + env(safe-area-inset-bottom))}
+  .bottom-nav{gap:5px;padding-left:7px;padding-right:7px}
+  .bottom-nav button{min-height:44px;font-size:8px;border-radius:10px}
+  .bottom-nav button span{font-size:18px}
+}
+@media(min-width:600px){
+  .bottom-nav{gap:8px;padding-left:14px;padding-right:14px}
+  .bottom-nav button{min-height:50px;font-size:10px}
+  .bottom-nav button span{font-size:22px}
+}
