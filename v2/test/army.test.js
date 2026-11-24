@@ -27,7 +27,17 @@ test("factions receive distinct troop identities and specialties", () => {
   const hun = getTroopCatalog("hun", buildings);
   const seljuk = getTroopCatalog("seljuk", buildings);
   assert.equal(gokturk.find(unit => unit.id === "archer").name, "Börü Okçusu");
-  assert.equal(hun.find(unit => unit.id === "light_cavalry").name, "Hun Akıncısı");
+  assert.equal(hun.find(unit => unit.id === "infantry").name, "Toygun");
+  assert.equal(hun.find(unit => unit.id === "archer").name, "Kemankeş");
+  assert.equal(hun.find(unit => unit.id === "shield").name, "Tarık");
+  assert.equal(hun.find(unit => unit.id === "guard").name, "Barlas");
+  assert.equal(hun.find(unit => unit.id === "light_cavalry").name, "Tunga");
+  assert.equal(hun.find(unit => unit.id === "mounted_archer").name, "Talakan");
+  assert.equal(hun.find(unit => unit.id === "heavy_cavalry").name, "Tarkan");
+  const portraitUnits = hun.filter(unit => unit.portrait);
+  assert.equal(portraitUnits.length, 7);
+  assert.deepEqual(portraitUnits.map(unit => unit.portraitIndex), [0, 1, 2, 3, 4, 5, 6]);
+  assert.ok(portraitUnits.every(unit => unit.portrait === "/assets/units/hun/portraits.webp"));
   assert.equal(seljuk.find(unit => unit.id === "heavy_cavalry").name, "Ağır Sipahi");
   assert.ok(hun.find(unit => unit.id === "light_cavalry").speed > gokturk.find(unit => unit.id === "light_cavalry").speed);
   assert.ok(seljuk.find(unit => unit.id === "shield").infantryDefense > gokturk.find(unit => unit.id === "shield").infantryDefense);
