@@ -864,9 +864,25 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
       const valid=await pool.query("SELECT 1 FROM umaykut_v2.player_sessions WHERE player_id=$1 AND token_hash=$2 AND expires_at>NOW()",[session.id,sessionTokenHash(token)]);
       if(!valid.rowCount)return sendJson(res,401,{error:"Oyuncu oturumu bulunamadı."});
       if(req.method==="GET"){
-        const state=await pool.query("SELECT inventory,protection_expires_at FROM umaykut_v2.player_game_state WHERE player_id=$1",[session.id]);
-        const row=state.rows[0]||{};
-        return sendJson(res,200,{inventory:row.inventory||{},protectionExpiresAt:row.protection_expires_at||null,serverNow:new Date().toISOString()});
+        const client=await pool.connect();let tx=false;
+        try{
+          await client.query("BEGIN");tx=true;
+          const state=await client.query("SELECT inventory,item_cooldowns,protection_expires_at FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",[session.id]);
+          const row=state.rows[0]||{},inventory=typeof row.inventory==="string"?JSON.parse(row.inventory):{...(row.inventory||{})};
+          const cooldowns=typeof row.item_cooldowns==="string"?JSON.parse(row.item_cooldowns):{...(row.item_cooldowns||{})};
+          const now=Date.now(),codes=["speedup_10m","speedup_30m","speedup_1h","village_protection_24h"];
+          let changed=false;
+          for(const itemCode of codes){
+            const readyAt=Date.parse(cooldowns[itemCode]||"");
+            if(cooldowns[itemCode]&&(!Number.isFinite(readyAt)||readyAt<=now)){
+              inventory[itemCode]=1;delete cooldowns[itemCode];changed=true;
+            }
+          }
+          if(changed)await client.query("UPDATE umaykut_v2.player_game_state SET inventory=$2::jsonb,item_cooldowns=$3::jsonb,updated_at=NOW() WHERE player_id=$1",[session.id,JSON.stringify(inventory),JSON.stringify(cooldowns)]);
+          await client.query("COMMIT");tx=false;
+          return sendJson(res,200,{inventory,cooldowns,protectionExpiresAt:row.protection_expires_at||null,serverNow:new Date().toISOString()});
+        }catch(error){if(tx){try{await client.query("ROLLBACK");}catch{}}throw error;}
+        finally{client.release();}
       }
       if(req.method!=="POST"){res.setHeader("allow","GET, POST");return sendJson(res,405,{error:"Yöntem desteklenmiyor."});}
       const input=await readJson(req),code=String(input.code||"");
@@ -874,10 +890,18 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
       const client=await pool.connect();let tx=false;
       try{
         await client.query("BEGIN");tx=true;
-        const result=await client.query("SELECT inventory,protection_expires_at,buildings FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",[session.id]);
+        const result=await client.query("SELECT inventory,item_cooldowns,protection_expires_at,buildings FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",[session.id]);
         if(!result.rowCount){await client.query("ROLLBACK");tx=false;return sendJson(res,404,{error:"Köy kaydı bulunamadı."});}
         const row=result.rows[0],inventory=typeof row.inventory==="string"?JSON.parse(row.inventory):{...(row.inventory||{})};
-        if(!Number.isSafeInteger(Number(inventory[code]))||Number(inventory[code])<1){await client.query("ROLLBACK");tx=false;return sendJson(res,409,{error:"Bu eşya envanterinde bulunmuyor."});}
+        const cooldowns=typeof row.item_cooldowns==="string"?JSON.parse(row.item_cooldowns):{...(row.item_cooldowns||{})};
+        const allowedCodes=["speedup_10m","speedup_30m","speedup_1h","village_protection_24h"];
+        if(!allowedCodes.includes(code)){await client.query("ROLLBACK");tx=false;return sendJson(res,400,{error:"Geçersiz başlangıç eşyası."});}
+        const readyAt=Date.parse(cooldowns[code]||"");
+        if(cooldowns[code]&&Number.isFinite(readyAt)&&readyAt>Date.now()){
+          await client.query("ROLLBACK");tx=false;
+          return sendJson(res,409,{error:"Bu eşyanın kullanım hakkı henüz yenilenmedi.",readyAt:cooldowns[code]});
+        }
+        if(!Number.isSafeInteger(Number(inventory[code]))||Number(inventory[code])<1){await client.query("ROLLBACK");tx=false;return sendJson(res,409,{error:"Bu eşyanın kullanım hakkı bulunmuyor."});}
         let protectionExpiresAt=row.protection_expires_at||null,message="";
         if(durations[code]){
           const slot=String(Number(input.slot));
@@ -891,21 +915,21 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           building.upgrade.completesAt=new Date(Date.now()+remaining).toISOString();
           if(remaining===0){building.level=Number(building.upgrade.targetLevel)||Number(building.level)+1;building.upgrade=null;}
           buildings[slot]=building;
-          inventory[code]=Number(inventory[code])-1;
-          await client.query("UPDATE umaykut_v2.player_game_state SET inventory=$2::jsonb,buildings=$3::jsonb,updated_at=NOW() WHERE player_id=$1",[session.id,JSON.stringify(inventory),JSON.stringify(buildings)]);
+          inventory[code]=0;cooldowns[code]=new Date(Date.now()+24*60*60*1000).toISOString();
+          await client.query("UPDATE umaykut_v2.player_game_state SET inventory=$2::jsonb,item_cooldowns=$3::jsonb,buildings=$4::jsonb,updated_at=NOW() WHERE player_id=$1",[session.id,JSON.stringify(inventory),JSON.stringify(cooldowns),JSON.stringify(buildings)]);
           message=remaining===0?"Hızlandırma uygulandı; bina geliştirmesi tamamlandı.":"Hızlandırma uygulandı; bina süresi "+Math.ceil(remaining/60000)+" dakika kaldı.";
         }else if(code==="village_protection_24h"){
           const active=protectionExpiresAt&&new Date(protectionExpiresAt)>new Date();
           if(active){await client.query("ROLLBACK");tx=false;return sendJson(res,409,{error:"Köy koruman zaten aktif."});}
           protectionExpiresAt=new Date(Date.now()+24*60*60*1000).toISOString();
-          inventory[code]=Number(inventory[code])-1;
-          await client.query("UPDATE umaykut_v2.player_game_state SET inventory=$2::jsonb,protection_expires_at=$3,updated_at=NOW() WHERE player_id=$1",[session.id,JSON.stringify(inventory),protectionExpiresAt]);
+          inventory[code]=0;cooldowns[code]=new Date(Date.now()+24*60*60*1000).toISOString();
+          await client.query("UPDATE umaykut_v2.player_game_state SET inventory=$2::jsonb,item_cooldowns=$3::jsonb,protection_expires_at=$4,updated_at=NOW() WHERE player_id=$1",[session.id,JSON.stringify(inventory),JSON.stringify(cooldowns),protectionExpiresAt]);
           message="Köy koruman 24 saat boyunca aktif. Bu süre içinde köyüne yeni saldırı gönderilemez.";
         }else{
           await client.query("ROLLBACK");tx=false;return sendJson(res,400,{error:"Geçersiz başlangıç eşyası."});
         }
         await client.query("COMMIT");tx=false;
-        return sendJson(res,200,{success:true,message,inventory,protectionExpiresAt,serverNow:new Date().toISOString()});
+        return sendJson(res,200,{success:true,message,inventory,cooldowns,protectionExpiresAt,serverNow:new Date().toISOString()});
       }catch(error){if(tx){try{await client.query("ROLLBACK");}catch{}}throw error;}
       finally{client.release();}
     }
