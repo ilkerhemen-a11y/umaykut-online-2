@@ -642,3 +642,14 @@
 .coordinate-inspector p{margin:7px 0;color:#d9cfb6}
 .coordinate-inspector pre{margin:8px 0 3px;padding:8px;border-radius:7px;background:#17251b;color:#ffe29a;font:bold 16px/1.2 monospace;white-space:pre-wrap}
 .coordinate-inspector small{display:block;color:#c9bea2;overflow-wrap:anywhere}
+
+/* Local marker positioning mode: drag numbered markers without opening building dialogs. */
+.city-frame.is-marker-editing .building-numbers{pointer-events:auto}
+.city-frame.is-marker-editing .building-number,
+.city-frame.is-marker-editing #wall-position-marker{pointer-events:auto;cursor:grab;touch-action:none;outline:1px dashed #ffe39a;outline-offset:4px;filter:drop-shadow(0 0 5px #ffd875)}
+.city-frame.is-marker-editing .building-number:active,
+.city-frame.is-marker-editing #wall-position-marker:active{cursor:grabbing}
+.village-marker-edit-hint{margin:7px 2px 0;padding:8px 10px;border:1px solid #b18b49;border-radius:8px;background:#1a2a20;color:#ffe7ad;font:11px/1.45 Arial,sans-serif}
+.village-marker-export-result{margin:7px 2px 0;padding:9px;border:1px solid #6d8a77;border-radius:8px;background:#101b16;color:#e7ddb9;font:10px/1.55 monospace;white-space:pre-wrap}
+.village-camera-controls #village-marker-edit,.village-camera-controls #village-marker-export{font-size:10px;padding:7px 8px}
+.village-camera-controls #village-marker-edit.is-active{border-color:#ffe39a;background:#70501f;color:#fff2c6}
