@@ -200,3 +200,61 @@ test("troop upgrades are bounded and ignore invalid stored values", () => {
   assert.deepEqual(unit.upgradeLevels, { attack: 0, infantryDefense: 0, cavalryDefense: 0 });
   assert.throws(() => getTroopUpgradeCost("attack", 10), /en yüksek/);
 });
+
+test("authenticated troop upgrade spends resources and persists Tarkan combat stats", async () => {
+  const playerId = "7f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+  const secret = "troop-upgrade-test-session-secret-at-least-32-characters";
+  const token = createSessionToken(playerId, secret);
+  const state = {
+    faction_id: "hun",
+    resources: { gold: 500, wood: 500, iron: 500, food: 500, stone: 500 },
+    buildings: { "2": { type: "barracks", level: 10 }, "3": { type: "stable", level: 10 }, "4": { type: "blacksmith", level: 1 } },
+    troops: { heavy_cavalry: 1 },
+    troop_upgrades: {},
+    training_queue: [],
+    worker_pool: 1800,
+    worker_assignments: {}
+  };
+  const pool = {
+    query: async sql => sql.includes("SELECT p.id FROM umaykut_v2.players")
+      ? { rows: [{ id: playerId }], rowCount: 1 }
+      : sql.includes("SELECT resources FROM umaykut_v2.player_game_state")
+        ? { rows: [{ resources: state.resources }], rowCount: 1 }
+        : (() => { throw new Error("Unexpected pool query: " + sql); })(),
+    connect: async () => ({
+      query: async (sql, values = []) => {
+        if (["BEGIN", "COMMIT", "ROLLBACK"].includes(sql)) return { rows: [] };
+        if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) return { rows: [], rowCount: 1 };
+        if (sql.includes("SELECT faction_id, resources, buildings, troops, training_queue")) return { rows: [state], rowCount: 1 };
+        if (sql.includes("SET resources=$2::jsonb, troop_upgrades=$3::jsonb")) {
+          state.resources = JSON.parse(values[1]);
+          state.troop_upgrades = JSON.parse(values[2]);
+          return { rows: [], rowCount: 1 };
+        }
+        throw new Error("Unexpected client query: " + sql);
+      },
+      release: () => {}
+    })
+  };
+  const response = {
+    statusCode: 200, headers: {}, body: "",
+    writeHead(status, headers) { this.statusCode = status; this.headers = headers; },
+    end(body) { this.body = body; }
+  };
+  const req = {
+    method: "POST",
+    headers: { authorization: "Bearer " + token },
+    [Symbol.asyncIterator]: async function* () {
+      yield JSON.stringify({ unitId: "heavy_cavalry", stat: "attack" });
+    }
+  };
+  await handleArmyRequest({ req, res: response, url: new URL("http://localhost/api/game/army/upgrade"), pool, sessionSecret: secret });
+  const body = JSON.parse(response.body);
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(state.troop_upgrades, { heavy_cavalry: { attack: 1 } });
+  assert.equal(body.catalog.find(unit => unit.id === "heavy_cavalry").attack, 158);
+  assert.equal(body.catalog.find(unit => unit.id === "heavy_cavalry").infantryDefense, 110);
+  assert.equal(body.resources.gold, 400);
+  assert.equal(body.resources.iron, 420);
+  assert.equal(body.resources.wood, 460);
+});
