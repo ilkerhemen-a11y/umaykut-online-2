@@ -2157,3 +2157,44 @@ document.querySelector("#send-attack").addEventListener("click",async()=>{
  }catch(error){attackMessage.textContent=error.message||"Saldırı gönderilemedi.";}
  finally{button.disabled=false;}
 });
+
+
+// Geçici dokunma koordinatı ölçer: yükseltme penceresindeki hedef noktayı bulmak için.
+(()=>{
+ const panel=document.querySelector("#coordinate-inspector");
+ if(!panel)return;
+ const toggle=panel.querySelector("#coordinate-inspector-toggle");
+ const status=panel.querySelector("#coordinate-inspector-status");
+ const result=panel.querySelector("#coordinate-inspector-result");
+ const detail=panel.querySelector("#coordinate-inspector-detail");
+ const copy=panel.querySelector("#coordinate-inspector-copy");
+ let active=false,lastText="";
+ toggle.addEventListener("click",()=>{
+  active=!active;
+  toggle.textContent=active?"Ölçümü Durdur":"Ölçümü Başlat";
+  toggle.classList.toggle("is-active",active);
+  status.textContent=active?"Şimdi Pazar yükseltme penceresinde numaranın olmasını istediğin noktaya dokun.":"Ölçüm kapalı.";
+ });
+ panel.querySelector("#coordinate-inspector-hide").addEventListener("click",()=>{active=false;panel.hidden=true;});
+ document.addEventListener("pointerdown",event=>{
+  if(!active||panel.contains(event.target))return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const x=Math.round(event.clientX),y=Math.round(event.clientY);
+  const dialog=document.querySelector("#building-dialog");
+  const rect=dialog?.getBoundingClientRect();
+  const dx=rect?Math.round(event.clientX-rect.left):null;
+  const dy=rect?Math.round(event.clientY-rect.top):null;
+  const target=event.target;
+  const selector=target?.id?"#"+target.id:(target?.classList?.length?target.tagName.toLowerCase()+"."+Array.from(target.classList).slice(0,2).join("."):target?.tagName?.toLowerCase()||"unknown");
+  lastText="Ekran koordinatı: X="+x+", Y="+y+"; Pencere içi: X="+(dx??"—")+", Y="+(dy??"—")+"; Hedef: "+selector;
+  result.textContent="X: "+x+"   Y: "+y;
+  detail.textContent="Pencereye göre: X "+(dx??"—")+" · Y "+(dy??"—")+" | "+selector;
+  status.textContent="Nokta kaydedildi. Başka bir nokta için tekrar dokunabilirsin.";
+  copy.disabled=false;
+ },true);
+ copy.addEventListener("click",async()=>{
+  if(!lastText)return;
+  try{await navigator.clipboard.writeText(lastText);copy.textContent="Kopyalandı";}
+  catch{status.textContent=lastText;}
+ });
+})();
