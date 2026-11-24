@@ -683,3 +683,6 @@
 .army-recruit-preview{display:grid;gap:3px;margin-top:7px;padding:7px 9px;border:1px solid #9b814e66;border-radius:8px;background:#080f0c;font-size:10px;line-height:1.4;color:#dfd2ae}
 .army-recruit-preview strong{color:#f2d98d;font-size:10px}
 .army-recruit-preview span{overflow-wrap:anywhere}
+
+/* Stable horse production summary */
+.production-stable-note{margin:8px 0;padding:8px 10px;border:1px solid #b9955555;border-radius:8px;background:#101a14;color:#e7d7a8;font-size:11px;line-height:1.45}
