@@ -1145,6 +1145,19 @@ function renderArmyUnitDetail(unitId){
   strong.textContent=String(value);small.textContent=label;item.append(strong,small);stats.append(item);
  });
  content.append(stats);
+ const upgradeTitle=document.createElement("h4");upgradeTitle.textContent="Asker geliştirmeleri";content.append(upgradeTitle);
+ const upgradeNote=document.createElement("p");upgradeNote.className="army-unit-cost";upgradeNote.textContent="Her seviye seçilen özelliği %5 artırır. En fazla 10 seviye.";content.append(upgradeNote);
+ const upgradeGrid=document.createElement("div");upgradeGrid.className="army-upgrade-grid";
+ [["attack","Saldırı gücü"],["infantryDefense","Yaya savunması"],["cavalryDefense","Atlı savunması"]].forEach(([stat,label])=>{
+  const level=Number(unit.upgradeLevels?.[stat]||0),cost=unit.upgradeCosts?.[stat],row=document.createElement("div");row.className="army-upgrade-row";
+  const info=document.createElement("div"),name=document.createElement("strong"),levelText=document.createElement("small");
+  name.textContent=label;levelText.textContent="Seviye "+level+"/10";info.append(name,levelText);
+  const button=document.createElement("button");button.type="button";button.className="army-upgrade-button";button.dataset.upgradeUnit=unit.id;button.dataset.upgradeStat=stat;
+  if(cost){button.textContent="Geliştir · "+Object.entries(cost).map(([key,value])=>({gold:"Altın",iron:"Demir",wood:"Odun"}[key])+" "+armyNumber(value)).join(" · ");}
+  else{button.textContent="Maksimum seviye";button.disabled=true;}
+  row.append(info,button);upgradeGrid.append(row);
+ });
+ content.append(upgradeGrid);
  const costTitle=document.createElement("h4");costTitle.textContent="Bir asker yetiştirme maliyeti";content.append(costTitle);
  const costs=document.createElement("p");costs.className="army-unit-cost";
  costs.textContent=Object.entries(unit.cost).map(([key,value])=>({wood:"Odun",food:"Yiyecek",iron:"Demir",gold:"Altın"}[key]+" "+armyNumber(value))).join(" · ");content.append(costs);
@@ -1510,6 +1523,18 @@ document.querySelector("#army-units").addEventListener("click",event=>{
  loadArmyState().then(()=>renderArmyUnitDetail(button.dataset.openUnit));
 });
 document.querySelector("#army-unit-detail").addEventListener("click",async event=>{
+ const upgradeButton=event.target.closest("[data-upgrade-unit]");
+ if(upgradeButton){
+  upgradeButton.disabled=true;armyMessageNode.textContent="Asker geliştirmesi uygulanıyor…";
+  try{
+   const result=await authRequest("/api/game/army/upgrade",{method:"POST",token:authToken,body:{unitId:upgradeButton.dataset.upgradeUnit,stat:upgradeButton.dataset.upgradeStat}});
+   armyState=result;gameResources={...gameResources,...result.resources};renderResourceBalances();renderArmySummary();renderArmyCatalog();renderArmyQueue();
+   if(selectedArmyUnitId)renderArmyUnitDetail(selectedArmyUnitId);
+   const upgraded=result.catalog.find(unit=>unit.id===upgradeButton.dataset.upgradeUnit);
+   armyMessageNode.textContent=upgraded.name+" geliştirmesi tamamlandı. Yeni seviye: "+upgraded.upgradeLevels[upgradeButton.dataset.upgradeStat]+"/10.";
+  }catch(error){armyMessageNode.textContent=error.message||"Asker geliştirmesi yapılamadı.";upgradeButton.disabled=false;}
+  return;
+ }
  const button=event.target.closest("[data-recruit-unit]");
  if(!button)return;
  const amount=Number(document.querySelector("#"+button.dataset.amountInput).value);
