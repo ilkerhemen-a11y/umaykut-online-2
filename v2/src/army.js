@@ -29,13 +29,13 @@ const FACTION_UNITS = {
     heavy_cavalry: { name: "Tigin Süvarisi", icon: "🐴", attack: 80 }
   },
   hun: {
-    infantry: { name: "Hun Savaşçısı", icon: "🪓", attack: 27 },
-    archer: { name: "Hun Yaycısı", icon: "🏹", attack: 35 },
-    shield: { name: "Hun Kalkanlısı", icon: "🛡️", infantryDefense: 39 },
-    guard: { name: "Hun Seçkin Akıncısı", icon: "⚔️", attack: 57 },
-    light_cavalry: { name: "Hun Akıncısı", icon: "🐎" },
-    mounted_archer: { name: "Hun Atlı Okçusu", icon: "🎯", attack: 50 },
-    heavy_cavalry: { name: "Hun Ağır Süvarisi", icon: "🐴", attack: 73, speed: 11 }
+    infantry: { name: "Toygun", icon: "🪓", attack: 27, portrait: "/assets/units/hun/toygun.webp" },
+    archer: { name: "Kemankeş", icon: "🏹", attack: 35, portrait: "/assets/units/hun/kemankes.webp" },
+    shield: { name: "Tarık", icon: "🛡️", infantryDefense: 39, portrait: "/assets/units/hun/tarik.webp" },
+    guard: { name: "Barlas", icon: "⚔️", attack: 57, portrait: "/assets/units/hun/barlas.webp" },
+    light_cavalry: { name: "Tunga", icon: "🐎", portrait: "/assets/units/hun/tunga.webp" },
+    mounted_archer: { name: "Talakan", icon: "🎯", attack: 50, portrait: "/assets/units/hun/talakan.webp" },
+    heavy_cavalry: { name: "Tarkan", icon: "🐴", attack: 73, speed: 11, portrait: "/assets/units/hun/tarkan.webp" }
   },
   seljuk: {
     infantry: { name: "Selçuklu Gulamı", icon: "🗡️", attack: 29, infantryDefense: 27 },
