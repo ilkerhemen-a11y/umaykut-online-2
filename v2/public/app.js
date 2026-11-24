@@ -1255,7 +1255,7 @@ function renderArmyUnitDetail(unitId){
  name.textContent=unit.name;owned.textContent="Ordudaki mevcut sayın: "+armyNumber(armyState.troops[unit.id]||0);
  title.append(name,owned);heading.append(emblem,title);content.append(heading);
  const description=document.createElement("p");description.className="army-detail-description";
- description.textContent=unit.building==="barracks"?"Kışlada yetiştirilen kara birliği.":"Ahırda yetiştirilen atlı birlik.";
+ description.textContent=unit.building==="barracks"?"Kışlada yetiştirilen kara birliği.":unit.building==="archery"?"Okçu binasında yetiştirilen menzilli birlik.":"Ahırda yetiştirilen atlı birlik.";
  content.append(description);
  const stats=document.createElement("div");stats.className="army-detail-stats";
  [["Saldırı gücü",unit.attackDisplay||unit.attack],["Piyade savunması",unit.infantryDefense],["Süvari savunması",unit.cavalryDefense],["Hız",unit.speed],["Taşıma kapasitesi",unit.carry]].forEach(([label,value])=>{
@@ -1267,7 +1267,8 @@ function renderArmyUnitDetail(unitId){
  const costs=document.createElement("p");costs.className="army-unit-cost";
  costs.textContent=Object.entries(unit.cost).map(([key,value])=>({wood:"Odun",food:"Yiyecek",iron:"Demir",gold:"Altın"}[key]+" "+armyNumber(value))).join(" · ");content.append(costs);
  const unlock=document.createElement("p");unlock.className="army-unlock";
- unlock.textContent=unit.unlocked?(unit.building==="barracks"?"Kışla seviyesi ":"Ahır seviyesi ")+unit.requiredLevel+" · Birlik yetiştirilebilir":(unit.building==="barracks"?"Kışla seviye ":"Ahır seviye ")+unit.requiredLevel+" gerekli";
+ const buildingLabel=unit.building==="barracks"?"Kışla":unit.building==="archery"?"Okçu":"Ahır";
+ unlock.textContent=unit.unlocked?buildingLabel+" seviyesi "+unit.requiredLevel+" · Birlik yetiştirilebilir":buildingLabel+" seviye "+unit.requiredLevel+" gerekli";
  content.append(unlock);
  const controls=document.createElement("div");controls.className="army-recruit-controls army-detail-controls";
  const idleWorkers=Math.max(0,Number(armyState.idleWorkers)||0);
