@@ -858,7 +858,6 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
 #world .map-label{z-index:8;top:12px}
 #world .map-controls{position:absolute;right:12px;top:58px;z-index:12;display:grid;gap:7px}
 #world .map-controls button{width:40px;height:40px;border:1px solid #c9a85d;border-radius:12px;background:#211b13ef;color:#f6d77d;font-size:25px;box-shadow:0 3px 10px #0007}
-#world .map-coordinate{position:absolute;left:12px;bottom:52px;z-index:8;background:#201b14dd;border:1px solid #a7894b;border-radius:9px;padding:6px 9px;color:#f6e4b5;font-size:10px;letter-spacing:1px}
 #world .map-hint{z-index:8;bottom:10px;max-width:calc(100% - 130px);font-size:10px}
 @media(max-width:699px){
  #world .map-world{min-height:0}
@@ -879,7 +878,6 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
  #world .resource-map-nodes .resource-node .resource-level{width:20px;height:20px;font-size:10px}
  #world .map-controls{right:8px;top:54px;gap:6px}
  #world .map-controls button{width:36px;height:36px;font-size:22px}
- #world .map-coordinate{left:8px;bottom:47px;font-size:9px}
  #world .map-hint{bottom:8px;font-size:9px;max-width:calc(100% - 115px);white-space:normal;text-align:center}
 }
 /* 2026-11-16: expanded village camera with drag and zoom */
