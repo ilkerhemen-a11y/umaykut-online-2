@@ -629,3 +629,22 @@
   overscroll-behavior:contain;
   scrollbar-gutter:stable;
 }
+
+/* Larger, touch-friendly troop detail view */
+.army-dialog{width:min(94vw,540px);max-height:90dvh;overflow-y:auto;overscroll-behavior:contain;padding:14px}
+.army-unit-detail{padding:14px;margin-top:10px}
+.army-unit-back{min-height:42px;padding:9px 13px;font-size:12px}
+.army-detail-heading{flex-direction:column;align-items:center;gap:10px;margin:14px 0 12px;text-align:center}
+.army-detail-emblem{width:clamp(116px,34vw,156px);height:clamp(142px,42vw,188px);flex:0 0 auto;border:2px solid #c6a45e;border-radius:16px;background-color:#17251b;box-shadow:0 8px 22px #0008,0 0 0 4px #c6a45e20}
+.army-detail-heading h3{margin:0 0 5px;font-size:clamp(21px,5.4vw,26px)}
+.army-detail-heading p,.army-detail-description{font-size:12px;line-height:1.5}
+.army-detail-description{margin:10px 0 14px;text-align:center}
+.army-detail-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.army-detail-stats>div{min-height:58px;padding:9px 10px;gap:5px}
+.army-detail-stats strong{font-size:18px}
+.army-detail-stats small{font-size:10px;line-height:1.3}
+.army-unit-detail h4{font-size:13px;margin:14px 0 6px}
+.army-unit-cost,.army-unlock{font-size:11px;line-height:1.5;margin:6px 0}
+.army-detail-controls{display:grid;grid-template-columns:minmax(76px,104px) minmax(0,1fr);gap:10px;margin-top:12px}
+.army-detail-controls input,.army-detail-controls button{min-height:48px;padding:10px;font-size:14px}
+@media(max-width:380px){.army-dialog{width:96vw;padding:11px}.army-detail-emblem{width:112px;height:136px}.army-detail-stats>div{padding:8px}}
