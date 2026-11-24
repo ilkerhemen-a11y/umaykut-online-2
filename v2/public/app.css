@@ -833,3 +833,11 @@
 
 /* The compact navigation is in document flow, so no reserved fixed-bar space is needed. */
 .game-shell{padding-bottom:0}
+
+/* V2 starter inventory actions */
+.inventory-item{position:relative;align-items:flex-start}
+.inventory-item-info{flex:1}
+.inventory-use-button{margin-left:auto;align-self:center;flex:0 0 auto;padding:7px 10px;border:1px solid #c9a65d;border-radius:8px;background:linear-gradient(145deg,#80602d,#3b2b18);color:#fff0c8;font:700 10px Arial,sans-serif}
+.inventory-use-button:disabled{opacity:.5;filter:saturate(.5)}
+.inventory-note{padding:9px 11px;border:1px solid #8b7549;border-radius:9px;background:#18271c;color:#f0d99f}
+@media(max-width:420px){.inventory-item{flex-wrap:wrap}.inventory-use-button{margin-left:43px}}
