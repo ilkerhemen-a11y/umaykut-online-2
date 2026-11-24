@@ -303,3 +303,28 @@ test("resource bar uses the five matching isometric SVG icons and serves each as
     assert.ok((await response.text()).includes("<svg"));
   }
 });
+
+test("V2 serves all seven mapped Seljuk troop portraits", async (t) => {
+  const server=createServer({ pool: null });
+  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+  t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const base=`http://127.0.0.1:${server.address().port}`;
+  const appResponse=await fetch(base+"/app.js");
+  assert.equal(appResponse.status,200);
+  const app=await appResponse.text();
+  const portraits=[
+    ["infantry","IMG-20261124-WA4122.jpg","Nefer"],
+    ["archer","IMG-20261124-WA7363.jpg","Tirkendaz"],
+    ["shield","IMG-20261124-WA0216.jpg","Kargılı"],
+    ["guard","IMG-20261124-WA5709.jpg","Azap"],
+    ["light_cavalry","IMG-20261124-WA2818.jpg","Akıncı"],
+    ["mounted_archer","IMG-20261124-WA5083.jpg","Deli"],
+    ["heavy_cavalry","IMG-20261124-WA1381.jpg","Sipahi"]
+  ];
+  for(const [unitId,file,name] of portraits){
+    assert.ok(app.includes(`${unitId}:"${file}"`),`${name} maps to ${file}`);
+    const image=await fetch(base+`/assets/factions/${file}`);
+    assert.equal(image.status,200,`${file} is served`);
+    assert.match(image.headers.get("content-type")||"",/image\\/(jpeg|jpg)/);
+  }
+});
