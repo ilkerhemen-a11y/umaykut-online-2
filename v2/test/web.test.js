@@ -166,7 +166,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,0);
 
-  const script=await fetch(base+"/app.js?v=20261124-hun-unit-portraits-2");
+  const script=await fetch(base+"/app.js?v=20261124-coordinate-inspector-1");
   assert.equal(script.status,200);
   const appScript=await script.text();
   assert.doesNotMatch(appScript,/mapHeading\.after\(bottomNav\)/);
