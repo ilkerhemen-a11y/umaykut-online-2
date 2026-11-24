@@ -240,7 +240,12 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(appScript.includes("/api/game/rankings"));
   assert.match(appScript,/umaykut-faction-v2/);
   assert.ok(appScript.includes('"/api/player/profile"'));
-  assert.ok(appScript.includes('node.addEventListener("click",()=>openBuildingDialog(node.dataset.buildingSlot))'));
+  assert.ok(appScript.includes('node.addEventListener("click",()=>{if(villageMarkerEditMode)return;openBuildingDialog(node.dataset.buildingSlot);})'));
+  assert.match(appScript,/umaykut-v2-local-building-marker-positions/);
+  assert.match(appScript,/function collectPositions\(\)/);
+  assert.match(html,/id="village-marker-edit"/);
+  assert.match(html,/id="village-marker-export"/);
+  assert.match(css,/\.city-frame\.is-marker-editing/);
   assert.ok(appScript.includes('function openBuildingDialog(slot)'));
   assert.match(appScript,/openFoundingDialog/);
   assert.match(appScript,/await loadGameState\(\)/);
@@ -256,7 +261,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/function applySettings\(\)/);
   assert.match(appScript,/function logoutAccount\(\)/);
   assert.match(appScript,/localStorage\.removeItem\(AUTH_TOKEN_KEY\)/);
-  assert.doesNotMatch(html,/marker-edit-toggle|marker-reset|marker-export|id="building-type"/);
+  assert.doesNotMatch(html,/id="building-type"/);
   assert.doesNotMatch(appScript,/markerStorageKey|buildingTypeSelect|construct/);
   assert.match(appScript,/"4":"blacksmith"/);
   assert.match(appScript,/"5":"school"/);
