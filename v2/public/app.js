@@ -15,6 +15,7 @@ let selectedFoundingFaction=null;
 function setFaction(key){
  if(!factions[key])return false;
  shell.dataset.faction=key;
+ shell.style.setProperty("--faction-portrait",`url("/assets/factions/${key}-warrior.webp")`);
  factionLabel.textContent=factions[key].name;
  document.querySelector('meta[name="theme-color"]').content=factions[key].themeColor;
  document.querySelectorAll("[data-faction-choice]").forEach(button=>{
