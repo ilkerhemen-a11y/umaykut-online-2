@@ -1237,6 +1237,7 @@ function inventorySection(title,items,emptyText){
  return section;
 }
 let starterInventory={speedup_10m:0,speedup_30m:0,speedup_1h:0,village_protection_24h:0};
+let starterItemCooldowns={};
 let villageProtectionExpiresAt=null;
 const STARTER_ITEMS=[
  {code:"speedup_10m",name:"10 Dakika Hızlandırma",icon:"⏩",description:"Devam eden bir bina geliştirmesinden 10 dakika düşürür.",seconds:600},
@@ -1248,10 +1249,14 @@ function renderInventory(){
  if(!inventoryContent)return;
  inventoryContent.replaceChildren();
  const cards=STARTER_ITEMS.map(item=>{
-  const card=inventoryCard(item.name,starterInventory[item.code]||0,item.icon,item.description);
+  const readyAt=starterItemCooldowns[item.code],remaining=readyAt?Date.parse(readyAt)-Date.now():0;
+  const cooling=Number.isFinite(remaining)&&remaining>0;
+  const protectionActive=item.code==="village_protection_24h"&&villageProtectionExpiresAt&&Date.parse(villageProtectionExpiresAt)>Date.now();
+  const detail=cooling?"Yenilenme: "+new Date(readyAt).toLocaleString("tr-TR"):protectionActive?"Koruma aktif · "+new Date(villageProtectionExpiresAt).toLocaleString("tr-TR")+" tarihine kadar":item.description;
+  const card=inventoryCard(item.name,starterInventory[item.code]||0,item.icon,detail);
   const button=document.createElement("button");button.type="button";button.className="inventory-use-button";
-  button.textContent=item.code==="village_protection_24h"&&villageProtectionExpiresAt&&new Date(villageProtectionExpiresAt)>new Date()?"Koruma aktif":"Kullan";
-  button.disabled=(starterInventory[item.code]||0)<1||(item.code==="village_protection_24h"&&villageProtectionExpiresAt&&new Date(villageProtectionExpiresAt)>new Date());
+  button.textContent=protectionActive?"Koruma aktif":cooling?"24 saat sonra hazır":"Kullan";
+  button.disabled=(starterInventory[item.code]||0)<1||cooling||Boolean(protectionActive);
   button.addEventListener("click",()=>useStarterItem(item,button));
   card.append(button);return card;
  });
@@ -1273,6 +1278,7 @@ async function useStarterItem(item,button){
   }
   const result=await authRequest("/api/game/items",{method:"POST",token:authToken,body:payload});
   starterInventory=result.inventory||starterInventory;
+  starterItemCooldowns=result.cooldowns||starterItemCooldowns;
   villageProtectionExpiresAt=result.protectionExpiresAt||villageProtectionExpiresAt;
   if(item.seconds)await loadGameState();
   renderInventory();
@@ -1287,6 +1293,7 @@ async function openInventoryDialog(){
   await loadGameState();
   const items=await authRequest("/api/game/items",{token:authToken});
   starterInventory=items.inventory||starterInventory;
+  starterItemCooldowns=items.cooldowns||{};
   villageProtectionExpiresAt=items.protectionExpiresAt||null;
   renderInventory();
   inventoryMessage.textContent="Envanterin güncel oyun verilerinden yüklendi.";
