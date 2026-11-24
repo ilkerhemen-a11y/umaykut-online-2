@@ -587,12 +587,14 @@
 }
 
 
-/* Original Turkic soldier portrait sprite sheet */
+/* Faction-specific soldier portraits: each army card follows the selected civilization. */
 .troop-portrait-sprite{
- background-image:url('/assets/soldiers/soldier-sprite.webp')!important;
- background-size:400% 200%!important;
+ background-image:var(--unit-portrait)!important;
+ background-size:cover!important;
  background-repeat:no-repeat!important;
+ background-position:center 22%!important;
  background-color:#151b20!important;
+ filter:none!important;
  text-shadow:none!important;
 }
 .army-strip-unit .troop-portrait-sprite{
