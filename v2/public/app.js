@@ -272,7 +272,7 @@ if(villageFrame&&villageStage){
  });
  exportButton.addEventListener("click",async()=>{
   const rows=collectPositions();
-  const text=rows.map(row=>row.label+": left "+row.left+"%, top "+row.top+"%").join("\\n");
+  const text=rows.map(row=>row.label+": left "+row.left+"%, top "+row.top+"%").join("\n");
   if(output){output.textContent=text;output.hidden=false;}
   try{
    await navigator.clipboard.writeText(text);
