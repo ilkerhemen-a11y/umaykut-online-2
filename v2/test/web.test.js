@@ -325,6 +325,6 @@ test("V2 serves all seven mapped Seljuk troop portraits", async (t) => {
     assert.ok(app.includes(`${unitId}:"${file}"`),`${name} maps to ${file}`);
     const image=await fetch(base+`/assets/factions/${file}`);
     assert.equal(image.status,200,`${file} is served`);
-    assert.match(image.headers.get("content-type")||"",/image\\/(jpeg|jpg)/);
+    assert.ok((image.headers.get("content-type")||"").includes("image/jpeg"));
   }
 });
