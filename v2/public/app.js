@@ -1159,7 +1159,7 @@ function renderWallDialog(){
  else if(!wallMessage.textContent)wallMessage.textContent="Her seviye saldırı hasarını %5 azaltır ve her kaynak türünden 500 ek koruma sağlar.";
 }
 function wallUpgradeCostForLevel(level){const scale=Math.pow(1.65,level-2);return {wood:Math.round(250*scale),stone:Math.round(220*scale),iron:Math.round(90*scale),gold:Math.round(100*scale)};}
-wallMarker.addEventListener("click",()=>{renderWallDialog();wallDialog.showModal();});
+wallMarker.addEventListener("click",()=>{if(villageMarkerEditMode)return;renderWallDialog();wallDialog.showModal();});
 document.querySelector("#wall-close").addEventListener("click",()=>wallDialog.close());
 wallAction.addEventListener("click",async()=>{
  wallAction.disabled=true;wallMessage.textContent="Sur yükseltmesi başlatılıyor…";
