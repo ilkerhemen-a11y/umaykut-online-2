@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101a13">
   <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
   <title>Umaykut Online 2 · V2</title>
-  <link rel="stylesheet" href="/app.css?v=20261124-stable-horses-1">
+  <link rel="stylesheet" href="/app.css?v=20261124-map-shortcuts-carousel-1">
   <link rel="stylesheet" href="/factions.css?v=20261124-hun-unit-portraits-2">
 </head>
 <body>
@@ -45,9 +45,6 @@
         <div class="resource"><span class="resource-icon" aria-hidden="true"><img src="/assets/resources/iron.svg" alt="" width="24" height="20" decoding="async"></span><b id="resource-iron">8.040</b><small>Demir</small></div>
       </div>
       <div class="realm"><span id="realm-player-name">YENİ YURDUM</span><b>SEVİYE 1</b><span class="realm-sub" id="realm-faction">Devlet seçilmedi</span></div>
-      <button class="top-settings" id="open-quests" type="button" aria-haspopup="dialog" aria-controls="quests-dialog" aria-label="Görevleri aç">🏆</button>
-      <button class="top-settings" id="open-ranking" type="button" aria-haspopup="dialog" aria-controls="ranking-dialog" aria-label="Oyuncu sıralamasını aç">🏅</button>
-      <button class="top-settings" id="open-settings" type="button" aria-haspopup="dialog" aria-controls="settings-dialog" aria-label="Ayarları aç">⚙️</button>
     </header>
 
     <section class="village-wrap" aria-label="Köy görünümü">
@@ -127,7 +124,7 @@
     <section class="map-view" id="map-view" hidden aria-label="Ortak dünya haritası">
       <div class="map-heading">
         <div><small>UMAYKUT DÜNYASI</small><h1>Geniş Dünya Haritası</h1><p>Haritada gezin, rakip yurtları ve zengin maden yataklarını keşfet</p></div>
-        <div class="map-heading-actions"><div class="worker-summary"><span>👷</span><strong id="workers-available">1.800</strong><small>Boştaki işçi</small><em id="workers-total-count">Toplam işçi: 1.800</em><em id="workers-hourly-production">+25 işçi/saat</em><em id="workers-assigned-total">0 görevde</em></div><button type="button" id="production-open" class="production-open">📈 Üretim Merkezi</button></div>
+        <div class="map-heading-actions"><button type="button" id="production-open" class="production-open">📈 Üretim Merkezi</button></div>
       </div>
       <div class="world-map" aria-label="Gezilebilir ortak dünya haritası. Kaydırarak haritada ilerleyebilirsin." tabindex="0">
         <div class="map-zoom-controls" role="group" aria-label="Harita yakınlaştırma kontrolleri"><button type="button" id="map-zoom-out" aria-label="Haritayı uzaklaştır" title="Uzaklaştır">−</button><button type="button" id="map-zoom-reset" aria-label="Harita görünümünü sıfırla" title="Görünümü sıfırla">⤢</button><button type="button" id="map-zoom-in" aria-label="Haritayı yakınlaştır" title="Yakınlaştır">+</button><span id="map-zoom-level" aria-live="polite">55%</span></div>
@@ -152,6 +149,27 @@
           </div>
         </div>
       </section>
+      <section class="map-shortcuts" aria-label="Harita alt menüsü">
+        <div class="map-shortcuts-heading"><div><small>YURDUNU YÖNET</small><h2>Hızlı Erişim</h2></div><span>Kaydır <b>‹ ›</b></span></div>
+        <div class="map-shortcuts-track" role="group" aria-label="Görevler, sıralama ve ayarlar">
+          <button class="map-shortcut-card map-shortcut-quests" id="open-quests" type="button" aria-haspopup="dialog" aria-controls="quests-dialog">
+            <span class="map-shortcut-icon" aria-hidden="true">🏆</span>
+            <span class="map-shortcut-copy"><small>GELİŞİM & ÖDÜLLER</small><strong>Görevler ve Ödüller</strong><em>Görevlerini tamamla, ganimetini kazan</em></span>
+            <span class="map-shortcut-arrow" aria-hidden="true">›</span>
+          </button>
+          <button class="map-shortcut-card map-shortcut-ranking" id="open-ranking" type="button" aria-haspopup="dialog" aria-controls="ranking-dialog">
+            <span class="map-shortcut-icon" aria-hidden="true">🏅</span>
+            <span class="map-shortcut-copy"><small>BOZKIRIN LİDERLERİ</small><strong>Oyuncu Sıralaması</strong><em>Diğer yurtlarla gücünü karşılaştır</em></span>
+            <span class="map-shortcut-arrow" aria-hidden="true">›</span>
+          </button>
+          <button class="map-shortcut-card map-shortcut-settings" id="open-settings" type="button" aria-haspopup="dialog" aria-controls="settings-dialog">
+            <span class="map-shortcut-icon" aria-hidden="true">⚙️</span>
+            <span class="map-shortcut-copy"><small>KİŞİSELLEŞTİR</small><strong>Oyun Ayarları</strong><em>Hesabını ve oyun tercihlerini düzenle</em></span>
+            <span class="map-shortcut-arrow" aria-hidden="true">›</span>
+          </button>
+        </div>
+        <div class="map-shortcuts-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+      </section>
       <div id="world-player-list" hidden></div>
       <button id="refresh-world-players" type="button" hidden>Yenile</button>
     </section>
@@ -164,7 +182,6 @@
       <button type="button" data-action="incoming-attacks" aria-haspopup="dialog" aria-controls="incoming-attacks-dialog" aria-label="Gelen saldırılar"><span>🛡️</span>Gelen</button>
       <button type="button" data-action="outgoing-attacks" aria-haspopup="dialog" aria-controls="outgoing-attacks-dialog" aria-label="Giden saldırılar"><span>⚔️</span>Giden</button>
       <button type="button" data-action="battle-reports" aria-haspopup="dialog" aria-controls="battle-reports-dialog"><span>📜</span>Savaş Raporu</button>
-      <button type="button" data-action="settings" aria-haspopup="dialog" aria-controls="settings-dialog"><span>⚙️</span>Ayarlar</button>
     </nav>
     <dialog id="market-dialog" class="army-dialog market-dialog" aria-labelledby="market-title">
       <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · TİCARET</small><h2 id="market-title">Köy Pazarı</h2></div><button id="market-close" type="button" aria-label="Kapat">×</button></div>
@@ -309,6 +326,6 @@
     </dialog>
   </main>
 
-  <script type="module" src="/app.js?v=20261124-stable-horses-1"></script>
+  <script type="module" src="/app.js?v=20261124-map-shortcuts-carousel-1"></script>
 </body>
 </html>
