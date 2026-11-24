@@ -1640,7 +1640,7 @@ function fillNeutralTroopChoices(){
  armyState.catalog.forEach(unit=>{
   const owned=Number(armyState.troops?.[unit.id]||0);if(owned<=0)return;
   const label=document.createElement("label");label.className="attack-unit-row";
-  const name=document.createElement("span");name.textContent=unit.icon+" "+unit.name+" · Mevcut "+armyNumber(owned);
+  const name=document.createElement("span");name.className="attack-unit-name";const portrait=armyUnitPortrait(unit,"attack-unit-portrait");const labelText=document.createElement("span");labelText.textContent=unit.name+" · Mevcut "+armyNumber(owned);name.append(portrait,labelText);
   const input=document.createElement("input");input.type="number";input.min="0";input.max=String(owned);input.value="0";input.dataset.neutralUnit=unit.id;input.setAttribute("aria-label",unit.name+" gönderilecek sayısı");
   label.append(name,input);neutralRegionUnitList.append(label);
  });
