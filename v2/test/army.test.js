@@ -27,7 +27,7 @@ test("factions receive distinct troop identities and specialties", () => {
   const hun = getTroopCatalog("hun", buildings);
   const seljuk = getTroopCatalog("seljuk", buildings);
   assert.equal(gokturk.find(unit => unit.id === "archer").name, "Börü Okçusu");
-  assert.equal(hun.find(unit => unit.id === "light_cavalry").name, "Hun Akıncısı");
+  assert.equal(hun.find(unit => unit.id === "light_cavalry").name, "Tunga");
   assert.equal(seljuk.find(unit => unit.id === "heavy_cavalry").name, "Ağır Sipahi");
   assert.ok(hun.find(unit => unit.id === "light_cavalry").speed > gokturk.find(unit => unit.id === "light_cavalry").speed);
   assert.ok(seljuk.find(unit => unit.id === "shield").infantryDefense > gokturk.find(unit => unit.id === "shield").infantryDefense);
