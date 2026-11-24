@@ -922,7 +922,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           const active=protectionExpiresAt&&new Date(protectionExpiresAt)>new Date();
           if(active){await client.query("ROLLBACK");tx=false;return sendJson(res,409,{error:"Köy koruman zaten aktif."});}
           protectionExpiresAt=new Date(Date.now()+24*60*60*1000).toISOString();
-          inventory[code]=0;cooldowns[code]=new Date(Date.now()+24*60*60*1000).toISOString();
+          inventory[code]=0;cooldowns[code]=new Date(Date.now()+7*24*60*60*1000).toISOString();
           await client.query("UPDATE umaykut_v2.player_game_state SET inventory=$2::jsonb,item_cooldowns=$3::jsonb,protection_expires_at=$4,updated_at=NOW() WHERE player_id=$1",[session.id,JSON.stringify(inventory),JSON.stringify(cooldowns),protectionExpiresAt]);
           message="Köy koruman 24 saat boyunca aktif. Bu süre içinde köyüne yeni saldırı gönderilemez.";
         }else{
