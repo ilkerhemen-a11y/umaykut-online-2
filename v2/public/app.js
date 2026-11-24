@@ -1070,18 +1070,25 @@ const armyMessageNode=document.querySelector("#army-message");
 let armyState=null;
 let armyRefreshTimer=null;
 const troopPortraitPositions={scout:"0% 0%",infantry:"33.333% 0%",archer:"66.667% 0%",shield:"100% 0%",guard:"0% 100%",light_cavalry:"33.333% 100%",mounted_archer:"66.667% 100%",heavy_cavalry:"100% 100%"};
-const hunTroopPortraitPositions={
- infantry:"0% 0%",archer:"100% 0%",shield:"0% 33.333%",guard:"100% 33.333%",
- mounted_archer:"0% 66.667%",light_cavalry:"100% 66.667%",heavy_cavalry:"0% 100%"
+const hunTroopPortraitFiles={
+ infantry:"IMG-20261124-WA7476.jpg", // Toygun
+ archer:"IMG-20261124-WA0791.jpg", // Kemankeş
+ shield:"IMG-20261124-WA3718.jpg", // Tarık
+ guard:"IMG-20261124-WA6594.jpg", // Barlas
+ light_cavalry:"IMG-20261124-WA9835.jpg", // Tunga
+ mounted_archer:"IMG-20261124-WA2441.jpg", // Talakan
+ heavy_cavalry:"IMG-20261124-WA5716.jpg" // Tarkan
 };
 function activeFactionId(){return ["gokturk","hun","seljuk"].includes(shell.dataset.faction)?shell.dataset.faction:"gokturk";}
 function applyTroopPortrait(node,unitId,factionId=activeFactionId()){
  const faction=["gokturk","hun","seljuk"].includes(factionId)?factionId:"gokturk";
  node.classList.add("troop-portrait-sprite");
- const useHunPortrait=faction==="hun"&&Boolean(hunTroopPortraitPositions[unitId]);
- node.style.setProperty("--unit-portrait",useHunPortrait?'url("/assets/factions/hun-unit-portraits.webp")':'url("/assets/soldiers/soldier-sprite.webp")');
- node.style.setProperty("--unit-size",useHunPortrait?"200% 400%":"400% 200%");
- node.style.setProperty("--unit-position",useHunPortrait?(hunTroopPortraitPositions[unitId]||"0% 0%"):(troopPortraitPositions[unitId]||"0% 0%"));
+ const hunPortraitFile=faction==="hun"?hunTroopPortraitFiles[unitId]:null;
+ const useHunPortrait=Boolean(hunPortraitFile);
+ const portraitUrl=useHunPortrait?'/assets/factions/'+hunPortraitFile:'/assets/soldiers/soldier-sprite.webp';
+ node.style.setProperty("--unit-portrait",'url("'+portraitUrl+'")');
+ node.style.setProperty("--unit-size",useHunPortrait?"cover":"400% 200%");
+ node.style.setProperty("--unit-position",useHunPortrait?"center":(troopPortraitPositions[unitId]||"0% 0%"));
  const tint=faction==="hun"&&!useHunPortrait?"sepia(.34) saturate(1.55) hue-rotate(315deg) contrast(1.04)":faction==="seljuk"?"sepia(.2) saturate(1.25) hue-rotate(8deg) brightness(1.06)":faction==="gokturk"?"saturate(1.12) hue-rotate(0deg)":"none";
  node.style.setProperty("--unit-filter",tint);
  node.setAttribute("role","img");
