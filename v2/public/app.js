@@ -187,7 +187,7 @@ if(villageFrame&&villageStage){
  const frame=document.querySelector(".city-frame");
  const image=document.querySelector(".city-art");
  if(!editButton||!frame||!image)return;
- const storageKey="umaykut-v2-local-building-marker-positions";
+ const storageKey="umaykut-v2-local-building-marker-positions-20261124";
  const markerSelector='[data-building-slot],#wall-position-marker';
  const markers=Array.from(document.querySelectorAll(markerSelector));
  const defaults=new Map(markers.map(node=>[node,node.getAttribute("style")||""]));
