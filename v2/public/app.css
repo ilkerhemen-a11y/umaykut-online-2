@@ -590,11 +590,11 @@
 /* Faction-specific soldier portraits: each army card follows the selected civilization. */
 .troop-portrait-sprite{
  background-image:var(--unit-portrait)!important;
- background-size:cover!important;
+ background-size:var(--unit-size,cover)!important;
  background-repeat:no-repeat!important;
- background-position:center 22%!important;
+ background-position:var(--unit-position,center)!important;
  background-color:#151b20!important;
- filter:none!important;
+ filter:var(--unit-filter,none)!important;
  text-shadow:none!important;
 }
 .army-strip-unit .troop-portrait-sprite{
@@ -607,7 +607,7 @@
  display:block;overflow:hidden;border:1px solid #c19a54;border-radius:10px;
 }
 .battle-report-unit-portrait.troop-portrait-sprite{
- display:block;background-size:400% 200%!important;border:1px solid #7b6846;
+ display:block;border:1px solid #7b6846;
 }
 
 

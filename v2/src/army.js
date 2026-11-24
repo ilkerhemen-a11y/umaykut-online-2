@@ -29,13 +29,13 @@ const FACTION_UNITS = {
     heavy_cavalry: { name: "Tigin Süvarisi", icon: "🐴", attack: 80 }
   },
   hun: {
-    infantry: { name: "Hun Savaşçısı", icon: "🪓", attack: 27 },
-    archer: { name: "Hun Yaycısı", icon: "🏹", attack: 35 },
-    shield: { name: "Hun Kalkanlısı", icon: "🛡️", infantryDefense: 39 },
-    guard: { name: "Hun Seçkin Akıncısı", icon: "⚔️", attack: 57 },
-    light_cavalry: { name: "Hun Akıncısı", icon: "🐎" },
-    mounted_archer: { name: "Hun Atlı Okçusu", icon: "🎯", attack: 50 },
-    heavy_cavalry: { name: "Hun Ağır Süvarisi", icon: "🐴", attack: 73, speed: 11 }
+    infantry: { name: "Toygun", icon: "🛡️", attack: 35, infantryDefense: 25, cavalryDefense: 15, speed: 16 },
+    archer: { name: "Kemankeş", icon: "🏹", attack: 60, attackDisplay: "30 × 2", infantryDefense: 80, cavalryDefense: 35, speed: 16 },
+    shield: { name: "Tarık", icon: "🔱", attack: 20, infantryDefense: 25, cavalryDefense: 90, speed: 14 },
+    guard: { name: "Barlas", icon: "⚔️", attack: 120, attackDisplay: "120–130", infantryDefense: 60, cavalryDefense: 90, speed: 24 },
+    light_cavalry: { name: "Talakan", icon: "🐎", attack: 95, infantryDefense: 85, cavalryDefense: 60, speed: 50 },
+    mounted_archer: { name: "Tunga", icon: "🐴", attack: 65, infantryDefense: 50, cavalryDefense: 110, speed: 32 },
+    heavy_cavalry: { name: "Tarkan", icon: "🐴", attack: 150, infantryDefense: 110, cavalryDefense: 80, speed: 40 }
   },
   seljuk: {
     infantry: { name: "Selçuklu Gulamı", icon: "🗡️", attack: 29, infantryDefense: 27 },
@@ -61,9 +61,9 @@ export function getTroopCatalog(factionId, buildings = {}) {
     const blacksmithMultiplier = 1 + (blacksmithLevel - 1) * 0.02;
     const attack = Math.round(unit.attack * (faction === "gokturk" && id.includes("archer") ? 1.10 : 1) * blacksmithMultiplier);
     const infantryDefense = Math.round(unit.infantryDefense * (faction === "seljuk" ? 1.10 : 1) * blacksmithMultiplier);
-    const speed = Math.round(unit.speed * (faction === "hun" && base.building === "stable" ? 1.15 : 1));
+    const speed = Math.round(unit.speed);
     return {
-      id, name: unit.name, icon: unit.icon, building: base.building,
+      id, name: unit.name, icon: unit.icon, attackDisplay: unit.attackDisplay || null, building: base.building,
       requiredLevel: base.level, unlocked: level >= base.level,
       buildingLevel: level, attack, infantryDefense,
       cavalryDefense: Math.round(unit.cavalryDefense * blacksmithMultiplier), speed, carry: unit.carry, cost: { ...base.cost },
