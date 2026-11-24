@@ -1223,3 +1223,19 @@ body{background:#10130f;color:#fff0c7;font-family:Georgia,"Times New Roman",seri
 #village .village-buildings-layer>.placed-building.placed-center::after{content:none!important;display:none!important}
 #village .village-map-camera>canvas,
 #village .village-map-viewport canvas{display:none!important}
+
+/* Mobilde bina yükseltme penceresi ekran dışına taşmasın */
+#modal.open{
+  overflow-y:auto;
+  align-items:flex-start;
+  justify-content:center;
+  padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+}
+#modal .modal-card{
+  box-sizing:border-box;
+  max-height:calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  margin:auto 0;
+  flex:0 0 auto;
+}
