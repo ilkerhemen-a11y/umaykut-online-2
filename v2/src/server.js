@@ -445,11 +445,12 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           await client.query("BEGIN");inTx=true;
           const ids=[session.id,targetId].sort();
           const result=await client.query(
-            `SELECT p.id,p.village_name,s.faction_id,s.resources,s.buildings,s.troops,s.training_queue
+            `SELECT p.id,p.village_name,s.faction_id,s.resources,s.buildings,s.troops,s.training_queue,s.protection_expires_at
              FROM umaykut_v2.players p JOIN umaykut_v2.player_game_state s ON s.player_id=p.id
              WHERE p.id=ANY($1::uuid[]) ORDER BY p.id FOR UPDATE OF s`,[ids]);
           if(result.rowCount!==2){await client.query("ROLLBACK");inTx=false;return sendJson(res,404,{error:"Hedef köy bulunamadı veya henüz kurulmadı."});}
           const attacker=result.rows.find(row=>row.id===session.id),defender=result.rows.find(row=>row.id===targetId);
+          if(defender.protection_expires_at&&new Date(defender.protection_expires_at)>new Date()){await client.query("ROLLBACK");inTx=false;return sendJson(res,409,{error:"Hedef köy 24 saatlik koruma altında. Bu köye saldırı gönderilemez.",protectionExpiresAt:defender.protection_expires_at});}
           if(!attacker?.village_name||!defender?.village_name||!defender.faction_id){
             await client.query("ROLLBACK");inTx=false;return sendJson(res,404,{error:"Hedef köy henüz kurulmadı."});
           }
@@ -853,6 +854,60 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         });
         return sendJson(res, 500, { error: "Köy bilgilerin kaydedilemedi. Tekrar dene." });
       }
+    }
+
+    if (url.pathname === "/api/game/items") {
+      if (!pool) return sendJson(res,503,{error:"Oyun kayıt servisi henüz yapılandırılmadı."});
+      if (!sessionSecret || sessionSecret.length < 32) return sendJson(res,503,{error:"Oturum güvenlik ayarı eksik."});
+      const token=bearerToken(req),session=verifySessionToken(token,sessionSecret);
+      if(!session)return sendJson(res,401,{error:"Oturum geçersiz veya süresi dolmuş."});
+      const valid=await pool.query("SELECT 1 FROM umaykut_v2.player_sessions WHERE player_id=$1 AND token_hash=$2 AND expires_at>NOW()",[session.id,sessionTokenHash(token)]);
+      if(!valid.rowCount)return sendJson(res,401,{error:"Oyuncu oturumu bulunamadı."});
+      if(req.method==="GET"){
+        const state=await pool.query("SELECT inventory,protection_expires_at FROM umaykut_v2.player_game_state WHERE player_id=$1",[session.id]);
+        const row=state.rows[0]||{};
+        return sendJson(res,200,{inventory:row.inventory||{},protectionExpiresAt:row.protection_expires_at||null,serverNow:new Date().toISOString()});
+      }
+      if(req.method!=="POST"){res.setHeader("allow","GET, POST");return sendJson(res,405,{error:"Yöntem desteklenmiyor."});}
+      const input=await readJson(req),code=String(input.code||"");
+      const durations={speedup_10m:600,speedup_30m:1800,speedup_1h:3600};
+      const client=await pool.connect();let tx=false;
+      try{
+        await client.query("BEGIN");tx=true;
+        const result=await client.query("SELECT inventory,protection_expires_at,buildings FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",[session.id]);
+        if(!result.rowCount){await client.query("ROLLBACK");tx=false;return sendJson(res,404,{error:"Köy kaydı bulunamadı."});}
+        const row=result.rows[0],inventory=typeof row.inventory==="string"?JSON.parse(row.inventory):{...(row.inventory||{})};
+        if(!Number.isSafeInteger(Number(inventory[code]))||Number(inventory[code])<1){await client.query("ROLLBACK");tx=false;return sendJson(res,409,{error:"Bu eşya envanterinde bulunmuyor."});}
+        let protectionExpiresAt=row.protection_expires_at||null,message="";
+        if(durations[code]){
+          const slot=String(Number(input.slot));
+          if(!/^[1-9]$/.test(slot)){await client.query("ROLLBACK");tx=false;return sendJson(res,400,{error:"Hızlandırılacak bina seçilmedi."});}
+          const buildings=typeof row.buildings==="string"?JSON.parse(row.buildings):{...(row.buildings||{})};
+          const building=buildings[slot];
+          if(!building?.upgrade?.completesAt){await client.query("ROLLBACK");tx=false;return sendJson(res,409,{error:"Seçilen binada devam eden geliştirme yok."});}
+          const currentFinish=new Date(building.upgrade.completesAt);
+          if(!Number.isFinite(currentFinish.getTime())||currentFinish<=new Date()){await client.query("ROLLBACK");tx=false;return sendJson(res,409,{error:"Bu geliştirme zaten tamamlanmış."});}
+          const remaining=Math.max(0,currentFinish.getTime()-Date.now()-durations[code]*1000);
+          building.upgrade.completesAt=new Date(Date.now()+remaining).toISOString();
+          if(remaining===0){building.level=Number(building.upgrade.targetLevel)||Number(building.level)+1;building.upgrade=null;}
+          buildings[slot]=building;
+          inventory[code]=Number(inventory[code])-1;
+          await client.query("UPDATE umaykut_v2.player_game_state SET inventory=$2::jsonb,buildings=$3::jsonb,updated_at=NOW() WHERE player_id=$1",[session.id,JSON.stringify(inventory),JSON.stringify(buildings)]);
+          message=remaining===0?"Hızlandırma uygulandı; bina geliştirmesi tamamlandı.":"Hızlandırma uygulandı; bina süresi "+Math.ceil(remaining/60000)+" dakika kaldı.";
+        }else if(code==="village_protection_24h"){
+          const active=protectionExpiresAt&&new Date(protectionExpiresAt)>new Date();
+          if(active){await client.query("ROLLBACK");tx=false;return sendJson(res,409,{error:"Köy koruman zaten aktif."});}
+          protectionExpiresAt=new Date(Date.now()+24*60*60*1000).toISOString();
+          inventory[code]=Number(inventory[code])-1;
+          await client.query("UPDATE umaykut_v2.player_game_state SET inventory=$2::jsonb,protection_expires_at=$3,updated_at=NOW() WHERE player_id=$1",[session.id,JSON.stringify(inventory),protectionExpiresAt]);
+          message="Köy koruman 24 saat boyunca aktif. Bu süre içinde köyüne yeni saldırı gönderilemez.";
+        }else{
+          await client.query("ROLLBACK");tx=false;return sendJson(res,400,{error:"Geçersiz başlangıç eşyası."});
+        }
+        await client.query("COMMIT");tx=false;
+        return sendJson(res,200,{success:true,message,inventory,protectionExpiresAt,serverNow:new Date().toISOString()});
+      }catch(error){if(tx){try{await client.query("ROLLBACK");}catch{}}throw error;}
+      finally{client.release();}
     }
 
     if (url.pathname === "/api/game/state") {
