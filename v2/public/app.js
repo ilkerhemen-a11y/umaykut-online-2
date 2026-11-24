@@ -1255,7 +1255,7 @@ function renderInventory(){
   const detail=cooling?"Yenilenme: "+new Date(readyAt).toLocaleString("tr-TR"):protectionActive?"Koruma aktif · "+new Date(villageProtectionExpiresAt).toLocaleString("tr-TR")+" tarihine kadar":item.description;
   const card=inventoryCard(item.name,starterInventory[item.code]||0,item.icon,detail);
   const button=document.createElement("button");button.type="button";button.className="inventory-use-button";
-  button.textContent=protectionActive?"Koruma aktif":cooling?"24 saat sonra hazır":"Kullan";
+  button.textContent=protectionActive?"Koruma aktif":cooling?(item.code==="village_protection_24h"?"7 gün sonra hazır":"24 saat sonra hazır"):"Kullan";
   button.disabled=(starterInventory[item.code]||0)<1||cooling||Boolean(protectionActive);
   button.addEventListener("click",()=>useStarterItem(item,button));
   card.append(button);return card;
