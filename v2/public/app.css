@@ -524,3 +524,10 @@
 .ranking-more{margin:7px 0 0;text-align:center;color:#c9bea2;font:10px Arial,sans-serif}
 
 .ranking-method-note{margin:4px 0 14px;color:#cfc3a4;font:11px/1.5 Arial,sans-serif;text-align:center}
+
+
+/* Faction-specific troop portraits (Hun only; other factions keep their existing emblems). */
+.army-portrait-image{display:block;object-fit:cover;object-position:center;border-radius:50%;border:1px solid #b99a5b;background:#efe5cf}
+.army-strip-portrait{width:25px;height:25px;object-fit:cover;border-radius:50%;border:1px solid #a98a50}
+.army-unit-emblem.army-portrait-image{width:38px;height:38px;flex:0 0 38px}
+.army-detail-emblem.army-portrait-image{width:58px;height:58px;flex:0 0 58px;border-radius:13px}
