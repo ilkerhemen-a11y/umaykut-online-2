@@ -1069,6 +1069,21 @@ const armyMessageNode=document.querySelector("#army-message");
 let armyState=null;
 let armyRefreshTimer=null;
 function armyNumber(value){return new Intl.NumberFormat("tr-TR").format(Number(value)||0);}
+function armyUnitPortrait(unit,className){
+ const image=document.createElement("img");
+ if(unit.portrait){
+  image.className=className+" army-portrait-image";
+  image.src=unit.portrait;
+  image.alt=unit.name;
+  image.loading="lazy";
+  image.decoding="async";
+  return image;
+ }
+ const fallback=document.createElement("span");
+ fallback.className=className;
+ fallback.textContent=unit.icon||"⚔️";
+ return fallback;
+}
 function renderArmySummary(){
  if(!armyState)return;
  document.querySelector("#army-total-units").textContent=armyNumber(armyState.totalUnits);
@@ -1079,7 +1094,7 @@ function renderArmySummary(){
   strip.replaceChildren();
   armyState.catalog.forEach(unit=>{
    const card=document.createElement("button");card.type="button";card.className="army-strip-unit";card.dataset.openUnit=unit.id;
-   const icon=document.createElement("span"),count=document.createElement("b"),name=document.createElement("small");
+   const icon=armyUnitPortrait(unit,"army-strip-portrait"),count=document.createElement("b"),name=document.createElement("small");
    icon.textContent=unit.icon;count.textContent=armyNumber(armyState.troops[unit.id]||0);name.textContent=unit.name;
    card.append(icon,count,name);strip.append(card);
   });
@@ -1097,7 +1112,7 @@ function renderArmyCatalog(){
   const card=document.createElement("button");card.type="button";card.className="army-unit-card"+(unit.unlocked?"":" is-locked");
   card.dataset.selectUnit=unit.id;
   const head=document.createElement("span");head.className="army-unit-card-head";
-  const emblem=document.createElement("span");emblem.className="army-unit-emblem";emblem.textContent=unit.icon;
+  const emblem=armyUnitPortrait(unit,"army-unit-emblem");
   const title=document.createElement("span"),name=document.createElement("strong"),owned=document.createElement("small");
   name.textContent=unit.name;owned.textContent="Mevcut: "+armyNumber(armyState.troops[unit.id]||0);
   title.append(name,owned);head.append(emblem,title);
@@ -1115,7 +1130,7 @@ function renderArmyUnitDetail(unitId){
  const detail=document.querySelector("#army-unit-detail"),content=document.querySelector("#army-unit-detail-content");
  detail.hidden=false;content.replaceChildren();
  const heading=document.createElement("div");heading.className="army-detail-heading";
- const emblem=document.createElement("div");emblem.className="army-detail-emblem";emblem.textContent=unit.icon;
+ const emblem=armyUnitPortrait(unit,"army-detail-emblem");
  const title=document.createElement("div"),name=document.createElement("h3"),owned=document.createElement("p");
  name.textContent=unit.name;owned.textContent="Ordudaki mevcut sayın: "+armyNumber(armyState.troops[unit.id]||0);
  title.append(name,owned);heading.append(emblem,title);content.append(heading);
