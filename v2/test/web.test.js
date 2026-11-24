@@ -64,7 +64,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261124-marker-editor-1"/);
+  assert.match(html,/href="\/app\.css\?v=20261124-compact-army-detail-1"/);
   assert.ok(html.includes('src="/app.js?v=20261124-village-coordinates-1"'));
   assert.match(html,/id="production-dialog"/);
   assert.match(html,/id="production-open"/);
@@ -208,7 +208,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.doesNotMatch(appScript,/secondsPerUnit|Yetiştiriliyor ·/);
   assert.doesNotMatch(appScript,/Eğitim süresi/);
   assert.match(css,/\.army-units\{display:flex;gap:5px;overflow-x:auto/);
-  assert.match(html,/Ordu durumu/);
+  assert.doesNotMatch(html,/Ordu durumu/);
   assert.match(html,/id="army-unit-detail"/);
   assert.match(html,/id="army-unit-back"/);
   assert.match(appScript,/function renderArmyUnitDetail\(unitId\)/);
