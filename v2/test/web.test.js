@@ -64,8 +64,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261124-marker-editor-1"/);
-  assert.ok(html.includes('src="/app.js?v=20261124-village-coordinates-1"'));
+  assert.match(html,/href="\/app\.css\?v=20261124-compact-army-detail-1"/);
+  assert.ok(html.includes('src="/app.js?v=20261124-compact-army-detail-1"'));
   assert.match(html,/id="production-dialog"/);
   assert.match(html,/id="production-open"/);
   assert.match(html,/id="production-resource-grid"/);
@@ -204,11 +204,11 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/gameWall\?\.upgrade\?\[\{slot:"wall"/);
   assert.match(appScript,/renderUpgradeTracker\(\);wallMessage\.textContent="Sur yükseltmesi başladı/);
   assert.match(appScript,/asker anında orduna katıldı/);
-  assert.match(appScript,/Yetiştirdiğin askerler beklemeden doğrudan orduna katılır/);
+  assert.doesNotMatch(appScript,/Yetiştirdiğin askerler beklemeden doğrudan orduna katılır|function renderArmyQueue\(/);
   assert.doesNotMatch(appScript,/secondsPerUnit|Yetiştiriliyor ·/);
   assert.doesNotMatch(appScript,/Eğitim süresi/);
   assert.match(css,/\.army-units\{display:flex;gap:5px;overflow-x:auto/);
-  assert.match(html,/Ordu durumu/);
+  assert.doesNotMatch(html,/Ordu durumu/);
   assert.match(html,/id="army-unit-detail"/);
   assert.match(html,/id="army-unit-back"/);
   assert.match(appScript,/function renderArmyUnitDetail\(unitId\)/);
@@ -241,11 +241,6 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/umaykut-faction-v2/);
   assert.ok(appScript.includes('"/api/player/profile"'));
   assert.ok(appScript.includes('node.addEventListener("click",()=>{if(villageMarkerEditMode)return;openBuildingDialog(node.dataset.buildingSlot);})'));
-  assert.match(appScript,/umaykut-v2-local-building-marker-positions/);
-  assert.match(appScript,/function collectPositions\(\)/);
-  assert.match(html,/id="village-marker-edit"/);
-  assert.match(html,/id="village-marker-export"/);
-  assert.match(css,/\.city-frame\.is-marker-editing/);
   assert.ok(appScript.includes('function openBuildingDialog(slot)'));
   assert.match(appScript,/openFoundingDialog/);
   assert.match(appScript,/await loadGameState\(\)/);

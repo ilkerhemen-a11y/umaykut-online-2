@@ -1067,7 +1067,6 @@ wallAction.addEventListener("click",async()=>{
 const armyDialog=document.querySelector("#army-dialog");
 const armyCatalogNode=document.querySelector("#army-unit-catalog");
 let selectedArmyUnitId=null;
-const armyQueueNode=document.querySelector("#army-queue-list");
 const armyMessageNode=document.querySelector("#army-message");
 let armyState=null;
 let armyRefreshTimer=null;
@@ -1176,11 +1175,6 @@ function renderArmyUnitDetail(unitId){
  const button=document.createElement("button");button.type="button";button.textContent=unit.unlocked?(idleWorkers>0?"Bu askeri yetiştir":"Boşta işçi yok"):"Birlik kilitli";button.disabled=!unit.unlocked||idleWorkers<1;button.dataset.recruitUnit=unit.id;button.dataset.amountInput="army-selected-amount";
  controls.append(amount,button);content.append(controls);
 }
-function renderArmyQueue(){
- if(!armyState)return;
- armyQueueNode.replaceChildren();
- const p=document.createElement("p");p.textContent="Yetiştirdiğin askerler beklemeden doğrudan orduna katılır.";armyQueueNode.append(p);
-}
 async function loadArmyState(){
  if(!authToken)return;
  try{
@@ -1188,7 +1182,7 @@ async function loadArmyState(){
   currentArmyPopulation=Math.max(0,Number(armyState.totalUnits)||0);
   updateWorkerSummary();renderProductionDialog();
   if(armyState.resources){gameResources={...gameResources,...armyState.resources};renderResourceBalances();}
-  renderArmySummary();renderArmyCatalog();renderArmyQueue();
+  renderArmySummary();renderArmyCatalog();
  }catch(error){
   if(armyMessageNode)armyMessageNode.textContent=error.message||"Ordu bilgileri yüklenemedi.";
  }
@@ -1593,7 +1587,7 @@ document.querySelector("#army-unit-detail").addEventListener("click",async event
   const result=await authRequest("/api/game/army/recruit",{method:"POST",token:authToken,body:{unitId:button.dataset.recruitUnit,amount}});
   armyState=result;currentArmyPopulation=Math.max(0,Number(result.totalUnits)||0);updateWorkerSummary();renderProductionDialog();
   gameResources={...gameResources,...result.resources};renderResourceBalances();
-  renderArmySummary();renderArmyCatalog();renderArmyQueue();
+  renderArmySummary();renderArmyCatalog();
   if(selectedArmyUnitId)renderArmyUnitDetail(selectedArmyUnitId);
   armyMessageNode.textContent=amount+" asker anında orduna katıldı. "+armyNumber(result.idleWorkers)+" işçi boşta kaldı. Kaynaklar hesabından düşüldü.";
  }catch(error){armyMessageNode.textContent=error.message||"Asker yetiştirme başlatılamadı.";button.disabled=false;}

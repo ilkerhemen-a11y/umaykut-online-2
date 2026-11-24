@@ -648,3 +648,29 @@
 .army-detail-controls{display:grid;grid-template-columns:minmax(76px,104px) minmax(0,1fr);gap:10px;margin-top:12px}
 .army-detail-controls input,.army-detail-controls button{min-height:48px;padding:10px;font-size:14px}
 @media(max-width:380px){.army-dialog{width:96vw;padding:11px}.army-detail-emblem{width:112px;height:136px}.army-detail-stats>div{padding:8px}}
+
+
+/* Compact army detail layout: preserve current portrait size */
+.army-dialog{max-height:90dvh;padding:9px;overflow-y:auto}
+.army-dialog-head h2{font-size:16px;margin:3px 0 5px}
+.army-unit-detail{margin-top:5px;padding:7px}
+.army-unit-back{padding:4px 7px;font-size:9px;min-height:28px}
+.army-detail-heading{gap:8px;margin:6px 0 3px}
+.army-detail-emblem{width:40px;height:40px;flex:0 0 40px;font-size:24px}
+.army-detail-heading h3{font-size:14px;margin:0 0 2px}
+.army-detail-heading p{font-size:8px;line-height:1.2}
+.army-detail-description{font-size:8px;line-height:1.25;margin:3px 0 5px}
+.army-detail-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.army-detail-stats>div{padding:4px;gap:1px;min-height:0}
+.army-detail-stats strong{font-size:12px}
+.army-detail-stats small{font-size:7px;line-height:1.15}
+.army-unit-detail h4{font-size:9px;margin:5px 0 2px}
+.army-unit-cost,.army-unlock{font-size:8px;line-height:1.2;margin:2px 0}
+.army-detail-controls{margin-top:5px;gap:6px}
+.army-recruit-controls input,.army-recruit-controls button{min-height:32px;padding:5px;font-size:10px}
+@media(max-height:740px){
+ .army-dialog{max-height:92dvh;padding:7px}
+ .army-unit-detail{padding:6px}
+ .army-detail-stats>div{padding:3px}
+ .army-detail-controls{margin-top:4px}
+}
