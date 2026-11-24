@@ -773,3 +773,60 @@
   .bottom-nav button{min-height:50px;font-size:10px}
   .bottom-nav button span{font-size:22px}
 }
+
+
+/* Compact single-row mobile game navigation */
+.bottom-nav{
+  position:relative;
+  left:auto;
+  bottom:auto;
+  transform:none;
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  grid-template-rows:1fr;
+  gap:3px;
+  margin:0;
+  padding:5px 5px calc(5px + env(safe-area-inset-bottom));
+  border:0;
+  border-top:1px solid #80683b88;
+  border-radius:0;
+  background:linear-gradient(180deg,#17231bd9,#0b120ef2);
+  box-shadow:0 -3px 10px #0005;
+  backdrop-filter:blur(8px);
+}
+.bottom-nav button,
+.bottom-nav button:nth-child(5),
+.bottom-nav button:nth-child(6),
+.bottom-nav button:nth-child(7){
+  grid-column:auto;
+  min-width:0;
+  min-height:39px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+  padding:3px 0;
+  border:1px solid #78643c66;
+  border-radius:7px;
+  background:#17231d;
+  color:#cfc5a7;
+  font:600 clamp(6px,1.9vw,8px)/1.1 Arial,sans-serif;
+  letter-spacing:0;
+  white-space:nowrap;
+  box-shadow:none;
+}
+.bottom-nav button span{font-size:16px;line-height:1}
+.bottom-nav button.active{
+  border-color:#c6a65b;
+  background:linear-gradient(145deg,#584522,#302617);
+  color:#f5dfa0;
+  box-shadow:inset 0 0 0 1px #e5c87522;
+}
+.bottom-nav button:active{transform:scale(.97)}
+@media(min-width:600px){
+  .bottom-nav{gap:5px;padding:6px 8px}
+  .bottom-nav button{min-height:42px;font-size:9px}
+  .bottom-nav button span{font-size:18px}
+}
