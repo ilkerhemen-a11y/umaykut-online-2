@@ -10,8 +10,8 @@ test("hourly worker production uses the approved base rates", () => {
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T01:00:00.000Z")
   });
-  assert.deepEqual(result.productionPerHour, { gold: 10, wood: 30, food: 24, stone: 24, iron: 24 });
-  assert.deepEqual(result.productionApplied, { gold: 10, wood: 30, food: 24, stone: 24, iron: 24 });
+  assert.deepEqual(result.productionPerHour, { gold: 10, wood: 30, food: 24, stone: 24, iron: 24, horses: 111 });
+  assert.deepEqual(result.productionApplied, { gold: 10, wood: 30, food: 24, stone: 24, iron: 24, horses: 111 });
 });
 
 test("owned resource nodes add their yield bonus to assigned mine workers", () => {
