@@ -63,7 +63,7 @@ export function getTroopCatalog(factionId, buildings = {}) {
     const blacksmithLevel = Math.max(1, Math.min(10, Number(blacksmithState?.level) || 1));
     const blacksmithMultiplier = 1 + (blacksmithLevel - 1) * 0.02;
     const attack = Math.round(unit.attack * (faction === "gokturk" && id.includes("archer") ? 1.10 : 1) * blacksmithMultiplier);
-    const infantryDefense = Math.round(unit.infantryDefense * (faction === "seljuk" ? 1.10 : 1) * blacksmithMultiplier);
+    const infantryDefense = Math.round(unit.infantryDefense * blacksmithMultiplier);
     const speed = Math.round(unit.speed);
     return {
       id, name: unit.name, icon: unit.icon, attackDisplay: unit.attackDisplay || null, building: requiredBuilding,
