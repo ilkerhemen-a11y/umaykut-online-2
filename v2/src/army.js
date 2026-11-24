@@ -33,8 +33,8 @@ const FACTION_UNITS = {
     archer: { name: "Kemankeş", icon: "🏹", attack: 60, attackDisplay: "30 × 2", infantryDefense: 80, cavalryDefense: 35, speed: 16 },
     shield: { name: "Tarık", icon: "🔱", attack: 20, infantryDefense: 25, cavalryDefense: 90, speed: 14 },
     guard: { name: "Barlas", icon: "⚔️", attack: 120, attackDisplay: "120–130", infantryDefense: 60, cavalryDefense: 90, speed: 24 },
-    light_cavalry: { name: "Talakan", icon: "🐎", attack: 95, infantryDefense: 85, cavalryDefense: 60, speed: 50 },
-    mounted_archer: { name: "Tunga", icon: "🐴", attack: 65, infantryDefense: 50, cavalryDefense: 110, speed: 32 },
+    light_cavalry: { name: "Tunga", icon: "🐴", attack: 65, infantryDefense: 50, cavalryDefense: 110, speed: 32 },
+    mounted_archer: { name: "Talakan", icon: "🐎", attack: 95, infantryDefense: 85, cavalryDefense: 60, speed: 50 },
     heavy_cavalry: { name: "Tarkan", icon: "🐴", attack: 150, infantryDefense: 110, cavalryDefense: 80, speed: 40 }
   },
   seljuk: {
