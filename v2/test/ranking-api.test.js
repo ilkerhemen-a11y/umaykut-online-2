@@ -58,7 +58,7 @@ test("authenticated leaderboard returns one overall score and sorted category de
   assert.equal(data.rankings[0].economy, 100);
   assert.equal(data.rankings[0].overall, 100);
   assert.equal(data.rankings[1].buildingDevelopment, 2);
-  assert.equal(data.rankings[1].armyRawStrength, 729.5, "army ranking must include deployed, garrisoned and scouting units");
+  assert.equal(data.rankings[1].armyRawStrength, 930, "army ranking must include deployed, garrisoned and scouting units using current troop values");
   assert.equal(data.scoring.weights.economy, 25);
   assert.equal(data.scoring.scales.armyStrength.fullScoreAt, 10000);
   assert.equal(data.scoring.scales.territorialControl.fullScoreAtOwnedRegions, 24);
