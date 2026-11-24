@@ -1087,7 +1087,7 @@ function renderArmySummary(){
   armyState.catalog.forEach(unit=>{
    const card=document.createElement("button");card.type="button";card.className="army-strip-unit";card.dataset.openUnit=unit.id;
    const icon=document.createElement("span"),count=document.createElement("b"),name=document.createElement("small");
-   icon.textContent=unit.icon;count.textContent=armyNumber(armyState.troops[unit.id]||0);name.textContent=unit.name;
+   applyTroopPortrait(icon,unit.id);count.textContent=armyNumber(armyState.troops[unit.id]||0);name.textContent=unit.name;
    card.append(icon,count,name);strip.append(card);
   });
  }
