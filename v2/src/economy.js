@@ -35,6 +35,8 @@ export function settleEconomy({
   const centerLevel = Math.max(1, Math.min(10, Number(buildings["1"]?.level) || 1));
   const templeLevel = Math.max(1, Math.min(10, Number(buildings["7"]?.level) || 1));
   const lumberyardLevel = Math.max(1, Math.min(10, Number(buildings["6"]?.level) || 1));
+  const stableLevel = Math.max(1, Math.min(10, Number(buildings["3"]?.level) || 1));
+  const horseProductionPerHour = Math.round(Math.min(9, stableLevel) * 1000 / 9);
   const lumberyardMultiplier = 1 + (lumberyardLevel - 1) * 0.05;
   const storageCapacity = Math.max(15000, Math.floor(Number(storedStorageCapacity) || 15000));
   const previousTick = lastResourceTick ? new Date(lastResourceTick).getTime() : now;
@@ -48,6 +50,7 @@ export function settleEconomy({
   const settledWorkerPool = Math.max(0, Math.floor(Number(workerPool) || 0)) + newWorkers;
   const lastTick = now;
   const productionPerHour = Object.fromEntries(RESOURCE_KEYS.map(key => [key, 0]));
+  productionPerHour.horses = horseProductionPerHour;
   const nodeById = new Map(resourceNodes.map(node => [String(node.id), node]));
 
   for (const [workerKey, rawCount] of Object.entries(assignments)) {
@@ -114,6 +117,13 @@ export function settleEconomy({
     productionPerHour[key] = Number((productionPerHour[key] * centerMultiplier).toFixed(2));
   }
 
+  const exactHorses = horseProductionPerHour * elapsedHours + Math.max(0, Number(remainders.horses) || 0);
+  const wholeHorses = Math.floor(exactHorses);
+  remainders.horses = Number((exactHorses - wholeHorses).toFixed(8));
+  const horsesBefore = Math.max(0, Number(resources.horses) || 0);
+  resources.horses = Math.min(storageCapacity, horsesBefore + wholeHorses);
+  productionApplied.horses = resources.horses - horsesBefore;
+
   return {
     resources,
     remainders,
@@ -125,6 +135,8 @@ export function settleEconomy({
     productionApplied,
     storageCapacity,
     lumberyardBonusPercent: (lumberyardLevel - 1) * 5,
+    stableLevel,
+    horseProductionPerHour,
     lastResourceTick: new Date(lastTick).toISOString()
   };
 }
