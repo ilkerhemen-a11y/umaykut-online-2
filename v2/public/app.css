@@ -620,3 +620,12 @@
 .game-shell[data-faction="gokturk"] .troop-portrait-sprite{filter:saturate(1.12) hue-rotate(0deg);}
 .game-shell[data-faction="hun"] .troop-portrait-sprite{filter:sepia(.34) saturate(1.55) hue-rotate(315deg) contrast(1.04);}
 .game-shell[data-faction="seljuk"] .troop-portrait-sprite{filter:sepia(.2) saturate(1.25) hue-rotate(8deg) brightness(1.06);}
+
+/* Mobilde Pazar ve diğer bina yükseltme pencereleri ekran dışına taşmasın */
+.building-dialog{
+  box-sizing:border-box;
+  max-height:min(86dvh,760px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
