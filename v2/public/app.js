@@ -1382,17 +1382,20 @@ function renderBattleReports(attacks){
   scout:["Casus","🕵️"],infantry:["Piyade","🗡️"],archer:["Okçu","🏹"],shield:["Kalkanlı","🛡️"],
   guard:["Muhafız","⚔️"],light_cavalry:["Hafif Süvari","🐎"],mounted_archer:["Atlı Okçu","🎯"],heavy_cavalry:["Ağır Süvari","🐴"]
  };
+ const hunReportNames={infantry:"Toygun",archer:"Kemankeş",shield:"Tarık",guard:"Barlas",mounted_archer:"Tunga",light_cavalry:"Talakan",heavy_cavalry:"Tarkan"};
+ const reportFactionId=(side,report,raid)=>report[side+"FactionId"]||(side==="attacker"?(raid.direction==="outgoing"?activeFactionId():null):(raid.direction==="incoming"?activeFactionId():null));
  const number=value=>reportNumber(Number(value||0));
  const makeUnits=(side,report,raid)=>{
+  const factionId=reportFactionId(side,report,raid);
   if(Array.isArray(report[side+"Units"]))return report[side+"Units"];
   const losses=report[side+"Losses"]||{},survivors=report[side+"Survivors"]||{};
   const original=side==="attacker"?(raid.troops||{}):{};
   const ids=new Set([...Object.keys(losses),...Object.keys(survivors),...Object.keys(original)]);
-  return [...ids].map(id=>({id,name:unitMeta[id]?.[0]||id,icon:unitMeta[id]?.[1]||"⚔️",
+  return [...ids].map(id=>({id,name:(factionId==="hun"?hunReportNames[id]:null)||unitMeta[id]?.[0]||id,icon:unitMeta[id]?.[1]||"⚔️",
    sent:Number(original[id]??(Number(losses[id]||0)+Number(survivors[id]||0))),
    lost:Number(losses[id]||0),survivors:Number(survivors[id]||0)})).filter(unit=>unit.sent>0);
  };
- const appendSide=(card,{label,name,power,units,tone})=>{
+ const appendSide=(card,{label,name,power,units,tone,factionId})=>{
   const panel=document.createElement("section");panel.className="battle-report-side "+tone;
   const top=document.createElement("div");top.className="battle-report-side-head";
   const sideName=document.createElement("strong");sideName.textContent=label+"  ";
@@ -1405,7 +1408,7 @@ function renderBattleReports(attacks){
   if(!units.length){const empty=document.createElement("small");empty.className="battle-report-empty";empty.textContent="Bu tarafta asker bulunmuyordu.";grid.append(empty);}
   units.forEach(unit=>{
    const tile=document.createElement("div");tile.className="battle-report-unit";
-   const portrait=document.createElement("div");portrait.className="battle-report-unit-portrait";applyTroopPortrait(portrait,unit.id);
+   const portrait=document.createElement("div");portrait.className="battle-report-unit-portrait";applyTroopPortrait(portrait,unit.id,factionId||activeFactionId());
    const unitName=document.createElement("strong");unitName.textContent=unit.name||unitMeta[unit.id]?.[0]||unit.id;
    const sent=document.createElement("small");sent.textContent="Gönderilen "+number(unit.sent);
    const lost=document.createElement("small");lost.className="battle-report-unit-lost";lost.textContent="Ölen "+number(unit.lost);
@@ -1426,8 +1429,8 @@ function renderBattleReports(attacks){
   heading.append(title,outcome);card.append(heading);
   const date=document.createElement("small");date.className="battle-report-date";
   date.textContent=new Date(report.resolvedAt||raid.arrives_at).toLocaleString("tr-TR");card.append(date);
-  appendSide(card,{label:"SALDIRAN",name:raid.attacker_village||report.attackerVillage,power:report.attackerPower,units:makeUnits("attacker",report,raid),tone:"attacker"});
-  appendSide(card,{label:"SAVUNAN",name:raid.defender_village||report.defenderVillage,power:report.defenderPower,units:makeUnits("defender",report,raid),tone:"defender"});
+  appendSide(card,{label:"SALDIRAN",name:raid.attacker_village||report.attackerVillage,power:report.attackerPower,units:makeUnits("attacker",report,raid),tone:"attacker",factionId:reportFactionId("attacker",report,raid)});
+  appendSide(card,{label:"SAVUNAN",name:raid.defender_village||report.defenderVillage,power:report.defenderPower,units:makeUnits("defender",report,raid),tone:"defender",factionId:reportFactionId("defender",report,raid)});
   if(report.outcomeText){const detail=document.createElement("p");detail.className="battle-report-result-text";detail.textContent=report.outcomeText;card.append(detail);}
   if(raid.direction==="outgoing"&&raid.loot){
    const loot=Object.entries(raid.loot).filter(([,count])=>Number(count)>0);

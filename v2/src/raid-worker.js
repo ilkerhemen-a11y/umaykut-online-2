@@ -80,6 +80,8 @@ async function resolveRaid(pool, raidId) {
       resolvedAt: new Date().toISOString(),
       attackerVillage: raid.attacker_village,
       defenderVillage: raid.defender_village,
+      attackerFactionId: attacker.faction_id,
+      defenderFactionId: defender.faction_id,
       winner: outcome.winner,
       resultCode: outcome.resultCode,
       outcomeText: outcome.outcomeText,
