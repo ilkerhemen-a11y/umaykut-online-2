@@ -657,8 +657,8 @@ function formatNumber(value){return new Intl.NumberFormat("tr-TR").format(value)
 function totalAssigned(){return Object.values(assigned).reduce((sum,value)=>sum+value,0);}
 function updateWorkerSummary(){
  availableWorkers=Math.max(0,currentWorkerPool-totalAssigned()-currentArmyPopulation);
- availableLabel.textContent=formatNumber(availableWorkers);
- assignedTotalLabel.textContent=formatNumber(totalAssigned())+" görevde";
+ if(availableLabel)availableLabel.textContent=formatNumber(availableWorkers);
+ if(assignedTotalLabel)assignedTotalLabel.textContent=formatNumber(totalAssigned())+" görevde";
  updateWorkerActions();
 }
 function selectedMineAssigned(){
