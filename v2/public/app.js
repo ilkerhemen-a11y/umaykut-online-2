@@ -525,7 +525,6 @@ function openSettings(){
  if(!settingsDialog.open)settingsDialog.showModal();
 }
 document.querySelector("#open-settings").addEventListener("click",openSettings);
-document.querySelector('[data-action="settings"]').addEventListener("click",openSettings);
 document.querySelector("#close-settings").addEventListener("click",()=>settingsDialog.close());
 reducedMotionToggle.addEventListener("change",saveSettings);
 compactResourcesToggle.addEventListener("change",saveSettings);
