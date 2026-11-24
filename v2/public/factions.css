@@ -153,7 +153,7 @@
 .building-dialog .primary-action:disabled{opacity:.45;filter:saturate(.5)}
 
 /* Keep the marker visually compact while giving mobile taps a larger hit area. */
-.building-number{position:relative}
+.building-number{position:absolute}
 .building-number::before{content:"";position:absolute;inset:-8px;border-radius:50%}
 
 /* Faction palette is applied only after the player confirms a state. */
