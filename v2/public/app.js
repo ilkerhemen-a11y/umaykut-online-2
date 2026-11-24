@@ -1069,12 +1069,20 @@ const armyQueueNode=document.querySelector("#army-queue-list");
 const armyMessageNode=document.querySelector("#army-message");
 let armyState=null;
 let armyRefreshTimer=null;
-const troopPortraitPositions={scout:"0% 0%",infantry:"33.333% 0%",archer:"66.667% 0%",shield:"100% 0%",guard:"0% 100%",light_cavalry:"33.333% 100%",mounted_archer:"66.667% 100%",heavy_cavalry:"100% 100%"};
-function applyTroopPortrait(node,unitId){
+const FACTION_UNIT_NAMES={
+ gokturk:{infantry:"Türk Savaşçısı",archer:"Börü Okçusu",shield:"Tigin Kalkanlısı",guard:"Börü Muhafızı",light_cavalry:"Türk Akıncısı",mounted_archer:"Börü Atlı Okçusu",heavy_cavalry:"Tigin Süvarisi"},
+ hun:{infantry:"Hun Savaşçısı",archer:"Hun Yaycısı",shield:"Hun Kalkanlısı",guard:"Hun Seçkin Akıncısı",light_cavalry:"Hun Akıncısı",mounted_archer:"Hun Atlı Okçusu",heavy_cavalry:"Hun Ağır Süvarisi"},
+ seljuk:{infantry:"Selçuklu Gulamı",archer:"Selçuklu Okçusu",shield:"Zırhlı Gulam",guard:"Gulam Muhafızı",light_cavalry:"Hafif Sipahi",mounted_archer:"Selçuklu Atlı Okçusu",heavy_cavalry:"Ağır Sipahi"}
+};
+function activeFactionId(){return ["gokturk","hun","seljuk"].includes(shell.dataset.faction)?shell.dataset.faction:"gokturk";}
+function armyUnitDisplayName(unit){return FACTION_UNIT_NAMES[activeFactionId()]?.[unit.id]||unit.name;}
+function applyTroopPortrait(node,unitId,factionId=activeFactionId()){
+ const faction=["gokturk","hun","seljuk"].includes(factionId)?factionId:"gokturk";
  node.classList.add("troop-portrait-sprite");
- node.style.backgroundPosition=troopPortraitPositions[unitId]||"0% 0%";
+ node.style.setProperty("--unit-portrait",`url("/assets/factions/${faction}-warrior.webp")`);
+ node.style.backgroundPosition="center 22%";
  node.setAttribute("role","img");
- node.setAttribute("aria-label",unitId+" asker portresi");
+ node.setAttribute("aria-label",faction+" "+(unitId||"")+" asker portresi");
 }
 function armyNumber(value){return new Intl.NumberFormat("tr-TR").format(Number(value)||0);}
 function renderArmySummary(){
@@ -1088,7 +1096,7 @@ function renderArmySummary(){
   armyState.catalog.forEach(unit=>{
    const card=document.createElement("button");card.type="button";card.className="army-strip-unit";card.dataset.openUnit=unit.id;
    const icon=document.createElement("span"),count=document.createElement("b"),name=document.createElement("small");
-   applyTroopPortrait(icon,unit.id);count.textContent=armyNumber(armyState.troops[unit.id]||0);name.textContent=unit.name;
+   applyTroopPortrait(icon,unit.id);count.textContent=armyNumber(armyState.troops[unit.id]||0);name.textContent=armyUnitDisplayName(unit);
    card.append(icon,count,name);strip.append(card);
   });
  }
@@ -1107,7 +1115,7 @@ function renderArmyCatalog(){
   const head=document.createElement("span");head.className="army-unit-card-head";
   const emblem=document.createElement("span");emblem.className="army-unit-emblem";applyTroopPortrait(emblem,unit.id);
   const title=document.createElement("span"),name=document.createElement("strong"),owned=document.createElement("small");
-  name.textContent=unit.name;owned.textContent="Mevcut: "+armyNumber(armyState.troops[unit.id]||0);
+  name.textContent=armyUnitDisplayName(unit);owned.textContent="Mevcut: "+armyNumber(armyState.troops[unit.id]||0);
   title.append(name,owned);head.append(emblem,title);
   const meta=document.createElement("span");meta.className="army-unit-card-meta";
   meta.textContent=unit.unlocked?"Özellikleri görüntüle · Yetiştir":"Kilitli · Gerekli bina seviyesini gör";
@@ -1125,7 +1133,7 @@ function renderArmyUnitDetail(unitId){
  const heading=document.createElement("div");heading.className="army-detail-heading";
  const emblem=document.createElement("div");emblem.className="army-detail-emblem";applyTroopPortrait(emblem,unit.id);
  const title=document.createElement("div"),name=document.createElement("h3"),owned=document.createElement("p");
- name.textContent=unit.name;owned.textContent="Ordudaki mevcut sayın: "+armyNumber(armyState.troops[unit.id]||0);
+ name.textContent=armyUnitDisplayName(unit);owned.textContent="Ordudaki mevcut sayın: "+armyNumber(armyState.troops[unit.id]||0);
  title.append(name,owned);heading.append(emblem,title);content.append(heading);
  const description=document.createElement("p");description.className="army-detail-description";
  description.textContent=unit.building==="barracks"?"Kışlada yetiştirilen kara birliği.":"Ahırda yetiştirilen atlı birlik.";
@@ -1145,7 +1153,7 @@ function renderArmyUnitDetail(unitId){
  const controls=document.createElement("div");controls.className="army-recruit-controls army-detail-controls";
  const idleWorkers=Math.max(0,Number(armyState.idleWorkers)||0);
  const workerLimit=document.createElement("p");workerLimit.className="army-unlock";workerLimit.textContent="Boşta işçi: "+armyNumber(idleWorkers)+" · En fazla bu kadar asker yetiştirebilirsin.";content.append(workerLimit);
- const amount=document.createElement("input");amount.type="number";amount.min="1";amount.max=String(idleWorkers);amount.value=idleWorkers>0?"1":"0";amount.inputMode="numeric";amount.id="army-selected-amount";amount.setAttribute("aria-label",unit.name+" yetiştirilecek asker sayısı");
+ const amount=document.createElement("input");amount.type="number";amount.min="1";amount.max=String(idleWorkers);amount.value=idleWorkers>0?"1":"0";amount.inputMode="numeric";amount.id="army-selected-amount";amount.setAttribute("aria-label",armyUnitDisplayName(unit)+" yetiştirilecek asker sayısı");
  const button=document.createElement("button");button.type="button";button.textContent=unit.unlocked?(idleWorkers>0?"Bu askeri yetiştir":"Boşta işçi yok"):"Birlik kilitli";button.disabled=!unit.unlocked||idleWorkers<1;button.dataset.recruitUnit=unit.id;button.dataset.amountInput="army-selected-amount";
  controls.append(amount,button);content.append(controls);
 }
@@ -1195,7 +1203,7 @@ function renderInventory(){
  inventoryContent.replaceChildren();
  const resources=INVENTORY_RESOURCE_META.map(([key,label,icon])=>inventoryCard(label,gameResources[key]||0,icon,key==="horses"?"Ordu ve sefer kaynağı":"Depodaki miktar"));
  inventoryContent.append(inventorySection("🧺 Kaynaklar",resources,"Henüz kaynak bulunmuyor."));
- const troopItems=armyState?.catalog?.map(unit=>inventoryCard(unit.name,armyState.troops?.[unit.id]||0,unit.icon,unit.unlocked?"Orduda hazır":"Kilitli birlik"))||[];
+ const troopItems=armyState?.catalog?.map(unit=>inventoryCard(armyUnitDisplayName(unit),armyState.troops?.[unit.id]||0,unit.icon,unit.unlocked?"Orduda hazır":"Kilitli birlik"))||[];
  inventoryContent.append(inventorySection("⚔️ Askerler",troopItems,"Ordu bilgisi yüklenemedi."));
  const lootNote=document.createElement("p");lootNote.className="inventory-note";
  lootNote.textContent="Savaşlardan kazanılan ganimetler, köy kaynaklarına eklendiğinde Kaynaklar bölümünde görünür. Ayrı ganimet geçmişi henüz etkin değil.";
@@ -1683,8 +1691,8 @@ function fillNeutralTroopChoices(){
  armyState.catalog.forEach(unit=>{
   const owned=Number(armyState.troops?.[unit.id]||0);if(owned<=0)return;
   const label=document.createElement("label");label.className="attack-unit-row";
-  const name=document.createElement("span");name.textContent=unit.icon+" "+unit.name+" · Mevcut "+armyNumber(owned);
-  const input=document.createElement("input");input.type="number";input.min="0";input.max=String(owned);input.value="0";input.dataset.neutralUnit=unit.id;input.setAttribute("aria-label",unit.name+" gönderilecek sayısı");
+  const name=document.createElement("span");name.textContent=unit.icon+" "+armyUnitDisplayName(unit)+" · Mevcut "+armyNumber(owned);
+  const input=document.createElement("input");input.type="number";input.min="0";input.max=String(owned);input.value="0";input.dataset.neutralUnit=unit.id;input.setAttribute("aria-label",armyUnitDisplayName(unit)+" gönderilecek sayısı");
   label.append(name,input);neutralRegionUnitList.append(label);
  });
 }
@@ -2053,8 +2061,8 @@ function openAttackDialog(target){
  armyState.catalog.forEach(unit=>{
   const owned=Number(armyState.troops[unit.id]||0);if(owned<=0)return;
   const label=document.createElement("label");label.className="attack-unit-row";
-  const name=document.createElement("span");name.textContent=unit.icon+" "+unit.name+" · Mevcut "+armyNumber(owned);
-  const input=document.createElement("input");input.type="number";input.min="0";input.max=String(owned);input.value="0";input.dataset.attackUnit=unit.id;input.setAttribute("aria-label",unit.name+" gönderilecek sayısı");
+  const name=document.createElement("span");name.textContent=unit.icon+" "+armyUnitDisplayName(unit)+" · Mevcut "+armyNumber(owned);
+  const input=document.createElement("input");input.type="number";input.min="0";input.max=String(owned);input.value="0";input.dataset.attackUnit=unit.id;input.setAttribute("aria-label",armyUnitDisplayName(unit)+" gönderilecek sayısı");
   label.append(name,input);attackUnitList.append(label);
  });
  if(!attackUnitList.children.length){attackMessage.textContent="Gönderilecek hazır asker bulunmuyor. Önce asker yetiştir.";return;}
