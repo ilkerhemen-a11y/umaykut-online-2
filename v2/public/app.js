@@ -90,6 +90,7 @@ const villageZoomOut=document.querySelector("#village-zoom-out");
 const villageZoomReset=document.querySelector("#village-zoom-reset");
 const villageZoomLabel=document.querySelector("#village-zoom-label");
 let villageZoom=1,villagePanX=0,villagePanY=0;
+let villageMarkerEditMode=false;
 const villagePointers=new Map();
 let villagePinchStart=null,villageDragStart=null;
 function renderVillageCamera(){
@@ -176,6 +177,114 @@ if(villageFrame&&villageStage){
  villageZoomOut?.addEventListener("click",()=>setVillageZoom(villageZoom-0.15));
  villageZoomReset?.addEventListener("click",()=>{villageZoom=1;villagePanX=0;villagePanY=0;renderVillageCamera();});
 }
+
+// Köy işaretlerini oyuncunun kendi cihazında sürükleyerek konumlandırma aracı.
+(()=>{
+ const editButton=document.querySelector("#village-marker-edit");
+ const exportButton=document.querySelector("#village-marker-export");
+ const hint=document.querySelector("#village-marker-edit-hint");
+ const output=document.querySelector("#village-marker-export-result");
+ const frame=document.querySelector(".city-frame");
+ const image=document.querySelector(".city-art");
+ if(!editButton||!frame||!image)return;
+ const storageKey="umaykut-v2-local-building-marker-positions";
+ const markerSelector='[data-building-slot],#wall-position-marker';
+ const markers=Array.from(document.querySelectorAll(markerSelector));
+ const defaults=new Map(markers.map(node=>[node,node.getAttribute("style")||""]));
+ let activeDrag=null,suppressClick=false;
+ function readPositions(){
+  try{
+   const saved=JSON.parse(localStorage.getItem(storageKey)||"{}");
+   markers.forEach(node=>{
+    const key=node.id==="wall-position-marker"?"wall":String(node.dataset.buildingSlot);
+    const point=saved[key];
+    if(point&&Number.isFinite(point.left)&&Number.isFinite(point.top)){
+     node.style.left=point.left+"%";node.style.top=point.top+"%";
+    }
+   });
+  }catch{}
+ }
+ function collectPositions(){
+  return markers.map(node=>{
+   const key=node.id==="wall-position-marker"?"wall":String(node.dataset.buildingSlot);
+   const rect=image.getBoundingClientRect(),markerRect=node.getBoundingClientRect();
+   const left=rect.width?+(100*((markerRect.left+markerRect.width/2-rect.left)/rect.width)).toFixed(2):0;
+   const top=rect.height?+(100*((markerRect.top+markerRect.height/2-rect.top)/rect.height)).toFixed(2):0;
+   const label=node.querySelector(".building-label")?.textContent||node.getAttribute("aria-label")||"Sur / Sığınak";
+   return {key,label,left,top};
+  });
+ }
+ function savePositions(){
+  const data={};
+  markers.forEach(node=>{
+   const key=node.id==="wall-position-marker"?"wall":String(node.dataset.buildingSlot);
+   data[key]={left:parseFloat(node.style.left)||0,top:parseFloat(node.style.top)||0};
+  });
+  try{localStorage.setItem(storageKey,JSON.stringify(data));}catch{}
+ }
+ function setEditMode(active){
+  villageMarkerEditMode=active;
+  frame.classList.toggle("is-marker-editing",active);
+  editButton.setAttribute("aria-pressed",String(active));
+  editButton.classList.toggle("is-active",active);
+  editButton.textContent=active?"Düzenlemeyi Bitir":"Konumları Düzenle";
+  hint.hidden=!active;
+  exportButton.hidden=!active;
+  if(!active&&output)output.hidden=true;
+ }
+ function onPointerDown(event){
+  if(!villageMarkerEditMode)return;
+  if(event.pointerType==="mouse"&&event.button!==0)return;
+  const node=event.currentTarget;
+  event.preventDefault();event.stopPropagation();
+  activeDrag={node,pointerId:event.pointerId};
+  suppressClick=true;
+  try{node.setPointerCapture(event.pointerId);}catch{}
+ }
+ function onPointerMove(event){
+  if(!activeDrag||activeDrag.pointerId!==event.pointerId)return;
+  const rect=image.getBoundingClientRect();
+  if(!rect.width||!rect.height)return;
+  const left=Math.max(0,Math.min(100,100*(event.clientX-rect.left)/rect.width));
+  const top=Math.max(0,Math.min(100,100*(event.clientY-rect.top)/rect.height));
+  activeDrag.node.style.left=left.toFixed(2)+"%";
+  activeDrag.node.style.top=top.toFixed(2)+"%";
+  event.preventDefault();event.stopPropagation();
+ }
+ function onPointerUp(event){
+  if(!activeDrag||activeDrag.pointerId!==event.pointerId)return;
+  const node=activeDrag.node;
+  try{node.releasePointerCapture(event.pointerId);}catch{}
+  activeDrag=null;
+  savePositions();
+  window.setTimeout(()=>{suppressClick=false;},80);
+  event.preventDefault();event.stopPropagation();
+ }
+ markers.forEach(node=>{
+  node.addEventListener("pointerdown",onPointerDown);
+  node.addEventListener("pointermove",onPointerMove);
+  node.addEventListener("pointerup",onPointerUp);
+  node.addEventListener("pointercancel",onPointerUp);
+ });
+ editButton.addEventListener("click",()=>{
+  if(!villageMarkerEditMode){setEditMode(true);return;}
+  savePositions();setEditMode(false);
+ });
+ exportButton.addEventListener("click",async()=>{
+  const rows=collectPositions();
+  const text=rows.map(row=>row.label+": left "+row.left+"%, top "+row.top+"%").join("\\n");
+  if(output){output.textContent=text;output.hidden=false;}
+  try{
+   await navigator.clipboard.writeText(text);
+   exportButton.textContent="Kopyalandı ✓";
+  }catch{
+   exportButton.textContent="Koordinatlar aşağıda";
+  }
+ });
+ readPositions();
+ window.addEventListener("beforeunload",savePositions);
+})();
+ 
 function fitVillageImage(){
  if(!villageFrame||!villageStage||!villageImage||!villageImage.naturalWidth||!villageImage.naturalHeight)return;
  const frameWidth=villageFrame.clientWidth;
@@ -432,7 +541,7 @@ function openBuildingDialog(slot){
  else buildingDialog.setAttribute("open","");
 }
 document.querySelectorAll("[data-building-slot]").forEach(node=>{
- node.addEventListener("click",()=>openBuildingDialog(node.dataset.buildingSlot));
+ node.addEventListener("click",()=>{if(villageMarkerEditMode)return;openBuildingDialog(node.dataset.buildingSlot);});
 });
 buildingClose.addEventListener("click",()=>buildingDialog.close());
 setInterval(()=>{updateUpgradeTracking();renderBuildingUpgradeProgress();updateWallUpgradeCountdown();},1000);
