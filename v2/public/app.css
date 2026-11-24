@@ -531,3 +531,6 @@
 .army-strip-portrait{width:25px;height:25px;object-fit:cover;border-radius:50%;border:1px solid #a98a50}
 .army-unit-emblem.army-portrait-image{width:38px;height:38px;flex:0 0 38px}
 .army-detail-emblem.army-portrait-image{width:58px;height:58px;flex:0 0 58px;border-radius:13px}
+
+.attack-unit-name{display:flex;align-items:center;gap:8px;min-width:0}
+.attack-unit-portrait{width:34px;height:34px;flex:0 0 34px}
