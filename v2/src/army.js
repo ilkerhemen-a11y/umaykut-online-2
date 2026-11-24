@@ -16,7 +16,7 @@ const UNIT_BASE = {
 const FACTIONS = {
   gokturk: { name: "Göktürk", bonuses: { archerAttack: 1.10, cavalrySpeed: 1, infantryDefense: 1 } },
   hun: { name: "Hun", bonuses: { archerAttack: 1, cavalrySpeed: 1.15, infantryDefense: 1 } },
-  seljuk: { name: "Selçuklu", bonuses: { archerAttack: 1, cavalrySpeed: 1, infantryDefense: 1.10 } }
+  seljuk: { name: "Selçuklu", bonuses: { archerAttack: 1, cavalrySpeed: 1, infantryDefense: 1 } }
 };
 const FACTION_UNITS = {
   gokturk: {
@@ -38,13 +38,14 @@ const FACTION_UNITS = {
     heavy_cavalry: { name: "Tarkan", icon: "🐴", attack: 150, infantryDefense: 110, cavalryDefense: 80, speed: 40 }
   },
   seljuk: {
-    infantry: { name: "Selçuklu Gulamı", icon: "🗡️", attack: 29, infantryDefense: 27 },
-    archer: { name: "Selçuklu Okçusu", icon: "🏹", attack: 33 },
-    shield: { name: "Zırhlı Gulam", icon: "🛡️", infantryDefense: 48, cavalryDefense: 39 },
-    guard: { name: "Gulam Muhafızı", icon: "⚔️", attack: 60, infantryDefense: 52 },
-    light_cavalry: { name: "Hafif Sipahi", icon: "🐎", speed: 13, cavalryDefense: 25 },
-    mounted_archer: { name: "Selçuklu Atlı Okçusu", icon: "🎯", attack: 46 },
-    heavy_cavalry: { name: "Ağır Sipahi", icon: "🐴", attack: 82, infantryDefense: 52, cavalryDefense: 60 }
+    // Selçuklu birlikleri: statlar kullanıcının onayladığı tabloyla birebir eşleşir.
+    infantry: { name: "Nefer", icon: "🗡️", building: "barracks", level: 1, attack: 15, infantryDefense: 20, cavalryDefense: 10, speed: 22, carry: 30 },
+    archer: { name: "Tirkendaz", icon: "🏹", building: "archery", level: 1, attack: 50, attackDisplay: "25 × 2", infantryDefense: 90, cavalryDefense: 15, speed: 22, carry: 30 },
+    shield: { name: "Kargılı", icon: "🔱", building: "barracks", level: 5, attack: 40, infantryDefense: 20, cavalryDefense: 90, speed: 18, carry: 40 },
+    guard: { name: "Azap", icon: "⚔️", building: "barracks", level: 10, attack: 115, infantryDefense: 55, cavalryDefense: 55, speed: 25, carry: 50 },
+    light_cavalry: { name: "Akıncı", icon: "🐎", building: "stable", level: 1, attack: 20, infantryDefense: 50, cavalryDefense: 140, speed: 30, carry: 40 },
+    mounted_archer: { name: "Deli", icon: "🐴", building: "stable", level: 5, attack: 60, infantryDefense: 120, cavalryDefense: 20, speed: 45, carry: 80 },
+    heavy_cavalry: { name: "Sipahi", icon: "🐴", building: "stable", level: 10, attack: 160, infantryDefense: 90, cavalryDefense: 90, speed: 35, carry: 90 }
   }
 };
 
@@ -54,7 +55,9 @@ export function getTroopCatalog(factionId, buildings = {}) {
     const unique = FACTION_UNITS[faction][id] || {};
     const unit = { ...base, ...unique };
     // V2 persists buildings by fixed numeric slot; also accept type-keyed data for compatibility.
-    const buildingState = buildings[base.building] || Object.values(buildings).find(item => item?.type === base.building);
+    const requiredBuilding = unique.building || base.building;
+    const requiredLevel = Number(unique.level || base.level);
+    const buildingState = buildings[requiredBuilding] || Object.values(buildings).find(item => item?.type === requiredBuilding);
     const level = Number(buildingState?.level || 1);
     const blacksmithState = buildings.blacksmith || Object.values(buildings).find(item => item?.type === "blacksmith");
     const blacksmithLevel = Math.max(1, Math.min(10, Number(blacksmithState?.level) || 1));
@@ -63,8 +66,8 @@ export function getTroopCatalog(factionId, buildings = {}) {
     const infantryDefense = Math.round(unit.infantryDefense * (faction === "seljuk" ? 1.10 : 1) * blacksmithMultiplier);
     const speed = Math.round(unit.speed);
     return {
-      id, name: unit.name, icon: unit.icon, attackDisplay: unit.attackDisplay || null, building: base.building,
-      requiredLevel: base.level, unlocked: level >= base.level,
+      id, name: unit.name, icon: unit.icon, attackDisplay: unit.attackDisplay || null, building: requiredBuilding,
+      requiredLevel, unlocked: level >= requiredLevel,
       buildingLevel: level, attack, infantryDefense,
       cavalryDefense: Math.round(unit.cavalryDefense * blacksmithMultiplier), speed, carry: unit.carry, cost: { ...base.cost },
       blacksmithLevel, blacksmithBonusPercent: (blacksmithLevel - 1) * 2
