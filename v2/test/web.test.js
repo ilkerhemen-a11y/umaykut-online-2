@@ -109,7 +109,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
   assert.ok(stageHtml.includes('class="wall-marker-art" src="/assets/buildings/wall.svg"'));
 
-  const expectedPositions=[["1",50,45],["2",42.23,38.35],["3",67.92,59.54],["4",24.62,53.54],["5",72.69,44.7],["6",28.04,43.46],["7",59.22,39.25],["8",45.03,58.37],["9",78.9,52.57]];
+  const expectedPositions=[["1",53.68,51.25],["2",42.23,38.35],["3",67.92,59.54],["4",24.62,53.54],["5",72.69,44.7],["6",28.04,43.46],["7",59.22,39.25],["8",45.03,58.37],["9",78.9,52.57]];
   // Check the 375px-wide mobile layout: the 2D hit areas must not overlap.
   const mobileMarkers=expectedPositions.map(([slot,x,y])=>({slot,x,y,width:slot==="1"?26:22,height:slot==="1"?26:22}));
   for(let i=0;i<mobileMarkers.length;i++){
