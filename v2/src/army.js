@@ -89,14 +89,27 @@ export function getTroopCatalog(factionId, buildings = {}, troopUpgrades = {}) {
     const blacksmithState = buildings.blacksmith || Object.values(buildings).find(item => item?.type === "blacksmith");
     const blacksmithLevel = Math.max(1, Math.min(10, Number(blacksmithState?.level) || 1));
     const blacksmithMultiplier = 1 + (blacksmithLevel - 1) * 0.02;
-    const attack = Math.round(unit.attack * (faction === "gokturk" && id.includes("archer") ? 1.10 : 1) * blacksmithMultiplier);
-    const infantryDefense = Math.round(unit.infantryDefense * (faction === "seljuk" ? 1.10 : 1) * blacksmithMultiplier);
+    const unitUpgrade = upgrades[id] || {};
+    const attackUpgradeLevel = unitUpgrade.attack || 0;
+    const infantryUpgradeLevel = unitUpgrade.infantryDefense || 0;
+    const cavalryUpgradeLevel = unitUpgrade.cavalryDefense || 0;
+    const attackMultiplier = 1 + attackUpgradeLevel * TROOP_UPGRADE_BONUS_PER_LEVEL;
+    const attack = Math.round(unit.attack * attackMultiplier * (faction === "gokturk" && id.includes("archer") ? 1.10 : 1) * blacksmithMultiplier);
+    const infantryDefense = Math.round(unit.infantryDefense * (1 + infantryUpgradeLevel * TROOP_UPGRADE_BONUS_PER_LEVEL) * (faction === "seljuk" ? 1.10 : 1) * blacksmithMultiplier);
+    const cavalryDefense = Math.round(unit.cavalryDefense * (1 + cavalryUpgradeLevel * TROOP_UPGRADE_BONUS_PER_LEVEL) * blacksmithMultiplier);
+    const comboAttack = unit.comboAttack ? Math.round(unit.comboAttack * attackMultiplier * (faction === "gokturk" && id.includes("archer") ? 1.10 : 1) * blacksmithMultiplier) : undefined;
     const speed = Math.round(unit.speed * (faction === "hun" && base.building === "stable" && !unit.portrait ? 1.15 : 1));
     return {
       id, name: unit.name, icon: unit.icon, portrait: unit.portrait, portraitIndex: unit.portraitIndex, building: base.building,
       requiredLevel: base.level, unlocked: level >= base.level,
-      buildingLevel: level, attack, infantryDefense,
-      cavalryDefense: Math.round(unit.cavalryDefense * blacksmithMultiplier), speed, carry: unit.carry, cost: { ...base.cost },
+      buildingLevel: level, attack, ...(comboAttack ? { comboAttack, comboHits: unit.comboHits } : {}), infantryDefense,
+      cavalryDefense, speed, carry: unit.carry, cost: { ...base.cost },
+      upgradeLevels: { attack: attackUpgradeLevel, infantryDefense: infantryUpgradeLevel, cavalryDefense: cavalryUpgradeLevel },
+      upgradeCosts: {
+        attack: attackUpgradeLevel < TROOP_UPGRADE_MAX_LEVEL ? getTroopUpgradeCost("attack", attackUpgradeLevel) : null,
+        infantryDefense: infantryUpgradeLevel < TROOP_UPGRADE_MAX_LEVEL ? getTroopUpgradeCost("infantryDefense", infantryUpgradeLevel) : null,
+        cavalryDefense: cavalryUpgradeLevel < TROOP_UPGRADE_MAX_LEVEL ? getTroopUpgradeCost("cavalryDefense", cavalryUpgradeLevel) : null
+      },
       blacksmithLevel, blacksmithBonusPercent: (blacksmithLevel - 1) * 2
     };
   });
