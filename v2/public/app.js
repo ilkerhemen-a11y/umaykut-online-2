@@ -942,7 +942,7 @@ function renderArmyUnitDetail(unitId){
  const detail=document.querySelector("#army-unit-detail"),content=document.querySelector("#army-unit-detail-content");
  detail.hidden=false;content.replaceChildren();
  const heading=document.createElement("div");heading.className="army-detail-heading";
- const emblem=document.createElement("div");emblem.className="army-detail-emblem";emblem.textContent=unit.icon;
+ const emblem=document.createElement("div");emblem.className="army-detail-emblem";applyArmyUnitPortrait(emblem,unit);
  const title=document.createElement("div"),name=document.createElement("h3"),owned=document.createElement("p");
  name.textContent=unit.name;owned.textContent="Ordudaki mevcut sayın: "+armyNumber(armyState.troops[unit.id]||0);
  title.append(name,owned);heading.append(emblem,title);content.append(heading);
