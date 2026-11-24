@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101a13">
   <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
   <title>Umaykut Online 2 · V2</title>
-  <link rel="stylesheet" href="/app.css?v=20261124-marker-editor-1">
+  <link rel="stylesheet" href="/app.css?v=20261124-coordinate-tools-removed-2">
   <link rel="stylesheet" href="/factions.css?v=20261124-hun-unit-portraits-2">
 </head>
 <body>
@@ -74,11 +74,7 @@
           <span id="village-zoom-label" aria-live="polite">100%</span>
           <button id="village-zoom-in" type="button" aria-label="Köyü yakınlaştır">+</button>
           <button id="village-zoom-reset" type="button" aria-label="Köy görünümünü sıfırla">Sıfırla</button>
-          <button id="village-marker-edit" type="button" aria-pressed="false">Konumları Düzenle</button>
-          <button id="village-marker-export" type="button" hidden>Koordinatları Kopyala</button>
         </div>
-        <p id="village-marker-edit-hint" class="village-marker-edit-hint" hidden>Konum düzenleme açık: numaraları veya Sur işaretini parmağınla sürükle. Değişiklikler bu cihazda saklanır.</p>
-        <pre id="village-marker-export-result" class="village-marker-export-result" hidden></pre>
       </div>
       <section id="building-upgrade-tracker" class="building-upgrade-tracker" aria-live="polite" aria-label="Devam eden bina yükseltmeleri" hidden>
         <div class="upgrade-tracker-heading"><div><small>İNŞAAT MERKEZİ</small><h2>Yükseltme Takibi</h2></div><span id="building-upgrade-count">CANLI</span></div>
@@ -315,15 +311,6 @@
     </dialog>
   </main>
 
-  <aside id="coordinate-inspector" class="coordinate-inspector" aria-label="Koordinat ölçüm aracı">
-    <div class="coordinate-inspector-head"><strong>Koordinat Ölçer</strong><button id="coordinate-inspector-hide" type="button" aria-label="Paneli gizle">×</button></div>
-    <p id="coordinate-inspector-status">Ölçüm kapalı. Başlatıp ekranda istediğin noktaya dokun.</p>
-    <button id="coordinate-inspector-toggle" type="button">Ölçümü Başlat</button>
-    <pre id="coordinate-inspector-result">X: —   Y: —</pre>
-    <small id="coordinate-inspector-detail">Pencereye göre: X — · Y —</small>
-    <button id="coordinate-inspector-copy" type="button" disabled>Koordinatları Kopyala</button>
-  </aside>
-
-  <script type="module" src="/app.js?v=20261124-village-coordinates-1"></script>
+  <script type="module" src="/app.js?v=20261124-coordinate-tools-removed-2"></script>
 </body>
 </html>
