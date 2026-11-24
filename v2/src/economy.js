@@ -7,6 +7,7 @@ export const RESOURCE_PRODUCTION_PER_WORKER_HOUR = Object.freeze({
 });
 
 const RESOURCE_KEYS = Object.freeze(["gold", "wood", "food", "stone", "iron"]);
+const HORSE_STORAGE_KEY = "horses";
 const RESOURCE_ALIASES = Object.freeze({ grain: "food" });
 const MAX_OFFLINE_HOURS = 72;
 
@@ -35,6 +36,8 @@ export function settleEconomy({
   const centerLevel = Math.max(1, Math.min(10, Number(buildings["1"]?.level) || 1));
   const templeLevel = Math.max(1, Math.min(10, Number(buildings["7"]?.level) || 1));
   const lumberyardLevel = Math.max(1, Math.min(10, Number(buildings["6"]?.level) || 1));
+  const stableLevel = Math.max(1, Math.min(10, Number(buildings["3"]?.level) || 1));
+  const horseProductionPerHour = Math.round(Math.min(9, stableLevel) * 1000 / 9);
   const lumberyardMultiplier = 1 + (lumberyardLevel - 1) * 0.05;
   const storageCapacity = Math.max(15000, Math.floor(Number(storedStorageCapacity) || 15000));
   const previousTick = lastResourceTick ? new Date(lastResourceTick).getTime() : now;
@@ -48,6 +51,7 @@ export function settleEconomy({
   const settledWorkerPool = Math.max(0, Math.floor(Number(workerPool) || 0)) + newWorkers;
   const lastTick = now;
   const productionPerHour = Object.fromEntries(RESOURCE_KEYS.map(key => [key, 0]));
+  productionPerHour[HORSE_STORAGE_KEY] = horseProductionPerHour;
   const nodeById = new Map(resourceNodes.map(node => [String(node.id), node]));
 
   for (const [workerKey, rawCount] of Object.entries(assignments)) {
@@ -124,7 +128,7 @@ export function settleEconomy({
     workersProduced: newWorkers,
     productionApplied,
     storageCapacity,
-    lumberyardBonusPercent: (lumberyardLevel - 1) * 5,
+    lumberyardBonusPercent: (lumberyardLevel - 1) * 5,\n    stableLevel,\n    horseProductionPerHour,
     lastResourceTick: new Date(lastTick).toISOString()
   };
 }
