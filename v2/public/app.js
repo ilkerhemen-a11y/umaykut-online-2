@@ -1068,6 +1068,13 @@ const armyQueueNode=document.querySelector("#army-queue-list");
 const armyMessageNode=document.querySelector("#army-message");
 let armyState=null;
 let armyRefreshTimer=null;
+const troopPortraitPositions={scout:"0% 0%",infantry:"33.333% 0%",archer:"66.667% 0%",shield:"100% 0%",guard:"0% 100%",light_cavalry:"33.333% 100%",mounted_archer:"66.667% 100%",heavy_cavalry:"100% 100%"};
+function applyTroopPortrait(node,unitId){
+ node.classList.add("troop-portrait-sprite");
+ node.style.backgroundPosition=troopPortraitPositions[unitId]||"0% 0%";
+ node.setAttribute("role","img");
+ node.setAttribute("aria-label",unitId+" asker portresi");
+}
 function armyNumber(value){return new Intl.NumberFormat("tr-TR").format(Number(value)||0);}
 function renderArmySummary(){
  if(!armyState)return;
@@ -1097,7 +1104,7 @@ function renderArmyCatalog(){
   const card=document.createElement("button");card.type="button";card.className="army-unit-card"+(unit.unlocked?"":" is-locked");
   card.dataset.selectUnit=unit.id;
   const head=document.createElement("span");head.className="army-unit-card-head";
-  const emblem=document.createElement("span");emblem.className="army-unit-emblem";emblem.textContent=unit.icon;
+  const emblem=document.createElement("span");emblem.className="army-unit-emblem";applyTroopPortrait(emblem,unit.id);
   const title=document.createElement("span"),name=document.createElement("strong"),owned=document.createElement("small");
   name.textContent=unit.name;owned.textContent="Mevcut: "+armyNumber(armyState.troops[unit.id]||0);
   title.append(name,owned);head.append(emblem,title);
@@ -1115,7 +1122,7 @@ function renderArmyUnitDetail(unitId){
  const detail=document.querySelector("#army-unit-detail"),content=document.querySelector("#army-unit-detail-content");
  detail.hidden=false;content.replaceChildren();
  const heading=document.createElement("div");heading.className="army-detail-heading";
- const emblem=document.createElement("div");emblem.className="army-detail-emblem";emblem.textContent=unit.icon;
+ const emblem=document.createElement("div");emblem.className="army-detail-emblem";applyTroopPortrait(emblem,unit.id);
  const title=document.createElement("div"),name=document.createElement("h3"),owned=document.createElement("p");
  name.textContent=unit.name;owned.textContent="Ordudaki mevcut sayın: "+armyNumber(armyState.troops[unit.id]||0);
  title.append(name,owned);heading.append(emblem,title);content.append(heading);
@@ -1386,7 +1393,7 @@ function renderBattleReports(attacks){
   if(!units.length){const empty=document.createElement("small");empty.className="battle-report-empty";empty.textContent="Bu tarafta asker bulunmuyordu.";grid.append(empty);}
   units.forEach(unit=>{
    const tile=document.createElement("div");tile.className="battle-report-unit";
-   const portrait=document.createElement("div");portrait.className="battle-report-unit-portrait";portrait.textContent=unit.icon||unitMeta[unit.id]?.[1]||"⚔️";
+   const portrait=document.createElement("div");portrait.className="battle-report-unit-portrait";applyTroopPortrait(portrait,unit.id);
    const unitName=document.createElement("strong");unitName.textContent=unit.name||unitMeta[unit.id]?.[0]||unit.id;
    const sent=document.createElement("small");sent.textContent="Gönderilen "+number(unit.sent);
    const lost=document.createElement("small");lost.className="battle-report-unit-lost";lost.textContent="Ölen "+number(unit.lost);
