@@ -28,9 +28,9 @@ test("factions receive distinct troop identities and specialties", () => {
   const seljuk = getTroopCatalog("seljuk", buildings);
   assert.equal(gokturk.find(unit => unit.id === "archer").name, "Börü Okçusu");
   assert.equal(hun.find(unit => unit.id === "light_cavalry").name, "Tunga");
-  assert.equal(seljuk.find(unit => unit.id === "heavy_cavalry").name, "Ağır Sipahi");
+  assert.equal(seljuk.find(unit => unit.id === "heavy_cavalry").name, "Sipahi");
   assert.ok(hun.find(unit => unit.id === "light_cavalry").speed > gokturk.find(unit => unit.id === "light_cavalry").speed);
-  assert.ok(seljuk.find(unit => unit.id === "shield").infantryDefense > gokturk.find(unit => unit.id === "shield").infantryDefense);
+  assert.equal(seljuk.find(unit => unit.id === "shield").infantryDefense, 20);
 });
 
 test("barracks and stable levels do not add training time", () => {
@@ -155,4 +155,40 @@ test("Hun roster uses the seven approved names and exact base battle values", ()
   assert.equal(byId.archer.attackDisplay, "30 × 2");
   assert.equal(byId.guard.attackDisplay, "120–130");
   assert.equal(byId.heavy_cavalry.attack, 150);
+});
+
+
+test("Seljuk roster matches the approved stat table and building unlock levels", () => {
+  const catalog = getTroopCatalog("seljuk", {
+    "2": { type: "barracks", level: 1 },
+    "3": { type: "stable", level: 1 },
+    "9": { type: "archery", level: 1 }
+  });
+  const byId = Object.fromEntries(catalog.map(unit => [unit.id, unit]));
+  const ids = ["infantry", "archer", "shield", "guard", "light_cavalry", "mounted_archer", "heavy_cavalry"];
+  assert.deepEqual(ids.map(id => byId[id].name),
+    ["Nefer", "Tirkendaz", "Kargılı", "Azap", "Akıncı", "Deli", "Sipahi"]);
+  assert.deepEqual(ids.map(id => [
+    byId[id].attack, byId[id].infantryDefense, byId[id].cavalryDefense, byId[id].speed, byId[id].carry
+  ]), [
+    [15,20,10,22,30], [50,90,15,22,30], [40,20,90,18,40],
+    [115,55,55,25,50], [20,50,140,30,40], [60,120,20,45,80], [160,90,90,35,90]
+  ]);
+  assert.equal(byId.archer.attackDisplay, "25 × 2");
+  assert.equal(byId.archer.building, "archery");
+  assert.equal(byId.archer.requiredLevel, 1);
+  assert.equal(byId.archer.unlocked, true);
+  assert.equal(byId.shield.unlocked, false);
+  assert.equal(byId.guard.unlocked, false);
+  assert.equal(byId.mounted_archer.unlocked, false);
+  const levelFive = getTroopCatalog("seljuk", {
+    barracks: { level: 5 }, stable: { level: 5 }, archery: { level: 1 }
+  });
+  assert.equal(levelFive.find(unit => unit.id === "shield").unlocked, true);
+  assert.equal(levelFive.find(unit => unit.id === "mounted_archer").unlocked, true);
+  assert.equal(levelFive.find(unit => unit.id === "guard").unlocked, false);
+  const levelTen = getTroopCatalog("seljuk", {
+    barracks: { level: 10 }, stable: { level: 10 }, archery: { level: 1 }
+  });
+  assert.ok(ids.every(id => levelTen.find(unit => unit.id === id).unlocked));
 });
