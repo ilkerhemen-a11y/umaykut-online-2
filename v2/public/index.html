@@ -311,6 +311,15 @@
     </dialog>
   </main>
 
-  <script type="module" src="/app.js?v=20261124-hun-unit-portraits-2"></script>
+  <aside id="coordinate-inspector" class="coordinate-inspector" aria-label="Koordinat ölçüm aracı">
+    <div class="coordinate-inspector-head"><strong>Koordinat Ölçer</strong><button id="coordinate-inspector-hide" type="button" aria-label="Paneli gizle">×</button></div>
+    <p id="coordinate-inspector-status">Ölçüm kapalı. Başlatıp ekranda istediğin noktaya dokun.</p>
+    <button id="coordinate-inspector-toggle" type="button">Ölçümü Başlat</button>
+    <pre id="coordinate-inspector-result">X: —   Y: —</pre>
+    <small id="coordinate-inspector-detail">Pencereye göre: X — · Y —</small>
+    <button id="coordinate-inspector-copy" type="button" disabled>Koordinatları Kopyala</button>
+  </aside>
+
+  <script type="module" src="/app.js?v=20261124-coordinate-inspector-1"></script>
 </body>
 </html>
