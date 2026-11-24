@@ -48,9 +48,38 @@ const FACTION_UNITS = {
   }
 };
 
-export function getTroopCatalog(factionId, buildings = {}) {
+const TROOP_UPGRADE_MAX_LEVEL = 10;
+const TROOP_UPGRADE_BONUS_PER_LEVEL = 0.05;
+const TROOP_UPGRADE_STATS = new Set(["attack", "infantryDefense", "cavalryDefense"]);
+export function normalizeTroopUpgrades(value = {}) {
+  const source = typeof value === "string" ? parseJson(value, {}) : (value || {});
+  const result = {};
+  for (const [unitId, levels] of Object.entries(source)) {
+    if (!/^(scout|infantry|archer|shield|guard|light_cavalry|mounted_archer|heavy_cavalry)$/.test(unitId)) continue;
+    const safe = {};
+    for (const stat of TROOP_UPGRADE_STATS) {
+      const level = Number(levels?.[stat] || 0);
+      if (Number.isSafeInteger(level) && level >= 0 && level <= TROOP_UPGRADE_MAX_LEVEL) safe[stat] = level;
+    }
+    if (Object.keys(safe).length) result[unitId] = safe;
+  }
+  return result;
+}
+export function getTroopUpgradeCost(stat, currentLevel) {
+  if (!TROOP_UPGRADE_STATS.has(stat)) throw new RangeError("Geçersiz asker geliştirmesi.");
+  const level = Number(currentLevel);
+  if (!Number.isSafeInteger(level) || level < 0 || level >= TROOP_UPGRADE_MAX_LEVEL) {
+    throw new RangeError("Bu asker özelliği en yüksek geliştirme seviyesinde.");
+  }
+  const scale = Math.pow(1.5, level);
+  const base = stat === "attack"
+    ? { gold: 100, iron: 80, wood: 40 }
+    : { gold: 80, iron: 100, wood: 40 };
+  return Object.fromEntries(Object.entries(base).map(([key, amount]) => [key, Math.ceil(amount * scale)]));
+}
+export function getTroopCatalog(factionId, buildings = {}, troopUpgrades = {}) {
   const faction = FACTIONS[factionId] ? factionId : "gokturk";
-  return Object.entries(UNIT_BASE).map(([id, base]) => {
+  const upgrades = normalizeTroopUpgrades(troopUpgrades);\n  return Object.entries(UNIT_BASE).map(([id, base]) => {
     const unique = FACTION_UNITS[faction][id] || {};
     const unit = { ...base, ...unique };
     // V2 persists buildings by fixed numeric slot; also accept type-keyed data for compatibility.
@@ -117,7 +146,7 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     await client.query("BEGIN"); transaction = true;
     await client.query("INSERT INTO umaykut_v2.player_game_state(player_id) VALUES($1) ON CONFLICT(player_id) DO NOTHING", [session.id]);
     const result = await client.query(
-      "SELECT faction_id, resources, buildings, troops, training_queue, worker_pool, worker_assignments FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",
+      "SELECT faction_id, resources, buildings, troops, training_queue, troop_upgrades, worker_pool, worker_assignments FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",
       [session.id]
     );
     const row = result.rows[0];
@@ -126,7 +155,7 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     const workerAssignments = parseJson(row.worker_assignments, {});
     const assignedWorkers = Object.values(workerAssignments).reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
     const buildings = parseJson(row.buildings, {});
-    let troops = parseJson(row.troops, {});
+    let troops = parseJson(row.troops, {});\n    let troopUpgrades = normalizeTroopUpgrades(row.troop_upgrades);
     const storedQueue = parseJson(row.training_queue, []);
     const settledQueue = settleTrainingQueue(troops, storedQueue);
     troops = settledQueue.troops;
@@ -137,8 +166,27 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
         [session.id, JSON.stringify(troops), JSON.stringify(queue)]);
     }
     const factionId = FACTIONS[row.faction_id] ? row.faction_id : "gokturk";
-    const catalog = getTroopCatalog(factionId, buildings);
+    let catalog = getTroopCatalog(factionId, buildings, troopUpgrades);
 
+    if (req.method === "POST" && url.pathname === "/api/game/army/upgrade") {
+      let body = "";
+      for await (const chunk of req) { body += chunk; if (body.length > 8192) throw new Error("İstek çok büyük."); }
+      const input = JSON.parse(body || "{}");
+      const unit = catalog.find(item => item.id === input.unitId);
+      const stat = input.stat;
+      if (!unit) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 400, { error: "Geçersiz asker türü." }); return true; }
+      if (!TROOP_UPGRADE_STATS.has(stat)) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 400, { error: "Geçersiz geliştirme türü." }); return true; }
+      const currentLevel = Number(unit.upgradeLevels?.[stat] || 0);
+      if (currentLevel >= TROOP_UPGRADE_MAX_LEVEL) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: "Bu özellik en yüksek geliştirme seviyesinde." }); return true; }
+      const cost = getTroopUpgradeCost(stat, currentLevel);
+      const missing = Object.fromEntries(Object.entries(cost).filter(([key, value]) => Number(resources[key] || 0) < value).map(([key, value]) => [key, value - Number(resources[key] || 0)]));
+      if (Object.keys(missing).length) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: "Geliştirme için yeterli kaynak yok.", missing, cost }); return true; }
+      for (const [key, value] of Object.entries(cost)) resources[key] = Number(resources[key] || 0) - value;
+      troopUpgrades[unit.id] = { ...(troopUpgrades[unit.id] || {}), [stat]: currentLevel + 1 };
+      catalog = getTroopCatalog(factionId, buildings, troopUpgrades);
+      await client.query("UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb, troop_upgrades=$3::jsonb, updated_at=NOW() WHERE player_id=$1",
+        [session.id, JSON.stringify(resources), JSON.stringify(troopUpgrades)]);
+    }
     if (req.method === "POST" && url.pathname === "/api/game/army/recruit") {
       let body = "";
       for await (const chunk of req) { body += chunk; if (body.length > 8192) throw new Error("İstek çok büyük."); }
@@ -163,7 +211,7 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     const latest = await pool.query("SELECT resources FROM umaykut_v2.player_game_state WHERE player_id=$1", [session.id]);
     const finalResources = parseJson(latest.rows[0]?.resources, resources);
     sendJson(res, 200, {
-      factionId, factionName: FACTIONS[factionId].name, troops,
+      factionId, factionName: FACTIONS[factionId].name, troops, troopUpgrades,
       workerPool, assignedWorkers, idleWorkers,
       trainingQueue: queue.map(job => ({ ...job, name: catalog.find(unit => unit.id === job.unitId)?.name || job.unitId })), catalog,
       totalUnits: Object.values(troops).reduce((sum, count) => sum + Number(count || 0), 0),
