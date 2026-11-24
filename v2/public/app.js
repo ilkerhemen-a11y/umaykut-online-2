@@ -1179,7 +1179,7 @@ function renderArmyUnitDetail(unitId){
   return perUnit>0?Math.min(max,Math.floor(Math.max(0,Number(gameResources[key])||0)/perUnit)):max;
  },Number.MAX_SAFE_INTEGER);
  const maxRecruit=Math.max(0,unit.requiresHorse?maxByResources:Math.min(idleWorkers,maxByResources));
- const workerLimit=document.createElement("p");workerLimit.className="army-unlock";workerLimit.textContent="Boşta işçi: "+armyNumber(idleWorkers)+" · Kaynaklarınla en fazla "+armyNumber(maxRecruit)+" asker yetiştirebilirsin.";content.append(workerLimit);
+ const workerLimit=document.createElement("p");workerLimit.className="army-unlock";workerLimit.textContent=unit.requiresHorse?"Atlı birlikler işçi tüketmez · At ve kaynaklarınla en fazla "+armyNumber(maxRecruit)+" asker yetiştirebilirsin.":"Boşta işçi: "+armyNumber(idleWorkers)+" · Kaynaklarınla en fazla "+armyNumber(maxRecruit)+" asker yetiştirebilirsin.";content.append(workerLimit);
  const amount=document.createElement("input");amount.type="number";amount.min="1";amount.max=String(maxRecruit);amount.value=maxRecruit>0?"1":"0";amount.inputMode="numeric";amount.id="army-selected-amount";amount.setAttribute("aria-label",unit.name+" yetiştirilecek asker sayısı");
  const preview=document.createElement("div");preview.className="army-recruit-preview";preview.setAttribute("aria-live","polite");
  let recruitButton=null;
