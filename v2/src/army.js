@@ -4,7 +4,9 @@ import {
 
 const RESOURCES = ["wood", "food", "iron", "gold", "horses"];
 const HORSE_UNITS = new Set(["light_cavalry", "mounted_archer", "heavy_cavalry"]);
-function countWorkerConsumingTroops(troops) {\n  return Object.entries(troops).reduce((sum, [id, count]) => sum + (HORSE_UNITS.has(id) ? 0 : Math.max(0, Number(count) || 0)), 0);\n}
+function countWorkerConsumingTroops(troops) {
+  return Object.entries(troops).reduce((sum, [id, count]) => sum + (HORSE_UNITS.has(id) ? 0 : Math.max(0, Number(count) || 0)), 0);
+}
 const UNIT_BASE = {
   scout: { name: "Casus", icon: "🕵️", building: "barracks", level: 2, attack: 8, infantryDefense: 8, cavalryDefense: 6, speed: 12, carry: 0, cost: { wood: 45, food: 35, iron: 10 } },
   infantry: { name: "Piyade", icon: "🪓", building: "barracks", level: 1, attack: 28, infantryDefense: 24, cavalryDefense: 18, speed: 6, carry: 30, cost: { wood: 35, food: 45, iron: 15 } },
@@ -135,7 +137,8 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     const storedQueue = parseJson(row.training_queue, []);
     const settledQueue = settleTrainingQueue(troops, storedQueue);
     troops = settledQueue.troops;
-    let workerConsumingUnits = countWorkerConsumingTroops(troops);\n    let idleWorkers = Math.max(0, workerPool - assignedWorkers - workerConsumingUnits);
+    let workerConsumingUnits = countWorkerConsumingTroops(troops);
+    let idleWorkers = Math.max(0, workerPool - assignedWorkers - workerConsumingUnits);
     let queue = settledQueue.trainingQueue;
     if (settledQueue.changed) {
       await client.query("UPDATE umaykut_v2.player_game_state SET troops=$2::jsonb, training_queue=$3::jsonb WHERE player_id=$1",
@@ -159,7 +162,8 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
       if (Object.keys(missing).length) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: "Asker yetiştirmek için yeterli kaynak yok.", missing, cost }); return true; }
       for (const [key, value] of Object.entries(cost)) resources[key] = Number(resources[key] || 0) - value;
       troops[unit.id] = Number(troops[unit.id] || 0) + amount;
-      workerConsumingUnits = countWorkerConsumingTroops(troops);\n      idleWorkers = Math.max(0, workerPool - assignedWorkers - workerConsumingUnits);
+      workerConsumingUnits = countWorkerConsumingTroops(troops);
+      idleWorkers = Math.max(0, workerPool - assignedWorkers - workerConsumingUnits);
       queue = [];
       await client.query("UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb, training_queue=$3::jsonb, troops=$4::jsonb, updated_at=NOW() WHERE player_id=$1",
         [session.id, JSON.stringify(resources), JSON.stringify(queue), JSON.stringify(troops)]);
