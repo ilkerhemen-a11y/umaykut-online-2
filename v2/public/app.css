@@ -607,3 +607,14 @@
 .battle-report-unit-portrait.troop-portrait-sprite{
  display:block;background-size:400% 200%!important;border:1px solid #7b6846;
 }
+
+
+/* Faction-specific portraits and unit-card color identity */
+.army-summary>div:last-child strong::before{
+ content:"";display:block;width:34px;height:42px;margin:0 auto 5px;
+ background-image:var(--faction-portrait);background-size:cover;background-position:center 24%;
+ border:1px solid #b99555;border-radius:6px;box-shadow:0 2px 8px #0009;
+}
+.game-shell[data-faction="gokturk"] .troop-portrait-sprite{filter:saturate(1.12) hue-rotate(0deg);}
+.game-shell[data-faction="hun"] .troop-portrait-sprite{filter:sepia(.34) saturate(1.55) hue-rotate(315deg) contrast(1.04);}
+.game-shell[data-faction="seljuk"] .troop-portrait-sprite{filter:sepia(.2) saturate(1.25) hue-rotate(8deg) brightness(1.06);}
