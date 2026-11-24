@@ -29,13 +29,13 @@ const FACTION_UNITS = {
     heavy_cavalry: { name: "Tigin Süvarisi", icon: "🐴", attack: 80 }
   },
   hun: {
-    infantry: { name: "Toygun", icon: "🪓", attack: 27, portrait: "/assets/units/hun/portraits.webp", portraitIndex: 0 },
-    archer: { name: "Kemankeş", icon: "🏹", attack: 35, portrait: "/assets/units/hun/portraits.webp", portraitIndex: 1 },
-    shield: { name: "Tarık", icon: "🛡️", infantryDefense: 39, portrait: "/assets/units/hun/portraits.webp", portraitIndex: 2 },
-    guard: { name: "Barlas", icon: "⚔️", attack: 57, portrait: "/assets/units/hun/portraits.webp", portraitIndex: 3 },
-    light_cavalry: { name: "Tunga", icon: "🐎", portrait: "/assets/units/hun/portraits.webp", portraitIndex: 4 },
-    mounted_archer: { name: "Talakan", icon: "🎯", attack: 50, portrait: "/assets/units/hun/portraits.webp", portraitIndex: 5 },
-    heavy_cavalry: { name: "Tarkan", icon: "🐴", attack: 73, speed: 11, portrait: "/assets/units/hun/portraits.webp", portraitIndex: 6 }
+    infantry: { name: "Toygun", icon: "🪓", attack: 35, infantryDefense: 25, cavalryDefense: 15, speed: 16, carry: 30, portrait: "/assets/units/hun/portraits.webp", portraitIndex: 0 },
+    archer: { name: "Kemankeş", icon: "🏹", attack: 60, comboAttack: 30, comboHits: 2, infantryDefense: 80, cavalryDefense: 35, speed: 16, carry: 30, portrait: "/assets/units/hun/portraits.webp", portraitIndex: 1 },
+    shield: { name: "Tarık", icon: "🛡️", attack: 20, infantryDefense: 25, cavalryDefense: 90, speed: 14, carry: 25, portrait: "/assets/units/hun/portraits.webp", portraitIndex: 2 },
+    guard: { name: "Barlas", icon: "⚔️", attack: 120, infantryDefense: 60, cavalryDefense: 90, speed: 24, carry: 80, portrait: "/assets/units/hun/portraits.webp", portraitIndex: 3 },
+    light_cavalry: { name: "Tunga", icon: "🐎", attack: 65, infantryDefense: 50, cavalryDefense: 110, speed: 32, carry: 40, portrait: "/assets/units/hun/portraits.webp", portraitIndex: 4 },
+    mounted_archer: { name: "Talakan", icon: "🎯", attack: 95, infantryDefense: 85, cavalryDefense: 60, speed: 50, carry: 120, portrait: "/assets/units/hun/portraits.webp", portraitIndex: 5 },
+    heavy_cavalry: { name: "Tarkan", icon: "🐴", attack: 150, infantryDefense: 110, cavalryDefense: 80, speed: 40, carry: 60, portrait: "/assets/units/hun/portraits.webp", portraitIndex: 6 }
   },
   seljuk: {
     infantry: { name: "Selçuklu Gulamı", icon: "🗡️", attack: 29, infantryDefense: 27 },
@@ -61,7 +61,7 @@ export function getTroopCatalog(factionId, buildings = {}) {
     const blacksmithMultiplier = 1 + (blacksmithLevel - 1) * 0.02;
     const attack = Math.round(unit.attack * (faction === "gokturk" && id.includes("archer") ? 1.10 : 1) * blacksmithMultiplier);
     const infantryDefense = Math.round(unit.infantryDefense * (faction === "seljuk" ? 1.10 : 1) * blacksmithMultiplier);
-    const speed = Math.round(unit.speed * (faction === "hun" && base.building === "stable" ? 1.15 : 1));
+    const speed = Math.round(unit.speed * (faction === "hun" && base.building === "stable" && !unit.portrait ? 1.15 : 1));
     return {
       id, name: unit.name, icon: unit.icon, portrait: unit.portrait, portraitIndex: unit.portraitIndex, building: base.building,
       requiredLevel: base.level, unlocked: level >= base.level,
