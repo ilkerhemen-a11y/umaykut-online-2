@@ -109,7 +109,17 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
   assert.ok(stageHtml.includes('class="wall-marker-art" src="/assets/buildings/wall.svg"'));
 
-  const expectedPositions=[["1",50,45],["2",41.82,33.31],["3",66.68,52.21],["4",23.79,40.14],["5",72.58,28.4],["6",28.35,24.67],["7",58.59,14.65],["8",37.46,33.92],["9",76.55,21.87]];
+  const expectedPositions=[["1",50,45],["2",41.82,33.31],["3",66.68,52.21],["4",23.79,40.14],["5",72.58,28.4],["6",28.35,24.67],["7",58.59,14.65],["8",35.6,61.8],["9",76.55,21.87]];
+  // Check the 375px-wide mobile layout: the 2D hit areas must not overlap.
+  const mobileMarkers=expectedPositions.map(([slot,x,y])=>({slot,x,y,width:slot==="1"?48:34,height:slot==="1"?40:30}));
+  for(let i=0;i<mobileMarkers.length;i++){
+    for(let j=i+1;j<mobileMarkers.length;j++){
+      const a=mobileMarkers[i],b=mobileMarkers[j];
+      const dx=Math.abs(a.x-b.x)*375/100,dy=Math.abs(a.y-b.y)*562.5/100;
+      const overlaps=dx<(a.width+b.width)/2&&dy<(a.height+b.height)/2;
+      assert.equal(overlaps,false,`mobile building markers ${a.slot} and ${b.slot} must not overlap`);
+    }
+  }
   for(const [slot,x,y] of expectedPositions){
     const markerStart=html.indexOf('data-building-slot="'+slot+'"');
     const markerEnd=html.indexOf("</button>",markerStart);
