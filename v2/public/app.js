@@ -1108,9 +1108,6 @@ function applyTroopPortrait(node,unitId,factionId=activeFactionId()){
 function armyNumber(value){return new Intl.NumberFormat("tr-TR").format(Number(value)||0);}
 function renderArmySummary(){
  if(!armyState)return;
- document.querySelector("#army-total-units").textContent=armyNumber(armyState.totalUnits);
- document.querySelector("#army-total-power").textContent=armyNumber(armyState.armyPower);
- document.querySelector("#army-faction-name").textContent=armyState.factionName+" · Demirci +%"+(armyState.catalog[0]?.blacksmithBonusPercent||0);
  const strip=document.querySelector("#army-units");
  if(strip){
   strip.replaceChildren();
