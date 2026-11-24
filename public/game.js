@@ -60,7 +60,6 @@ function setupVillageCamera(){
 function applyWorldMapTransform(){
  const content=$("#worldMapContent");if(!content)return;
  content.style.transform="translate(calc(-50% + "+worldMapX+"px),calc(-50% + "+worldMapY+"px)) scale("+worldMapScale+")";
- const coord=$("#mapCoordinate");if(coord)coord.textContent="BOZKIR · "+Math.round(50-worldMapX/20)+" / "+Math.round(50-worldMapY/20);
 }
 function setupWorldMapControls(){
  const viewport=$("#worldMapViewport");if(!viewport||viewport.dataset.controlsReady)return;
@@ -106,23 +105,14 @@ async function loadWorldMap(){
     const names={food:"Tahıl",wood:"Odun",stone:"Taş",iron:"Demir",gold:"Altın",horses:"At"};
     (data.resources||[]).filter(node=>Object.hasOwn(icons,node.resource_type)).forEach(node=>{
       const marker=document.createElement("button");
-      marker.type="button";marker.className="resource-node";
+      marker.className="resource-node";marker.style.pointerEvents="none";
       marker.style.left=Number(node.x)+"%";marker.style.top=Number(node.y)+"%";
-      marker.title=names[node.resource_type]+" · 6 Puan · İşçi göndermek için dokun";
-      marker.setAttribute("aria-label",names[node.resource_type]+" 6 puanlık sana ait kaynak. İşçi göndermek için dokun.");
+      marker.title=names[node.resource_type]+" · 6 Puan";
+      marker.setAttribute("aria-label",names[node.resource_type]+" · 6 puanlık kaynak noktası.");
       const icon=document.createElement("img");icon.src="/assets/resources/"+node.resource_type+".svg";icon.alt=names[node.resource_type];icon.className="resource-art";
       const level=document.createElement("small");level.className="resource-level";level.textContent="6";
       const kind=document.createElement("small");kind.className="resource-kind";kind.textContent=names[node.resource_type];
       marker.append(icon,level,kind);
-      marker.addEventListener("click",async()=>{
-        try{
-          const economy=await api("/api/economy/me");
-          villageEconomy=economy;
-          const ownNode=economy.nodes.find(item=>item.id===Number(node.id));
-          if(ownNode){openWorkerAssignment(ownNode);}
-          else{modal("Kaynak bulunamadı","Bu maden sana ait değil veya artık kullanılamıyor.","Anladım");}
-        }catch(error){modal("Kaynak bilgisi alınamadı",error.message,"Tamam");}
-      });
       layer.append(marker);
     });
   }catch(error){console.error("Dünya haritası yüklenemedi:",error);}
@@ -395,32 +385,6 @@ $("#speedUpBuilding").addEventListener("click",async()=>{
 window.addEventListener("umaykut2dready",()=>loadVillageBuildings());
 window.addEventListener("umaykut3dready",()=>loadVillageBuildings());
 window.addEventListener("umaykut3dcamera",repositionVillageOverlays);
-function openWorkerAssignment(node){
-  const field=$("#modalWorkerField"),input=$("#workerAmount");
-  $("#modalTitle").textContent=node.icon+" "+node.name+" kaynağı";
-  $("#modalText").textContent="Seviye "+node.level+" · İşçi sınırı "+node.maxWorkers+". Boşta "+villageEconomy.availableWorkers+" işçin var. Göndereceğin toplam işçi sayısını yaz.";
-  field.hidden=false;input.max=String(Math.min(node.maxWorkers,node.workersAssigned+villageEconomy.availableWorkers));
-  input.value=String(node.workersAssigned);input.focus();
-  $("#modalAction").textContent="İŞÇİLERİ GÖNDER";
-  $("#modalAction").onclick=async()=>{
-    const amount=Number(input.value);
-    if(!Number.isSafeInteger(amount)||amount<0||amount>node.maxWorkers){
-      $("#modalText").textContent="0 ile "+node.maxWorkers+" arasında geçerli bir sayı gir.";
-      return;
-    }
-    const action=$("#modalAction");action.disabled=true;action.textContent="GÖNDERİLİYOR…";
-    try{
-      const result=await api("/api/economy/assign",{method:"POST",body:JSON.stringify({nodeId:node.id,workers:amount})});
-      $("#modal").classList.remove("open");
-      
-      await loadEconomy(true);
-      await loadPlayerData();
-      $("#economyMessage").textContent=result.message;
-    }catch(error){$("#modalText").textContent=error.message;}
-    finally{action.disabled=false;action.textContent="İŞÇİLERİ GÖNDER";}
-  };
-  $("#modal").classList.add("open");
-}
 let economyRefreshTimer=null;
 async function openEconomy(){
   show("economyScreen");
@@ -451,7 +415,6 @@ function renderEconomy(data){
   data.nodes.forEach(node=>{
     const card=document.createElement("article");card.className="resource-node-card";
     const title=document.createElement("h3");title.textContent=node.icon+" "+node.name;
-    const coords=document.createElement("small");coords.textContent="Harita koordinatı: ("+node.x+", "+node.y+")";
     const production=document.createElement("p");
     const perHour=node.workersAssigned*node.yieldPerWorkerHour;
     production.textContent="Mevcut üretim: "+perHour.toLocaleString("tr-TR",{maximumFractionDigits:2})+" / saat · İşçi sınırı: "+node.maxWorkers;
@@ -469,7 +432,7 @@ function renderEconomy(data){
       }catch(error){$("#economyMessage").textContent=error.message;}
       finally{save.disabled=false;save.textContent="İŞÇİLERİ GÖNDER";}
     });
-    card.append(title,coords,production,label,input,save);list.append(card);
+    card.append(title,production,label,input,save);list.append(card);
   });
 }
 $("#backVillageFromEconomy").addEventListener("click",()=>show("village"));
