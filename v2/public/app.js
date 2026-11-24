@@ -878,6 +878,24 @@ const armyMessageNode=document.querySelector("#army-message");
 let armyState=null;
 let armyRefreshTimer=null;
 function armyNumber(value){return new Intl.NumberFormat("tr-TR").format(Number(value)||0);}
+const seljukTroopPortraits={
+ "barracks_1":{name:"Nefer",file:"IMG-20261124-WA4122.jpg"},
+ "archer":{name:"Tirkendaz",file:"IMG-20261124-WA7363.jpg"},
+ "barracks_5":{name:"Kargılı",file:"IMG-20261124-WA0216.jpg"},
+ "barracks_10":{name:"Azap",file:"IMG-20261124-WA5709.jpg"},
+ "stable_1":{name:"Akıncı",file:"IMG-20261124-WA2818.jpg"},
+ "stable_5":{name:"Deli",file:"IMG-20261124-WA5083.jpg"},
+ "stable_10":{name:"Sipahi",file:"IMG-20261124-WA1381.jpg"}
+};
+function applyArmyUnitPortrait(node,unit){
+ const portrait=shell.dataset.faction==="selcuk"?seljukTroopPortraits[unit.id]:null;
+ if(!portrait){node.textContent=unit.icon||"";return;}
+ node.textContent="";
+ node.classList.add("seljuk-troop-portrait");
+ node.style.backgroundImage='url("/assets/factions/'+portrait.file+'")';
+ node.setAttribute("role","img");
+ node.setAttribute("aria-label",portrait.name+" asker portresi");
+}
 function renderArmySummary(){
  if(!armyState)return;
  document.querySelector("#army-total-units").textContent=armyNumber(armyState.totalUnits);
@@ -889,7 +907,7 @@ function renderArmySummary(){
   armyState.catalog.forEach(unit=>{
    const card=document.createElement("button");card.type="button";card.className="army-strip-unit";card.dataset.openUnit=unit.id;
    const icon=document.createElement("span"),count=document.createElement("b"),name=document.createElement("small");
-   icon.textContent=unit.icon;count.textContent=armyNumber(armyState.troops[unit.id]||0);name.textContent=unit.name;
+   applyArmyUnitPortrait(icon,unit);count.textContent=armyNumber(armyState.troops[unit.id]||0);name.textContent=unit.name;
    card.append(icon,count,name);strip.append(card);
   });
  }
@@ -906,7 +924,7 @@ function renderArmyCatalog(){
   const card=document.createElement("button");card.type="button";card.className="army-unit-card"+(unit.unlocked?"":" is-locked");
   card.dataset.selectUnit=unit.id;
   const head=document.createElement("span");head.className="army-unit-card-head";
-  const emblem=document.createElement("span");emblem.className="army-unit-emblem";emblem.textContent=unit.icon;
+  const emblem=document.createElement("span");emblem.className="army-unit-emblem";applyArmyUnitPortrait(emblem,unit);
   const title=document.createElement("span"),name=document.createElement("strong"),owned=document.createElement("small");
   name.textContent=unit.name;owned.textContent="Mevcut: "+armyNumber(armyState.troops[unit.id]||0);
   title.append(name,owned);head.append(emblem,title);
@@ -963,6 +981,9 @@ async function loadArmyState(){
  if(!authToken)return;
  try{
   armyState=await authRequest("/api/game/army",{token:authToken});
+  if(shell.dataset.faction==="selcuk"&&Array.isArray(armyState.catalog)){
+   armyState.catalog=armyState.catalog.map(unit=>({...unit,name:seljukTroopPortraits[unit.id]?.name||unit.name}));
+  }
   if(armyState.resources){gameResources={...gameResources,...armyState.resources};renderResourceBalances();}
   renderArmySummary();renderArmyCatalog();renderArmyQueue();
  }catch(error){
