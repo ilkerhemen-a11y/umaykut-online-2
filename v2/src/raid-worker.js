@@ -47,7 +47,7 @@ async function resolveRaid(pool, raidId) {
 
     const ids = [raid.attacker_id, raid.defender_id].sort();
     const states = await client.query(
-      `SELECT p.id,p.village_name,s.faction_id,s.resources,s.buildings,s.troops,s.wall
+      `SELECT p.id,p.village_name,s.faction_id,s.resources,s.buildings,s.troops,s.wall,s.protection_expires_at
          FROM umaykut_v2.players p
          JOIN umaykut_v2.player_game_state s ON s.player_id=p.id
         WHERE p.id=ANY($1::uuid[])
@@ -68,7 +68,17 @@ async function resolveRaid(pool, raidId) {
     const attackerCatalog = getTroopCatalog(attacker.faction_id, attackerBuildings);
     const defenderCatalog = getTroopCatalog(defender.faction_id, defenderBuildings);
     const wall = settleWall(defender.wall);
-    const outcome = resolveBattle({
+    const protectionActive = defender.protection_expires_at && new Date(defender.protection_expires_at).getTime() > Date.now();
+    const outcome = protectionActive ? {
+      winner: "defender", resultCode: "village_protected",
+      outcomeText: "Köy koruması aktif olduğu için saldırı engellendi. Saldıran birlikler kayıp vermeden geri dönüyor.",
+      attackPower: Number(raid.attack_power || 0), defensePower: 0,
+      wallDefensePercent: 0, damageBeforeWall: 0, damageAfterWall: 0, damagePreventedByWall: 0,
+      attackerLosses: {}, attackerLostCount: 0, attackerSurvivors: attackerTroops,
+      defenderLosses: {}, defenderLostCount: 0, defenderSurvivors: defenderTroops,
+      protectedResources: {}, loot: {}, carryCapacity: 0,
+      defenderRemainingResources: parseJson(defender.resources, {})
+    } : resolveBattle({
       attackerTroops,
       defenderTroops,
       attackerCatalog,
@@ -78,6 +88,7 @@ async function resolveRaid(pool, raidId) {
     });
     const report = {
       resolvedAt: new Date().toISOString(),
+      villageProtectionBlocked: Boolean(protectionActive),
       attackerVillage: raid.attacker_village,
       defenderVillage: raid.defender_village,
       attackerFactionId: attacker.faction_id,
