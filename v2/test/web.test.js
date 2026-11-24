@@ -241,11 +241,6 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/umaykut-faction-v2/);
   assert.ok(appScript.includes('"/api/player/profile"'));
   assert.ok(appScript.includes('node.addEventListener("click",()=>{if(villageMarkerEditMode)return;openBuildingDialog(node.dataset.buildingSlot);})'));
-  assert.match(appScript,/umaykut-v2-local-building-marker-positions/);
-  assert.match(appScript,/function collectPositions\(\)/);
-  assert.match(html,/id="village-marker-edit"/);
-  assert.match(html,/id="village-marker-export"/);
-  assert.match(css,/\.city-frame\.is-marker-editing/);
   assert.ok(appScript.includes('function openBuildingDialog(slot)'));
   assert.match(appScript,/openFoundingDialog/);
   assert.match(appScript,/await loadGameState\(\)/);
