@@ -212,6 +212,13 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="army-unit-detail"/);
   assert.match(html,/id="army-unit-back"/);
   assert.match(appScript,/function renderArmyUnitDetail\(unitId\)/);
+  assert.match(appScript,/const maxByResources=Object\.entries\(unit\.cost\|\|\{\}\)/);
+  assert.match(appScript,/Kaynaklarınla en fazla/);
+  assert.match(appScript,/army-recruit-preview/);
+  assert.match(appScript,/Maksimum/);
+  assert.match(appScript,/requested>maxRecruit/);
+  assert.match(css,/\.army-detail-emblem\{width:clamp\(104px,29vw,132px\)/);
+  assert.match(css,/\.army-recruit-preview\{/);
   assert.match(appScript,/data-select-unit/);
   assert.match(appScript,/data-recruit-unit/);
   assert.match(appScript,/setServerClock\(state.serverNow\)/);

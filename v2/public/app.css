@@ -674,3 +674,12 @@
  .army-detail-stats>div{padding:3px}
  .army-detail-controls{margin-top:4px}
 }
+
+/* Army detail: larger portrait and live resource cost preview */
+.army-detail-emblem{width:clamp(104px,29vw,132px);height:clamp(126px,35vw,158px);flex:0 0 auto}
+.army-recruit-actions{display:grid;grid-template-columns:minmax(76px,.7fr) minmax(0,1.5fr);gap:6px}
+.army-recruit-actions button{min-width:0;min-height:38px;padding:6px;font-size:11px}
+.army-recruit-actions .army-recruit-max{background:#17251b;border:1px solid #b99555;color:#ead79d}
+.army-recruit-preview{display:grid;gap:3px;margin-top:7px;padding:7px 9px;border:1px solid #9b814e66;border-radius:8px;background:#080f0c;font-size:10px;line-height:1.4;color:#dfd2ae}
+.army-recruit-preview strong{color:#f2d98d;font-size:10px}
+.army-recruit-preview span{overflow-wrap:anywhere}
