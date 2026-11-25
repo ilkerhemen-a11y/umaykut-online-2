@@ -53,7 +53,23 @@ const FACTION_UNITS = {
   }
 };
 
-export function getTroopCatalog(factionId, buildings = {}) {
+export const MAX_WORKER_POOL = 1000;
+export const ARMY_UPGRADE_DEFINITIONS = Object.freeze({
+  infantryAttack: { name: "Piyade Saldırısı", description: "Piyade birliklerinin saldırı gücünü artırır." },
+  infantryDefense: { name: "Piyade Savunması", description: "Piyade saldırılarına karşı savunmayı artırır." },
+  cavalryDefense: { name: "Atlı Savunması", description: "Atlı saldırılarına karşı savunmayı artırır." }
+});
+export function normalizeArmyUpgrades(value = {}) {
+  const source = parseJson(value, {});
+  return Object.fromEntries(Object.keys(ARMY_UPGRADE_DEFINITIONS).map(key => [key, Math.max(0, Math.min(10, Math.floor(Number(source[key]) || 0)))]));
+}
+export function getArmyUpgradeCost(nextLevel) {
+  if (!Number.isSafeInteger(nextLevel) || nextLevel < 1 || nextLevel > 10) throw new RangeError("Geçersiz ordu geliştirme seviyesi.");
+  return nextLevel * 1000;
+}
+
+export function getTroopCatalog(factionId, buildings = {}, storedUpgrades = {}) {
+  const upgrades = normalizeArmyUpgrades(storedUpgrades);
   const faction = FACTIONS[factionId] ? factionId : "gokturk";
   return Object.entries(UNIT_BASE).map(([id, base]) => {
     const unique = FACTION_UNITS[faction][id] || {};
@@ -66,15 +82,17 @@ export function getTroopCatalog(factionId, buildings = {}) {
     const blacksmithState = buildings.blacksmith || Object.values(buildings).find(item => item?.type === "blacksmith");
     const blacksmithLevel = Math.max(1, Math.min(10, Number(blacksmithState?.level) || 1));
     const blacksmithMultiplier = 1 + (blacksmithLevel - 1) * 0.02;
-    const attack = Math.round(unit.attack * (faction === "gokturk" && id.includes("archer") ? 1.10 : 1) * blacksmithMultiplier);
-    const infantryDefense = Math.round(unit.infantryDefense * blacksmithMultiplier);
+    const attackBonus = HORSE_UNITS.has(id) ? 0 : upgrades.infantryAttack;
+    const attack = Math.round(unit.attack * (faction === "gokturk" && id.includes("archer") ? 1.10 : 1) * blacksmithMultiplier) + attackBonus;
+    const infantryDefense = Math.round(unit.infantryDefense * blacksmithMultiplier) + upgrades.infantryDefense;
+    const cavalryDefense = Math.round(unit.cavalryDefense * blacksmithMultiplier) + upgrades.cavalryDefense;
     const speed = Math.round(unit.speed);
     return {
       id, name: unit.name, icon: unit.icon, attackDisplay: unit.attackDisplay || null, building: requiredBuilding,
       requiredLevel, unlocked: level >= requiredLevel, requiresHorse: HORSE_UNITS.has(id), workersPerUnit: HORSE_UNITS.has(id) ? 0 : 1,
-      buildingLevel: level, attack, infantryDefense,
-      cavalryDefense: Math.round(unit.cavalryDefense * blacksmithMultiplier), speed, carry: unit.carry, cost: { ...base.cost },
-      blacksmithLevel, blacksmithBonusPercent: (blacksmithLevel - 1) * 2
+      buildingLevel: level, attack, infantryDefense, cavalryDefense, speed, carry: unit.carry, cost: { ...base.cost },
+      blacksmithLevel, blacksmithBonusPercent: (blacksmithLevel - 1) * 2,
+      armyUpgradeBonuses: { infantryAttack: attackBonus, infantryDefense: upgrades.infantryDefense, cavalryDefense: upgrades.cavalryDefense }
     };
   });
 }
@@ -106,6 +124,10 @@ function armyPower(troops, catalog) {
 }
 export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) {
   if (!url.pathname.startsWith("/api/game/army")) return false;
+  if (req.method === "POST" && url.pathname === "/api/game/army/recruit") {
+    sendJson(res, 410, { error: "Asker yetiştirme kaldırıldı. Ordunu Ordu Geliştirme Merkezi'nden güçlendirebilirsin." });
+    return true;
+  }
   if (!pool) { sendJson(res, 503, { error: "Oyun kayıt servisi henüz yapılandırılmadı." }); return true; }
   if (!sessionSecret || sessionSecret.length < 32) { sendJson(res, 503, { error: "Oturum güvenlik ayarı eksik." }); return true; }
   if (!["GET", "POST"].includes(req.method)) { res.setHeader("allow", "GET, POST"); sendJson(res, 405, { error: "Yöntem desteklenmiyor." }); return true; }
@@ -124,12 +146,12 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     await client.query("BEGIN"); transaction = true;
     await client.query("INSERT INTO umaykut_v2.player_game_state(player_id) VALUES($1) ON CONFLICT(player_id) DO NOTHING", [session.id]);
     const result = await client.query(
-      "SELECT faction_id, resources, buildings, troops, training_queue, worker_pool, worker_assignments FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",
+      "SELECT faction_id, resources, buildings, troops, training_queue, worker_pool, worker_assignments, army_upgrades FROM umaykut_v2.player_game_state WHERE player_id=$1 FOR UPDATE",
       [session.id]
     );
     const row = result.rows[0];
     const resources = parseJson(row.resources, {});
-    const workerPool = Math.max(0, Number(row.worker_pool ?? 1800) || 0);
+    const workerPool = Math.min(MAX_WORKER_POOL, Math.max(0, Number(row.worker_pool ?? MAX_WORKER_POOL) || 0));
     const workerAssignments = parseJson(row.worker_assignments, {});
     const assignedWorkers = Object.values(workerAssignments).reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
     const buildings = parseJson(row.buildings, {});
@@ -145,9 +167,33 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
         [session.id, JSON.stringify(troops), JSON.stringify(queue)]);
     }
     const factionId = FACTIONS[row.faction_id] ? row.faction_id : "gokturk";
-    const catalog = getTroopCatalog(factionId, buildings);
+    let armyUpgrades = normalizeArmyUpgrades(row.army_upgrades);
+    let catalog = getTroopCatalog(factionId, buildings, armyUpgrades);
 
-    if (req.method === "POST" && url.pathname === "/api/game/army/recruit") {
+    if (req.method === "POST" && url.pathname === "/api/game/army/upgrade") {
+      const input = await readJson(req);
+      const upgradeId = String(input.upgradeId || "");
+      if (!Object.hasOwn(ARMY_UPGRADE_DEFINITIONS, upgradeId)) {
+        await client.query("ROLLBACK"); transaction = false;
+        sendJson(res, 400, { error: "Geçersiz ordu geliştirmesi." }); return true;
+      }
+      const currentLevel = armyUpgrades[upgradeId];
+      if (currentLevel >= 10) {
+        await client.query("ROLLBACK"); transaction = false;
+        sendJson(res, 409, { error: "Bu geliştirme zaten en yüksek seviyede." }); return true;
+      }
+      const nextLevel = currentLevel + 1;
+      const goldCost = getArmyUpgradeCost(nextLevel);
+      const currentGold = Math.max(0, Number(resources.gold) || 0);
+      if (currentGold < goldCost) {
+        await client.query("ROLLBACK"); transaction = false;
+        sendJson(res, 409, { error: "Yetersiz altın.", requiredGold: goldCost, availableGold: currentGold }); return true;
+      }
+      resources.gold = currentGold - goldCost;
+      armyUpgrades = { ...armyUpgrades, [upgradeId]: nextLevel };
+      await client.query("UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb, army_upgrades=$3::jsonb, updated_at=NOW() WHERE player_id=$1", [session.id, JSON.stringify(resources), JSON.stringify(armyUpgrades)]);
+      catalog = getTroopCatalog(factionId, buildings, armyUpgrades);
+    }
       let body = "";
       for await (const chunk of req) { body += chunk; if (body.length > 8192) throw new Error("İstek çok büyük."); }
       const input = JSON.parse(body || "{}");
@@ -169,10 +215,11 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
         [session.id, JSON.stringify(resources), JSON.stringify(queue), JSON.stringify(troops)]);
     }
     await client.query("COMMIT"); transaction = false;
-    const latest = await pool.query("SELECT resources FROM umaykut_v2.player_game_state WHERE player_id=$1", [session.id]);
+    const latest = await pool.query("SELECT resources, army_upgrades FROM umaykut_v2.player_game_state WHERE player_id=$1", [session.id]);
     const finalResources = parseJson(latest.rows[0]?.resources, resources);
     sendJson(res, 200, {
       factionId, factionName: FACTIONS[factionId].name, troops,
+      armyUpgrades: normalizeArmyUpgrades(latest.rows[0]?.army_upgrades ?? armyUpgrades),
       workerPool, assignedWorkers, idleWorkers, workerConsumingUnits,
       trainingQueue: queue.map(job => ({ ...job, name: catalog.find(unit => unit.id === job.unitId)?.name || job.unitId })), catalog,
       totalUnits: Object.values(troops).reduce((sum, count) => sum + Number(count || 0), 0),
