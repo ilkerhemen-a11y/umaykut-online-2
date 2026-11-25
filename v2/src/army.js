@@ -171,49 +171,6 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     let catalog = getTroopCatalog(factionId, buildings, armyUpgrades);
 
     if (req.method === "POST" && url.pathname === "/api/game/army/upgrade") {
-      const input = await readJson(req);
-      const upgradeId = String(input.upgradeId || "");
-      if (!Object.hasOwn(ARMY_UPGRADE_DEFINITIONS, upgradeId)) {
-        await client.query("ROLLBACK"); transaction = false;
-        sendJson(res, 400, { error: "Geçersiz ordu geliştirmesi." }); return true;
-      }
-      const currentLevel = armyUpgrades[upgradeId];
-      if (currentLevel >= 10) {
-        await client.query("ROLLBACK"); transaction = false;
-        sendJson(res, 409, { error: "Bu geliştirme zaten en yüksek seviyede." }); return true;
-      }
-      const nextLevel = currentLevel + 1;
-      const goldCost = getArmyUpgradeCost(nextLevel);
-      const currentGold = Math.max(0, Number(resources.gold) || 0);
-      if (currentGold < goldCost) {
-        await client.query("ROLLBACK"); transaction = false;
-        sendJson(res, 409, { error: "Yetersiz altın.", requiredGold: goldCost, availableGold: currentGold }); return true;
-      }
-      resources.gold = currentGold - goldCost;
-      armyUpgrades = { ...armyUpgrades, [upgradeId]: nextLevel };
-      await client.query("UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb, army_upgrades=$3::jsonb, updated_at=NOW() WHERE player_id=$1", [session.id, JSON.stringify(resources), JSON.stringify(armyUpgrades)]);
-      catalog = getTroopCatalog(factionId, buildings, armyUpgrades);
-    }
-      let body = "";
-      for await (const chunk of req) { body += chunk; if (body.length > 8192) throw new Error("İstek çok büyük."); }
-      const input = JSON.parse(body || "{}");
-      const unit = catalog.find(item => item.id === input.unitId);
-      const amount = Number(input.amount);
-      if (!unit) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 400, { error: "Geçersiz asker türü." }); return true; }
-      if (!unit.unlocked) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: unit.name + " için " + (unit.building === "barracks" ? "Kışla" : unit.building === "archery" ? "Okçu" : "Ahır") + " seviyesi " + unit.requiredLevel + " olmalı." }); return true; }
-      if (!Number.isSafeInteger(amount) || amount < 1) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 400, { error: "Yetiştirilecek asker sayısı en az 1 olmalıdır.", idleWorkers }); return true; }
-      if (!unit.requiresHorse && amount > idleWorkers) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: "Boşta yalnızca " + idleWorkers + " işçin var. Daha fazla asker yetiştiremezsin.", idleWorkers }); return true; }
-      const cost = Object.fromEntries(Object.entries(unit.cost).map(([key, value]) => [key, value * amount]));
-      const missing = Object.fromEntries(Object.entries(cost).filter(([key, value]) => Number(resources[key] || 0) < value).map(([key, value]) => [key, value - Number(resources[key] || 0)]));
-      if (Object.keys(missing).length) { await client.query("ROLLBACK"); transaction = false; sendJson(res, 409, { error: "Asker yetiştirmek için yeterli kaynak yok.", missing, cost }); return true; }
-      for (const [key, value] of Object.entries(cost)) resources[key] = Number(resources[key] || 0) - value;
-      troops[unit.id] = Number(troops[unit.id] || 0) + amount;
-      workerConsumingUnits = countWorkerConsumingTroops(troops);
-      idleWorkers = Math.max(0, workerPool - assignedWorkers - workerConsumingUnits);
-      queue = [];
-      await client.query("UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb, training_queue=$3::jsonb, troops=$4::jsonb, updated_at=NOW() WHERE player_id=$1",
-        [session.id, JSON.stringify(resources), JSON.stringify(queue), JSON.stringify(troops)]);
-    }
     await client.query("COMMIT"); transaction = false;
     const latest = await pool.query("SELECT resources, army_upgrades FROM umaykut_v2.player_game_state WHERE player_id=$1", [session.id]);
     const finalResources = parseJson(latest.rows[0]?.resources, resources);
