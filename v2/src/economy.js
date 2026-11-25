@@ -10,7 +10,6 @@ const RESOURCE_KEYS = Object.freeze(["gold", "wood", "food", "stone", "iron"]);
 const RESOURCE_ALIASES = Object.freeze({ grain: "food" });
 const MAX_OFFLINE_HOURS = 72;
 export const INITIAL_WORKER_POOL = 1800;
-export const MAX_WORKER_POOL = 2800;
 export const MAX_RESOURCE_ASSIGNMENT_WORKERS = 1000;
 
 function parseObject(value, fallback = {}) {
@@ -45,14 +44,13 @@ export function settleEconomy({
   const safePreviousTick = Number.isFinite(previousTick) ? previousTick : now;
   const elapsedMs = Math.max(0, Math.min(now - safePreviousTick, MAX_OFFLINE_HOURS * 3600000));
   const elapsedHours = elapsedMs / 3600000;
-  const workerProductionPerHour = templeLevel * 25;
+  const workerProductionPerHour = templeLevel * 100;
   const exactWorkers = workerProductionPerHour * elapsedHours + Math.max(0, Number(remainders.workers) || 0);
   const newWorkers = Math.floor(exactWorkers);
   remainders.workers = Number((exactWorkers - newWorkers).toFixed(8));
-  const workerPoolBefore = Math.min(MAX_WORKER_POOL, Math.max(INITIAL_WORKER_POOL, Math.floor(Number(workerPool) || INITIAL_WORKER_POOL)));
-  const settledWorkerPool = Math.min(MAX_WORKER_POOL, workerPoolBefore + newWorkers);
-  const workersActuallyProduced = settledWorkerPool - workerPoolBefore;
-  if (settledWorkerPool >= MAX_WORKER_POOL) remainders.workers = 0;
+  const workerPoolBefore = Math.max(INITIAL_WORKER_POOL, Math.floor(Number(workerPool) || INITIAL_WORKER_POOL));
+  const settledWorkerPool = workerPoolBefore + newWorkers;
+  const workersActuallyProduced = newWorkers;
   let assignableWorkers = Math.max(0, settledWorkerPool - Math.max(0, Number(troopPopulation) || 0));
   for (const key of Object.keys(assignments)) {
     const requested = Math.max(0, Math.floor(Number(assignments[key]) || 0));
