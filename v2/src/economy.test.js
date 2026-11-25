@@ -109,3 +109,14 @@ test("worker production retains fractional accrual between state checks", () => 
   assert.equal(result.workerPool, 112);
   assert.equal(result.remainders.workers, 0.5);
 });
+test("assigned workers are trimmed to the remaining population after troop consumption", () => {
+  const result = settleEconomy({
+    resources: {}, workerAssignments: { wood: 800, gold: 300, food: 200 },
+    buildings: { "1": { level: 1 }, "7": { level: 1 } },
+    workerPool: 1000, troopPopulation: 250,
+    lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
+    now: Date.parse("2026-01-01T00:00:00.000Z")
+  });
+  assert.deepEqual(result.workerAssignments, { wood: 750, gold: 0, food: 0 });
+  assert.equal(Object.values(result.workerAssignments).reduce((sum, count) => sum + count, 0), 750);
+});
