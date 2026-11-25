@@ -37,14 +37,14 @@ test("army upgrades add attack and both defense bonuses to troop catalog without
   assert.equal(cavalry.cavalryDefense, 144);
 });
 
-test("legacy troop recruitment endpoint is disabled without deleting existing troops", async () => {
+test("troop recruitment endpoint is available again and validates service configuration", async () => {
   const response = { writeHead(status) { this.statusCode = status; }, end(body) { this.body = body; } };
   await handleArmyRequest({
     req: { method: "POST" }, res: response,
     url: new URL("http://localhost/api/game/army/recruit"), pool: null, sessionSecret: null
   });
-  assert.equal(response.statusCode, 410);
-  assert.match(JSON.parse(response.body).error, /Ordu Geliştirme Merkezi/);
+  assert.equal(response.statusCode, 503);
+  assert.match(JSON.parse(response.body).error, /kayıt servisi/);
 });
 
 test("buying an army upgrade deducts only gold and persists the independent level", async () => {
