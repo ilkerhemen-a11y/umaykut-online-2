@@ -244,7 +244,7 @@ test("game state is returned only to a valid V2 player session", async (t) => {
   const pool = createGameStatePool({
     playerId,
     row: {
-      village_name: "Bozkır", faction_id: "gokturk", worker_pool: 1800,
+      village_name: "Bozkır", faction_id: "gokturk", worker_pool: 1000,
       worker_assignments: { grain: 20, wood: 30, stone: 10 }, worker_state_initialized: true,
       resources: { gold: 1650 },
       buildings: {
@@ -267,7 +267,7 @@ test("game state is returned only to a valid V2 player session", async (t) => {
   assert.equal(response.status, 200);
   const state = await response.json();
   assert.equal(state.factionId, "gokturk");
-  assert.equal(state.workerPool, 1800);
+  assert.equal(state.workerPool, 1000);
   assert.deepEqual(state.workerAssignments, { grain: 20, wood: 30, stone: 10 });
   assert.equal(state.buildings["1"].level, 3);
   assert.equal(state.buildings["2"].level, 2);
@@ -288,7 +288,7 @@ test("game state rejects worker assignments above the current worker pool", asyn
         return { rows: [{ id: playerId }], rowCount: 1 };
       }
       if (sql.includes("SELECT worker_pool, troops FROM umaykut_v2.player_game_state")) {
-        return { rows: [{ worker_pool: 1800, troops: {} }], rowCount: 1 };
+        return { rows: [{ worker_pool: 1000, troops: {} }], rowCount: 1 };
       }
       throw new Error("Invalid worker payload should not write to the database.");
     }
@@ -550,7 +550,7 @@ test("unfounded characters are repaired to nine level-one buildings on state loa
   const pool = createGameStatePool({
     playerId,
     row: {
-      village_name: null, faction_id: null, worker_pool: 1800,
+      village_name: null, faction_id: null, worker_pool: 1000,
       worker_assignments: { grain: 0, wood: 0, stone: 0 }, worker_state_initialized: true,
       resources: { gold: 1650 }, buildings: { "1": { type: "center", level: 7 } },
       updated_at: "2026-11-17T12:00:00.000Z"
@@ -584,7 +584,7 @@ test("game state preserves valid in-progress building upgrades across reloads", 
   const pool = createGameStatePool({
     playerId,
     row: {
-      village_name: "Bozkır", faction_id: "gokturk", worker_pool: 1800,
+      village_name: "Bozkır", faction_id: "gokturk", worker_pool: 1000,
       worker_assignments: { grain: 0, wood: 0, stone: 0 }, worker_state_initialized: true,
       resources: { wood: 6840, stone: 7440, iron: 8030 },
       buildings: { "1": { type: "center", level: 1, upgrade } },
@@ -614,7 +614,7 @@ test("established characters keep valid building levels while missing slots are 
   const pool = createGameStatePool({
     playerId,
     row: {
-      village_name: "Eski Yurt", faction_id: "gokturk", worker_pool: 1800,
+      village_name: "Eski Yurt", faction_id: "gokturk", worker_pool: 1000,
       worker_assignments: { grain: 0, wood: 0, stone: 0 }, worker_state_initialized: true,
       resources: { gold: 1650 },
       buildings: { "1": { type: "center", level: 4 }, "2": { type: "barracks", level: 2 } },
