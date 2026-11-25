@@ -1014,7 +1014,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
               workerPool: economy.workerPool,
               workerProductionPerHour: economy.workerProductionPerHour,
               workersProduced: economy.workersProduced,
-              workerAssignments: row.worker_assignments,
+              workerAssignments: economy.workerAssignments,
               workerStateInitialized: row.worker_state_initialized,
               resources: economy.resources,
               buildings,
