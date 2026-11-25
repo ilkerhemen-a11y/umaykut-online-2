@@ -64,8 +64,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=army-recruitment-legacy-ui-20261125"/);
-  assert.ok(html.includes('src="/app.js?v=army-recruitment-legacy-ui-20261125"'));
+  assert.match(html,/href="\/app\.css\?v=army-upgrade-bonus-display-20261125"/);
+  assert.ok(html.includes('src="/app.js?v=army-upgrade-bonus-display-20261125"'));
   assert.match(html,/id="production-dialog"/);
   assert.match(html,/id="production-open"/);
   assert.match(html,/id="production-resource-grid"/);
