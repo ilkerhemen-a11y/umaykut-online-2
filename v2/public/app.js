@@ -779,6 +779,7 @@ function renderProductionDialog(){
   "Merkez seviyesi "+centerLevel+": üretime +%"+centerBonus+" bonus",
   "Keresteci seviyesi "+lumberyardLevel+": odun üretimine +%"+lumberyardBonus+" bonus",
   "Okçu seviyesi "+archeryLevel+": okçu birlikleri için eğitim altyapısı",
+  "Atlı birlikler işçi tüketmez; her atlı asker için at gerekir.",
   nodeBonus?"Kaynak noktası verimi: her seviye temel üretime +%10 katkı sağlar.":"Kaynak noktalarına işçi gönderildiğinde verim seviyesi üretime bonus sağlar."
  ];
  effects.forEach(value=>{const p=document.createElement("p");p.textContent=value;productionEffectsList.append(p);});
