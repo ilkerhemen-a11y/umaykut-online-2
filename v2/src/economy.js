@@ -29,7 +29,6 @@ export function settleEconomy({
   productionRemainders: storedRemainders,
   workerPool = INITIAL_WORKER_POOL,
   troopPopulation = 0,
-  storedStorageCapacity = 15000,
   now = Date.now()
 }) {
   const resources = parseObject(storedResources);
@@ -42,7 +41,6 @@ export function settleEconomy({
   const stableLevel = Math.max(1, Math.min(10, Number(buildings["3"]?.level) || 1));
   const horseProductionPerHour = Math.round(Math.min(9, stableLevel) * 1000 / 9);
   const lumberyardMultiplier = 1 + (lumberyardLevel - 1) * 0.05;
-  const storageCapacity = Math.max(15000, Math.floor(Number(storedStorageCapacity) || 15000));
   const previousTick = lastResourceTick ? new Date(lastResourceTick).getTime() : now;
   const safePreviousTick = Number.isFinite(previousTick) ? previousTick : now;
   const elapsedMs = Math.max(0, Math.min(now - safePreviousTick, MAX_OFFLINE_HOURS * 3600000));
@@ -125,7 +123,7 @@ export function settleEconomy({
     const whole = Math.floor(exact);
     remainders[key] = Number((exact - whole).toFixed(8));
     const before = Math.max(0, Number(resources[key]) || 0);
-    const after = Math.min(storageCapacity, before + whole);
+    const after = before + whole;
     resources[key] = after;
     productionApplied[key] = after - before;
     productionPerHour[key] = Number((productionPerHour[key] * centerMultiplier).toFixed(2));
@@ -135,7 +133,7 @@ export function settleEconomy({
   const wholeHorses = Math.floor(exactHorses);
   remainders.horses = Number((exactHorses - wholeHorses).toFixed(8));
   const horsesBefore = Math.max(0, Number(resources.horses) || 0);
-  resources.horses = Math.min(storageCapacity, horsesBefore + wholeHorses);
+  resources.horses = horsesBefore + wholeHorses;
   productionApplied.horses = resources.horses - horsesBefore;
 
   return {
@@ -148,7 +146,7 @@ export function settleEconomy({
     workerProductionPerHour,
     workersProduced: workersActuallyProduced,
     productionApplied,
-    storageCapacity,
+    storageCapacity: null,
     lumberyardBonusPercent: (lumberyardLevel - 1) * 5,
     stableLevel,
     horseProductionPerHour,

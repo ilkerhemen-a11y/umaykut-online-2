@@ -27,7 +27,7 @@ test("owned resource nodes add their yield bonus to assigned mine workers", () =
   assert.equal(result.resources.wood, 28);
 });
 
-test("center level increases production and warehouse limits stored resources", () => {
+test("center level increases production without limiting stored resources", () => {
   const result = settleEconomy({
     resources: { wood: 14990 },
     workerAssignments: { wood: 10 },
@@ -36,8 +36,8 @@ test("center level increases production and warehouse limits stored resources", 
     now: Date.parse("2026-01-01T01:00:00.000Z")
   });
   assert.equal(result.productionPerHour.wood, 110);
-  assert.equal(result.resources.wood, 15000);
-  assert.equal(result.storageCapacity, 15000);
+  assert.equal(result.resources.wood, 15100);
+  assert.equal(result.storageCapacity, null);
 });
 
 test("offline accumulation is capped at 72 hours and fractional production is retained", () => {
