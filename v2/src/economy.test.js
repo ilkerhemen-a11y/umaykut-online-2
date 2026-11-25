@@ -154,11 +154,11 @@ test("new villages start with 1800 workers and temple growth is unlimited", () =
 test("each individual resource source is capped at 1000 workers", () => {
   const result = settleEconomy({
     resources: {}, workerAssignments: { wood: 1200, gold: 1000, food: 200 },
-    buildings: { "7": { level: 1 } }, workerPool: 2800,
+    buildings: { "7": { level: 1 } }, workerPool: 4500,
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T00:00:00.000Z")
   });
   assert.deepEqual(result.workerAssignments, { wood: 1000, gold: 1000, food: 200 });
   assert.equal(Object.values(result.workerAssignments).reduce((sum, count) => sum + count, 0), 2200);
-  assert.equal(result.workerPool, 2800);
+  assert.equal(result.workerPool, 4500);
 });
