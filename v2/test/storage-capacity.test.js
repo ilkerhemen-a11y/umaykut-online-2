@@ -4,8 +4,8 @@ import { settleEconomy } from "../src/economy.js";
 
 test("resource and horse stocks grow beyond the former 35,000 storage cap", () => {
   const result = settleEconomy({
-    resources: { gold: 34990, wood: 34990, food: 34990, stone: 34990, iron: 34990, horses: 34990 },
-    workerAssignments: { gold: 500, wood: 500, food: 500, stone: 500, iron: 500 },
+    resources: { gold: 33990, wood: 29990, food: 28990, stone: 31990, iron: 32990, horses: 34990 },
+    workerAssignments: { gold: 500, wood: 500, grain: 500, stone: 500, iron: 500 },
     buildings: { "3": { level: 9 }, "7": { level: 10 } },
     lastResourceTick: new Date(0).toISOString(),
     workerPool: 2800,
