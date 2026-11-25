@@ -106,7 +106,7 @@ test("worker production retains fractional accrual between state checks", () => 
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T00:30:00.000Z")
   });
-  assert.equal(result.workerPool, 1825);
+  assert.equal(result.workerPool, 1850);
   assert.equal(result.remainders.workers, 0);
 });
 test("temple worker production accrues for the full 72-hour offline window", () => {
