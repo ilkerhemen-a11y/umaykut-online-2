@@ -106,9 +106,21 @@ test("worker production retains fractional accrual between state checks", () => 
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T00:30:00.000Z")
   });
-  assert.equal(result.workerPool, 1812);
-  assert.equal(result.remainders.workers, 0.5);
+  assert.equal(result.workerPool, 1825);
+  assert.equal(result.remainders.workers, 0);
 });
+test("temple worker production accrues for the full 72-hour offline window", () => {
+  const result = settleEconomy({
+    resources: {}, workerAssignments: {}, buildings: { "7": { level: 10 } },
+    workerPool: 1800,
+    lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
+    now: Date.parse("2026-01-04T00:00:00.000Z")
+  });
+  assert.equal(result.workerProductionPerHour, 1000);
+  assert.equal(result.workersProduced, 72000);
+  assert.equal(result.workerPool, 73800);
+});
+
 test("each resource source can receive up to 1000 workers within the shared population", () => {
   const result = settleEconomy({
     resources: {}, workerAssignments: { wood: 800, gold: 300, food: 200 },
