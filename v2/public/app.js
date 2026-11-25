@@ -1132,7 +1132,7 @@ function renderArmySummary(){
  }
 }
 function showArmyUnitList(){
- document.querySelector("#army-unit-list-section").hidden=false;
+ armyRecruitSection.hidden=false;
  selectedArmyUnitId=null;
 }
 function renderArmyCatalog(){
