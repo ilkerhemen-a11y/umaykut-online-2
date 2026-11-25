@@ -64,8 +64,8 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=20261124-stable-horses-1"/);
-  assert.ok(html.includes('src="/app.js?v=20261124-stable-horses-1"'));
+  assert.match(html,/href="\/app\.css\?v=20261125-mobile-markers-1"/);
+  assert.ok(html.includes('src="/app.js?v=20261124-login-validation-fix-1"'));
   assert.match(html,/id="production-dialog"/);
   assert.match(html,/id="production-open"/);
   assert.match(html,/id="production-resource-grid"/);
@@ -110,14 +110,25 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(stageHtml.includes('class="wall-marker-art" src="/assets/buildings/wall.svg"'));
 
   const expectedPositions=[["1",53.68,51.25],["2",42.23,38.35],["3",67.92,59.54],["4",24.62,53.54],["5",72.69,44.7],["6",28.04,43.46],["7",60.15,38.31],["8",45.03,58.37],["9",78.9,52.57]];
-  // Check the 375px-wide mobile layout: the 2D hit areas must not overlap.
-  const mobileMarkers=expectedPositions.map(([slot,x,y])=>({slot,x,y,width:slot==="1"?26:22,height:slot==="1"?26:22}));
-  for(let i=0;i<mobileMarkers.length;i++){
-    for(let j=i+1;j<mobileMarkers.length;j++){
-      const a=mobileMarkers[i],b=mobileMarkers[j];
-      const dx=Math.abs(a.x-b.x)*375/100,dy=Math.abs(a.y-b.y)*562.5/100;
-      const overlaps=dx<(a.width+b.width)/2&&dy<(a.height+b.height)/2;
-      assert.equal(overlaps,false,`mobile building markers ${a.slot} and ${b.slot} must not overlap`);
+  // Check the actual CSS marker dimensions at 320px and 375px phone widths.
+  const mobileLayouts=[
+    {width:320,height:480,centerWidth:38,centerHeight:32,markerWidth:28,markerHeight:24},
+    {width:375,height:562.5,centerWidth:48,centerHeight:40,markerWidth:34,markerHeight:30}
+  ];
+  for(const layout of mobileLayouts){
+    const mobileMarkers=expectedPositions.map(([slot,x,y])=>({
+      slot,x,y,
+      width:slot==="1"?layout.centerWidth:layout.markerWidth,
+      height:slot==="1"?layout.centerHeight:layout.markerHeight
+    }));
+    for(let i=0;i<mobileMarkers.length;i++){
+      for(let j=i+1;j<mobileMarkers.length;j++){
+        const a=mobileMarkers[i],b=mobileMarkers[j];
+        const dx=Math.abs(a.x-b.x)*layout.width/100;
+        const dy=Math.abs(a.y-b.y)*layout.height/100;
+        const overlaps=dx<(a.width+b.width)/2&&dy<(a.height+b.height)/2;
+        assert.equal(overlaps,false,`mobile ${layout.width}px building markers ${a.slot} and ${b.slot} must not overlap`);
+      }
     }
   }
   for(const [slot,x,y] of expectedPositions){
@@ -127,7 +138,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   }
 
   // Building markers must overlay the image itself, not flow after it.
-  const styles=await fetch(base+"/app.css?v=20261124-stable-horses-1");
+  const styles=await fetch(base+"/app.css?v=20261125-mobile-markers-1");
   assert.equal(styles.status,200);
   const css=await styles.text();
   assert.ok(css.includes(".ranking-method-note{"));
@@ -140,6 +151,9 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(css.includes(".building-numbers{position:absolute;inset:0;pointer-events:none}"));
   assert.match(css,/\.wall-number\{[^}]*left:50%[^}]*top:7%/);
   assert.ok(css.includes(".building-number{position:absolute;transform:translate(-50%,-50%);"));
+  assert.ok(css.includes("@media(max-width:360px){\n  .building-number{width:28px;height:24px}\n  .building-number.is-center{width:38px;height:32px}"));
+  assert.ok(css.includes(".building-index{top:-2px;right:-2px;width:14px;height:14px;font-size:9px}"));
+
   assert.ok(!css.includes(".wall-position-tools{"));
   assert.ok(css.includes(".wall-number{pointer-events:auto!important"));
   assert.ok(!css.includes(".wall-position-editing"));
