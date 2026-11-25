@@ -745,7 +745,7 @@ function renderProductionDialog(){
  productionWorkerFree.textContent=formatNumber(freeWorkers)+" işçi boştadır"+(hourlySummary?" · Saatlik üretim: "+hourlySummary:"");
  productionResourceGrid.replaceChildren();
  for(const key of ["gold","wood","food","stone","iron","horses"]){
-  const current=Number(gameResources[key]||0),rate=Number(gameProductionPerHour[key]||0);
+  const current=Number(gameResources[key]||0);
   const card=document.createElement("article");card.className="production-resource-card";
   const heading=document.createElement("div");heading.className="production-resource-heading";
   const icon=document.createElement("span");icon.textContent=RESOURCE_ICONS[key];
