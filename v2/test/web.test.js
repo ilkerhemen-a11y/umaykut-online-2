@@ -65,7 +65,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
   assert.match(html,/href="\/app\.css\?v=army-recruitment-legacy-ui-20261125"/);
-  assert.ok(html.includes('src="/app.js?v=army-upgrades-20261125"'));
+  assert.ok(html.includes('src="/app.js?v=army-recruitment-legacy-ui-20261125"'));
   assert.match(html,/id="production-dialog"/);
   assert.match(html,/id="production-open"/);
   assert.match(html,/id="production-resource-grid"/);
@@ -222,7 +222,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="army-unit-detail"/);
   assert.match(html,/id="army-unit-back"/);
   assert.match(html,/id="army-upgrade-dialog"/);
-  assert.match(html,/id="army-upgrade-open"/);
+  assert.match(appScript,/id="army-upgrade-open"/);
   assert.match(appScript,/function renderArmyUnitDetail\(unitId\)/);
   assert.match(appScript,/data-select-unit/);
   assert.match(appScript,/data-recruit-unit/);
