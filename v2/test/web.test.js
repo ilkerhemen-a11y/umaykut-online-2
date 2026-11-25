@@ -173,10 +173,11 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="building-upgrade-tracker"/);
   assert.match(html,/id="building-upgrade-list"/);
   assert.match(html,/id="map-view" hidden/);
-  assert.match(html,/id="workers-available">1\.800/);
-  assert.match(html,/id="workers-total-count">Toplam işçi: 1\.800/);
-  assert.match(html,/id="workers-hourly-production">\+25 işçi\/saat/);
-  assert.match(html,/id="workers-assigned-total">0 görevde/);
+  assert.match(html,/id="worker-count" type="number"[^>]*max="1800"/);
+  assert.match(html,/id="assign-workers"/);
+  assert.match(html,/id="worker-status"/);
+  assert.match(html,/id="production-worker-total"/);
+  assert.match(html,/id="production-worker-free"/);
   assert.match(html,/id="recall-workers"/);
   assert.equal((html.match(/data-resource="(?:grain|wood|stone)"/g)||[]).length,0);
 
