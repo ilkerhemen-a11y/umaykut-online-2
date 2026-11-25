@@ -176,11 +176,15 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
         await client.query("ROLLBACK"); transaction = false;
         sendJson(res, 400, { error: "Bu birlik için gerekli bina seviyesi henüz açılmadı." }); return true;
       }
-      if (!Number.isSafeInteger(amount) || amount < 1 || amount > 100) {
+      if (!Number.isSafeInteger(amount) || amount < 1) {
         await client.query("ROLLBACK"); transaction = false;
-        sendJson(res, 400, { error: "Bir seferde 1 ile 100 arasında asker yetiştirebilirsin." }); return true;
+        sendJson(res, 400, { error: "Geçerli bir asker yetiştirme miktarı girmelisin." }); return true;
       }
       const costs = Object.fromEntries(Object.entries(unit.cost || {}).map(([key, value]) => [key, Number(value) * amount]));
+      if (Object.values(costs).some(value => !Number.isSafeInteger(value))) {
+        await client.query("ROLLBACK"); transaction = false;
+        sendJson(res, 400, { error: "Asker miktarı hesaplanamayacak kadar yüksek." }); return true;
+      }
       const missing = Object.entries(costs).filter(([key, value]) => Number(resources[key] || 0) < value);
       if (missing.length) {
         await client.query("ROLLBACK"); transaction = false;
