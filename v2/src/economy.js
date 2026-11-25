@@ -55,10 +55,10 @@ export function settleEconomy({
   const settledWorkerPool = Math.min(MAX_WORKER_POOL, workerPoolBefore + newWorkers);
   const workersActuallyProduced = settledWorkerPool - workerPoolBefore;
   if (settledWorkerPool >= MAX_WORKER_POOL) remainders.workers = 0;
-  let assignableWorkers = Math.min(MAX_RESOURCE_ASSIGNMENT_WORKERS, Math.max(0, settledWorkerPool - Math.max(0, Number(troopPopulation) || 0)));
+  let assignableWorkers = Math.max(0, settledWorkerPool - Math.max(0, Number(troopPopulation) || 0));
   for (const key of Object.keys(assignments)) {
     const requested = Math.max(0, Math.floor(Number(assignments[key]) || 0));
-    const kept = Math.min(requested, assignableWorkers);
+    const kept = Math.min(requested, MAX_RESOURCE_ASSIGNMENT_WORKERS, assignableWorkers);
     assignments[key] = kept;
     assignableWorkers -= kept;
   }
