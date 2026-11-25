@@ -249,7 +249,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/productionBreakdown/);
   assert.match(appScript,/productionNodeName/);
   assert.match(appScript,/Atlı birlikler işçi tüketmez/);
-  assert.match(appScript,/stableRate/);
+  assert.doesNotMatch(appScript,/stableNote|stableRate/);
   assert.match(appScript,/horses/);
   assert.match(appScript,/building-upgrade-count/);
   assert.match(appScript,/BUILDING_SLOT_TYPES/);
