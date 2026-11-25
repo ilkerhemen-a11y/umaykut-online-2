@@ -244,7 +244,7 @@ test("game state is returned only to a valid V2 player session", async (t) => {
   const pool = createGameStatePool({
     playerId,
     row: {
-      village_name: "Bozkır", faction_id: "gokturk", worker_pool: 1000,
+      village_name: "Bozkır", faction_id: "gokturk", worker_pool: 1800,
       worker_assignments: { grain: 20, wood: 30, stone: 10 }, worker_state_initialized: true,
       resources: { gold: 1650 },
       buildings: {
@@ -267,7 +267,7 @@ test("game state is returned only to a valid V2 player session", async (t) => {
   assert.equal(response.status, 200);
   const state = await response.json();
   assert.equal(state.factionId, "gokturk");
-  assert.equal(state.workerPool, 1000);
+  assert.equal(state.workerPool, 1800);
   assert.deepEqual(state.workerAssignments, { grain: 20, wood: 30, stone: 10 });
   assert.equal(state.buildings["1"].level, 3);
   assert.equal(state.buildings["2"].level, 2);
