@@ -124,10 +124,6 @@ function armyPower(troops, catalog) {
 }
 export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) {
   if (!url.pathname.startsWith("/api/game/army")) return false;
-  if (req.method === "POST" && url.pathname === "/api/game/army/recruit") {
-    sendJson(res, 410, { error: "Asker yetiştirme kaldırıldı. Ordunu Ordu Geliştirme Merkezi'nden güçlendirebilirsin." });
-    return true;
-  }
   if (!pool) { sendJson(res, 503, { error: "Oyun kayıt servisi henüz yapılandırılmadı." }); return true; }
   if (!sessionSecret || sessionSecret.length < 32) { sendJson(res, 503, { error: "Oturum güvenlik ayarı eksik." }); return true; }
   if (!["GET", "POST"].includes(req.method)) { res.setHeader("allow", "GET, POST"); sendJson(res, 405, { error: "Yöntem desteklenmiyor." }); return true; }
@@ -169,6 +165,42 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     const factionId = FACTIONS[row.faction_id] ? row.faction_id : "gokturk";
     let armyUpgrades = normalizeArmyUpgrades(row.army_upgrades);
     let catalog = getTroopCatalog(factionId, buildings, armyUpgrades);
+
+    if (req.method === "POST" && url.pathname === "/api/game/army/recruit") {
+      let body = "";
+      for await (const chunk of req) { body += chunk; if (body.length > 8192) throw new Error("İstek çok büyük."); }
+      const input = JSON.parse(body || "{}");
+      const unitId = String(input.unitId || "");
+      const amount = Number(input.amount ?? 1);
+      const unit = catalog.find(item => item.id === unitId);
+      if (!unit || !unit.unlocked) {
+        await client.query("ROLLBACK"); transaction = false;
+        sendJson(res, 400, { error: "Bu birlik için gerekli bina seviyesi henüz açılmadı." }); return true;
+      }
+      if (!Number.isSafeInteger(amount) || amount < 1 || amount > 100) {
+        await client.query("ROLLBACK"); transaction = false;
+        sendJson(res, 400, { error: "Bir seferde 1 ile 100 arasında asker yetiştirebilirsin." }); return true;
+      }
+      const costs = Object.fromEntries(Object.entries(unit.cost || {}).map(([key, value]) => [key, Number(value) * amount]));
+      const missing = Object.entries(costs).filter(([key, value]) => Number(resources[key] || 0) < value);
+      if (missing.length) {
+        await client.query("ROLLBACK"); transaction = false;
+        sendJson(res, 409, { error: "Yetersiz kaynak: " + missing.map(([key, value]) => key + " " + value).join(", ") }); return true;
+      }
+      const workerCost = unit.requiresHorse ? 0 : amount;
+      if (workerPool - assignedWorkers - workerConsumingUnits < workerCost) {
+        await client.query("ROLLBACK"); transaction = false;
+        sendJson(res, 409, { error: "Yeterli boş işçi yok. İşçi havuzunu veya kaynak dağılımını kontrol et." }); return true;
+      }
+      for (const [key, value] of Object.entries(costs)) resources[key] = Number(resources[key] || 0) - value;
+      troops[unitId] = Number(troops[unitId] || 0) + amount;
+      workerConsumingUnits += workerCost;
+      idleWorkers = Math.max(0, workerPool - assignedWorkers - workerConsumingUnits);
+      await client.query(
+        "UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb, troops=$3::jsonb, updated_at=NOW() WHERE player_id=$1",
+        [session.id, JSON.stringify(resources), JSON.stringify(troops)]
+      );
+    }
 
     if (req.method === "POST" && url.pathname === "/api/game/army/upgrade") {
       let body = "";

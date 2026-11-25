@@ -37,14 +37,58 @@ test("army upgrades add attack and both defense bonuses to troop catalog without
   assert.equal(cavalry.cavalryDefense, 144);
 });
 
-test("legacy troop recruitment endpoint is disabled without deleting existing troops", async () => {
+test("troop recruitment endpoint is available again and validates service configuration", async () => {
   const response = { writeHead(status) { this.statusCode = status; }, end(body) { this.body = body; } };
   await handleArmyRequest({
     req: { method: "POST" }, res: response,
     url: new URL("http://localhost/api/game/army/recruit"), pool: null, sessionSecret: null
   });
-  assert.equal(response.statusCode, 410);
-  assert.match(JSON.parse(response.body).error, /Ordu Geliştirme Merkezi/);
+  assert.equal(response.statusCode, 503);
+  assert.match(JSON.parse(response.body).error, /kayıt servisi/);
+});
+
+test("recruiting a troop deducts its resources and adds one unit to the persistent army", async () => {
+  const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+  const secret = "test-session-secret-with-at-least-32-characters";
+  const token = createSessionToken(playerId, secret);
+  const state = {
+    faction_id: "seljuk", resources: { gold: 500, wood: 500, food: 600, iron: 700, horses: 10 },
+    buildings: { "2": { type: "barracks", level: 1 }, "3": { type: "stable", level: 1 }, "4": { type: "blacksmith", level: 1 }, "9": { type: "archery", level: 1 } },
+    troops: { infantry: 0 }, training_queue: [], worker_pool: 1000, worker_assignments: {},
+    army_upgrades: { infantryAttack: 0, infantryDefense: 0, cavalryDefense: 0 }
+  };
+  const client = {
+    async query(sql, params) {
+      if (sql.includes("SELECT faction_id, resources")) return { rows: [state], rowCount: 1 };
+      if (sql.includes("SET resources=$2::jsonb, troops=$3::jsonb")) {
+        state.resources = JSON.parse(params[1]); state.troops = JSON.parse(params[2]);
+      }
+      return { rows: [], rowCount: 1 };
+    },
+    release() {}
+  };
+  const pool = {
+    async query(sql) {
+      if (sql.includes("SELECT p.id FROM umaykut_v2.players")) return { rows: [{ id: playerId }], rowCount: 1 };
+      if (sql.includes("SELECT resources, army_upgrades")) return { rows: [{ resources: state.resources, army_upgrades: state.army_upgrades }], rowCount: 1 };
+      throw new Error("Unexpected pool query: " + sql);
+    },
+    async connect() { return client; }
+  };
+  const req = {
+    method: "POST", headers: { authorization: "Bearer " + token },
+    async *[Symbol.asyncIterator]() { yield JSON.stringify({ unitId: "infantry", amount: 1 }); }
+  };
+  const res = { writeHead(status) { this.statusCode = status; }, end(body) { this.body = body; } };
+  await handleArmyRequest({ req, res, url: new URL("http://localhost/api/game/army/recruit"), pool, sessionSecret: secret });
+  const body = JSON.parse(res.body);
+  assert.equal(res.statusCode, 200);
+  assert.equal(body.troops.infantry, 1);
+  assert.equal(body.resources.wood, 465);
+  assert.equal(body.resources.food, 555);
+  assert.equal(body.resources.iron, 685);
+  assert.equal(body.workerConsumingUnits, 1);
+  assert.equal(body.idleWorkers, 999);
 });
 
 test("buying an army upgrade deducts only gold and persists the independent level", async () => {
