@@ -986,7 +986,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             );
             const economy = settleEconomy({
               resources: row.resources,
-              workerAssignments: economy.workerAssignments,
+              workerAssignments: row.worker_assignments,
               buildings,
               resourceNodes: nodes.rows,
               lastResourceTick: row.last_resource_tick,
