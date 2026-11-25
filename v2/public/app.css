@@ -870,3 +870,13 @@
 .army-upgrade-action button{min-height:40px;padding:9px 14px;border:1px solid #bd9142;border-radius:10px;background:linear-gradient(135deg,#8c6728,#c59a4b);color:#17130c;font-weight:800}
 .army-upgrade-action button:disabled{opacity:.48;filter:grayscale(.6)}
 @media(max-width:380px){.army-upgrade-card{padding:12px}.army-upgrade-action{align-items:stretch;flex-direction:column}.army-upgrade-action button{width:100%}}
+
+/* Army management: troop recruitment and permanent upgrades are separate tabs. */
+.army-management-tabs{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0 18px;position:sticky;top:0;z-index:2;padding:8px;background:rgba(16,26,19,.96);border:1px solid rgba(214,174,91,.22);border-radius:14px}
+.army-management-tabs button{min-height:42px;border:1px solid rgba(214,174,91,.28);border-radius:10px;background:rgba(255,255,255,.045);color:#e8dfc9;font-weight:700;padding:9px 10px}
+.army-management-tabs button.selected{background:linear-gradient(135deg,#8c682d,#c49a4d);color:#17140d;border-color:#d6b36d}
+#army-recruit-section[hidden],#army-upgrade-section[hidden]{display:none!important}
+.army-recruit-card{display:grid;gap:10px}
+.army-recruit-portrait{display:inline-block;flex:0 0 54px;width:54px;height:58px;border-radius:10px;overflow:hidden;background-image:var(--unit-portrait);background-size:var(--unit-size);background-position:var(--unit-position);filter:var(--unit-filter);border:1px solid rgba(214,174,91,.35)}
+.army-recruit-cost{margin:0;color:#d9c99f;font-size:.82rem;line-height:1.55}
+.army-recruit-card button{width:100%;min-height:40px}
