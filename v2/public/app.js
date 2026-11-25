@@ -760,7 +760,7 @@ function renderProductionDialog(){
   gameProductionBreakdown.forEach(item=>{
    const row=document.createElement("article");row.className="production-breakdown-row";
    const title=document.createElement("strong");title.textContent=productionNodeName(item)+(item.nodeId?" · Verim "+item.yieldLevel+"/10":" · Genel alan");
-   const detail=document.createElement("small");detail.textContent=formatNumber(item.workers)+" işçi × "+formatNumber(item.workerBaseRate)+" temel üretim × "+item.nodeMultiplier.toFixed(2)+" kaynak verimi × "+item.centerMultiplier.toFixed(2)+" merkez bonusu";
+   const detail=document.createElement("small");const perWorkerRate=item.workers>0?item.hourlyProduction/item.workers:0;detail.textContent="İşçi başına: +"+formatNumber(perWorkerRate)+" "+RESOURCE_LABELS[item.resourceType]+"/saat · "+formatNumber(item.workers)+" işçi × "+formatNumber(item.workerBaseRate)+" temel üretim × "+item.nodeMultiplier.toFixed(2)+" kaynak verimi × "+item.centerMultiplier.toFixed(2)+" merkez bonusu";
    const output=document.createElement("b");output.textContent="+"+formatNumber(item.hourlyProduction)+" "+RESOURCE_LABELS[item.resourceType]+"/saat";
    row.append(title,detail,output);productionBreakdownList.append(row);
   });
