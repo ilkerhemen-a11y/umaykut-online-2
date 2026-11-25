@@ -27,6 +27,7 @@ const webRoot = resolve(here, "../public");
 const assetRoot = resolve(here, "../public/assets");
 const legacyAssetRoot = resolve(here, "../../public/assets");
 const INITIAL_RESOURCES = Object.freeze({gold:1650,wood:6900,food:9350,stone:7480,iron:8040,horses:100});
+const HORSE_TROOPS = new Set(["light_cavalry", "mounted_archer", "heavy_cavalry"]);
 const INITIAL_BUILDINGS = Object.freeze({
   "1": {type:"center",level:1},
   "2": {type:"barracks",level:1},
@@ -991,7 +992,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
               lastResourceTick: row.last_resource_tick,
               productionRemainders: row.production_remainders,
               workerPool: row.worker_pool,
-              troopPopulation: Object.values(typeof row.troops === "string" ? JSON.parse(row.troops || "{}") : (row.troops || {})).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0),
+              troopPopulation: Object.entries(typeof row.troops === "string" ? JSON.parse(row.troops || "{}") : (row.troops || {})).reduce((sum, [unitId, count]) => sum + (HORSE_TROOPS.has(unitId) ? 0 : Math.max(0, Number(count) || 0)), 0),
               storedStorageCapacity: row.storage_capacity
             });
             await client.query(
@@ -1066,7 +1067,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         );
         const currentWorkerPool = Math.min(1000, Math.max(0, Number(workerCapacity.rows[0]?.worker_pool ?? 1000)));
         const currentTroops = workerCapacity.rows[0]?.troops ?? {};
-        const totalTroops = Object.values(currentTroops).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0);
+        const totalTroops = Object.entries(currentTroops).reduce((sum, [unitId, count]) => sum + (HORSE_TROOPS.has(unitId) ? 0 : Math.max(0, Number(count) || 0)), 0);
         if (totalAssignedWorkers + totalTroops > currentWorkerPool) {
           return sendJson(res, 400, { error: "Görevlendirilen işçi ve asker sayısı toplam işçi kapasitesini aşamaz.", workerPool: currentWorkerPool, totalTroops });
         }
