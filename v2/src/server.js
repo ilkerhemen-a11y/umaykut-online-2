@@ -586,13 +586,11 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           const goldDelta=lots*(side==="buy"?-goldPerLot:rates[resource]);
           if(side==="sell"&&Number(resources[resource]||0)<amount){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,409,{error:"Satış için yeterli kaynak bulunmuyor.",resources});}
           if(side==="buy"&&Number(resources.gold||0)<lots*goldPerLot){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,409,{error:"Alış için yeterli altın bulunmuyor.",requiredGold:lots*goldPerLot,resources});}
-          const storageCapacity=Math.max(15000,Number(row.storage_capacity)||15000);
-          if(side==="buy"&&Number(resources[resource]||0)+amount>storageCapacity){await client.query("ROLLBACK");inTransaction=false;return sendJson(res,409,{error:"Depo kapasitesi bu alış için yeterli değil.",storageCapacity});}
           if(side==="sell"){resources[resource]=Number(resources[resource]||0)-amount;resources.gold=Number(resources.gold||0)+lots*resourcePerLot/2;}
           else{resources[resource]=Number(resources[resource]||0)+amount;resources.gold=Number(resources.gold||0)-lots*goldPerLot;}
           await client.query("UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb,updated_at=NOW() WHERE player_id=$1",[session.id,JSON.stringify(resources)]);
           await client.query("COMMIT");inTransaction=false;
-          return sendJson(res,200,{success:true,side,resource,amount,goldChange:side==="buy"?-lots*goldPerLot:lots*50,resources,marketLevel,capacity,serverNow:new Date().toISOString()});
+          return sendJson(res,200,{success:true,side,resource,amount,goldChange:side==="buy"?-lots*goldPerLot:lots*50,resources,marketLevel,capacity,storageCapacity:null,serverNow:new Date().toISOString()});
         }catch(error){if(inTransaction){try{await client.query("ROLLBACK");}catch{}}throw error;}finally{client.release();}
       }catch(error){console.error("V2 market trade failed",{code:error.code||"UNKNOWN",message:String(error.message||"Unknown market error").slice(0,180)});return sendJson(res,error.status||500,{error:error.status?error.message:"Pazar işlemi tamamlanamadı."});}
     }
