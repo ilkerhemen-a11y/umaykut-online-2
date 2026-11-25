@@ -1072,15 +1072,12 @@ wallAction.addEventListener("click",async()=>{
 
 // Server-authoritative faction army and sequential troop training.
 const armyDialog=document.querySelector("#army-dialog");
-const armyCatalogNode=document.querySelector("#army-upgrade-catalog");
-const armyUpgradeCatalogNode=armyCatalogNode;
-const armyRecruitCatalogNode=document.querySelector("#army-recruit-catalog");
-const armyRecruitSection=document.querySelector("#army-recruit-section");
-const armyUpgradeSection=document.querySelector("#army-upgrade-section");
-const armyRecruitTab=document.querySelector("#army-recruit-tab");
-const armyUpgradeTab=document.querySelector("#army-upgrade-tab");
+const armyCatalogNode=document.querySelector("#army-unit-catalog");
+const armyUpgradeCatalogNode=document.querySelector("#army-upgrade-catalog");
+const armyUpgradeDialog=document.querySelector("#army-upgrade-dialog");
 let selectedArmyUnitId=null;
 const armyMessageNode=document.querySelector("#army-message");
+const armyUpgradeMessage=document.querySelector("#army-upgrade-message");
 let armyState=null;
 let armyRefreshTimer=null;
 const troopPortraitPositions={scout:"0% 0%",infantry:"33.333% 0%",archer:"66.667% 0%",shield:"100% 0%",guard:"0% 100%",light_cavalry:"33.333% 100%",mounted_archer:"66.667% 100%",heavy_cavalry:"100% 100%"};
@@ -1132,10 +1129,83 @@ function renderArmySummary(){
  }
 }
 function showArmyUnitList(){
- armyRecruitSection.hidden=false;
+ document.querySelector("#army-unit-list-section").hidden=false;
+ document.querySelector("#army-unit-detail").hidden=true;
  selectedArmyUnitId=null;
 }
 function renderArmyCatalog(){
+ if(!armyState)return;
+ armyCatalogNode.replaceChildren();
+ armyState.catalog.forEach(unit=>{
+  const card=document.createElement("button");card.type="button";card.className="army-unit-card"+(unit.unlocked?"":" is-locked");
+  card.dataset.selectUnit=unit.id;
+  const head=document.createElement("span");head.className="army-unit-card-head";
+  const emblem=document.createElement("span");emblem.className="army-unit-emblem";applyTroopPortrait(emblem,unit.id);
+  const title=document.createElement("span"),name=document.createElement("strong"),owned=document.createElement("small");
+  name.textContent=unit.name;owned.textContent="Mevcut: "+armyNumber(armyState.troops[unit.id]||0);
+  title.append(name,owned);head.append(emblem,title);
+  const meta=document.createElement("span");meta.className="army-unit-card-meta";
+  meta.textContent=unit.unlocked?"Özellikleri görüntüle · Yetiştir":"Kilitli · Gerekli bina seviyesini gör";
+  card.append(head,meta);armyCatalogNode.append(card);
+ });
+}
+function renderArmyUnitDetail(unitId){
+ if(!armyState)return;
+ const unit=armyState.catalog.find(item=>item.id===unitId);
+ if(!unit)return;
+ selectedArmyUnitId=unitId;
+ document.querySelector("#army-unit-list-section").hidden=true;
+ const detail=document.querySelector("#army-unit-detail"),content=document.querySelector("#army-unit-detail-content");
+ detail.hidden=false;content.replaceChildren();
+ const heading=document.createElement("div");heading.className="army-detail-heading";
+ const emblem=document.createElement("div");emblem.className="army-detail-emblem";applyTroopPortrait(emblem,unit.id);
+ const title=document.createElement("div"),name=document.createElement("h3"),owned=document.createElement("p");
+ name.textContent=unit.name;owned.textContent="Ordudaki mevcut sayın: "+armyNumber(armyState.troops[unit.id]||0);
+ title.append(name,owned);heading.append(emblem,title);content.append(heading);
+ const description=document.createElement("p");description.className="army-detail-description";
+ description.textContent=unit.requiresHorse?"Ahırda yetiştirilir. İşçi kullanmaz; her asker için at gerekir.":unit.building==="barracks"?"Kışlada yetiştirilen kara birliği.":unit.building==="archery"?"Okçu binasında yetiştirilen menzilli birlik.":"Ahırda yetiştirilen atlı birlik.";
+ content.append(description);
+ const stats=document.createElement("div");stats.className="army-detail-stats";
+ [["Saldırı gücü",unit.attackDisplay||unit.attack],["Piyade savunması",unit.infantryDefense],["Süvari savunması",unit.cavalryDefense],["Hız",unit.speed],["Taşıma kapasitesi",unit.carry]].forEach(([label,value])=>{
+  const item=document.createElement("div"),strong=document.createElement("strong"),small=document.createElement("small");
+  strong.textContent=String(value);small.textContent=label;item.append(strong,small);stats.append(item);
+ });
+ content.append(stats);
+ const costTitle=document.createElement("h4");costTitle.textContent="Bir asker yetiştirme maliyeti";content.append(costTitle);
+ const costs=document.createElement("p");costs.className="army-unit-cost";
+ costs.textContent=Object.entries(unit.cost).map(([key,value])=>({wood:"Odun",food:"Yiyecek",iron:"Demir",gold:"Altın"}[key]+" "+armyNumber(value))).join(" · ");content.append(costs);
+ const unlock=document.createElement("p");unlock.className="army-unlock";
+ const buildingLabel=unit.building==="barracks"?"Kışla":unit.building==="archery"?"Okçu":"Ahır";
+ unlock.textContent=unit.unlocked?buildingLabel+" seviyesi "+unit.requiredLevel+" · Birlik yetiştirilebilir":buildingLabel+" seviye "+unit.requiredLevel+" gerekli";
+ content.append(unlock);
+ const controls=document.createElement("div");controls.className="army-recruit-controls army-detail-controls";
+ const idleWorkers=Math.max(0,Number(armyState.idleWorkers)||0);
+ const resourceNames={wood:"Odun",food:"Yiyecek",iron:"Demir",gold:"Altın",stone:"Taş",horses:"At"};
+ const maxByResources=Object.entries(unit.cost||{}).reduce((max,[key,cost])=>{
+  const perUnit=Math.max(0,Number(cost)||0);
+  return perUnit>0?Math.min(max,Math.floor(Math.max(0,Number(gameResources[key])||0)/perUnit)):max;
+ },Number.MAX_SAFE_INTEGER);
+ const maxRecruit=Math.max(0,unit.requiresHorse?maxByResources:Math.min(idleWorkers,maxByResources));
+ const workerLimit=document.createElement("p");workerLimit.className="army-unlock";workerLimit.textContent=unit.requiresHorse?"Atlı birlikler işçi tüketmez · At ve kaynaklarınla en fazla "+armyNumber(maxRecruit)+" asker yetiştirebilirsin.":"Boşta işçi: "+armyNumber(idleWorkers)+" · Kaynaklarınla en fazla "+armyNumber(maxRecruit)+" asker yetiştirebilirsin.";content.append(workerLimit);
+ const amount=document.createElement("input");amount.type="number";amount.min="1";amount.max=String(maxRecruit);amount.value=maxRecruit>0?"1":"0";amount.inputMode="numeric";amount.id="army-selected-amount";amount.setAttribute("aria-label",unit.name+" yetiştirilecek asker sayısı");
+ const preview=document.createElement("div");preview.className="army-recruit-preview";preview.setAttribute("aria-live","polite");
+ let recruitButton=null;
+ const refreshRecruitPreview=()=>{
+  const requested=Math.max(0,Math.floor(Number(amount.value)||0));
+  const safeAmount=Math.min(requested,maxRecruit);
+  preview.replaceChildren();
+  const title=document.createElement("strong");title.textContent=safeAmount+" asker için gereken kaynak:";preview.append(title);
+  const list=document.createElement("span");list.textContent=Object.entries(unit.cost||{}).filter(([key,cost])=>Number(cost)>0).map(([key,cost])=>resourceNames[key]+" "+armyNumber(Number(cost)*safeAmount)).join(" · ")||"Kaynak maliyeti yok";preview.append(list);
+  amount.setCustomValidity(requested>maxRecruit?"Mevcut kaynak ve işçi sayınla en fazla "+maxRecruit+" asker yetiştirebilirsin.":"");
+  if(recruitButton)recruitButton.disabled=!unit.unlocked||safeAmount<1||requested>maxRecruit;
+ };
+ amount.addEventListener("input",refreshRecruitPreview);
+ const actions=document.createElement("div");actions.className="army-recruit-actions";
+ const maxButton=document.createElement("button");maxButton.type="button";maxButton.className="army-recruit-max";maxButton.textContent="Maksimum";maxButton.disabled=!unit.unlocked||maxRecruit<1;maxButton.addEventListener("click",()=>{amount.value=String(maxRecruit);refreshRecruitPreview();});
+ const button=document.createElement("button");recruitButton=button;button.type="button";button.textContent=unit.unlocked?(maxRecruit>0?"Bu askeri yetiştir":"Kaynak veya işçi yetersiz"):"Birlik kilitli";button.disabled=!unit.unlocked||maxRecruit<1;button.dataset.recruitUnit=unit.id;button.dataset.amountInput="army-selected-amount";
+ actions.append(maxButton,button);controls.append(amount,actions);content.append(controls,preview);refreshRecruitPreview();
+}
+function renderArmyUpgradeCatalog(){
  if(!armyState)return;
  armyUpgradeCatalogNode.replaceChildren();
  const entries=[
@@ -1165,36 +1235,6 @@ function renderArmyCatalog(){
   action.append(cost,button);card.append(head,status,action);armyUpgradeCatalogNode.append(card);
  });
 }
-function setArmyManagementTab(tab){
- const recruit=tab==="recruit";
- armyRecruitSection.hidden=!recruit;armyUpgradeSection.hidden=recruit;
- armyRecruitTab.classList.toggle("selected",recruit);armyUpgradeTab.classList.toggle("selected",!recruit);
- armyRecruitTab.setAttribute("aria-selected",String(recruit));armyUpgradeTab.setAttribute("aria-selected",String(!recruit));
-}
-function renderRecruitCatalog(){
- if(!armyState)return;
- armyRecruitCatalogNode.replaceChildren();
- armyState.catalog.forEach(unit=>{
-  const card=document.createElement("article");card.className="army-upgrade-card army-recruit-card";
-  const head=document.createElement("div");head.className="army-upgrade-head";
-  const portrait=document.createElement("span");applyTroopPortrait(portrait,unit.id,armyState.factionId);portrait.classList.add("army-recruit-portrait");
-  const title=document.createElement("div"),heading=document.createElement("h3"),note=document.createElement("p");
-  heading.textContent=unit.name;
-  note.textContent=unit.unlocked?"Mevcut: "+armyNumber(armyState.troops[unit.id]||0)+" · "+(unit.requiresHorse?"Atlı birlik":"Piyade birliği"):"Gerekli bina: Seviye "+unit.requiredLevel;
-  title.append(heading,note);head.append(portrait,title);
-  const cost=document.createElement("p");cost.className="army-recruit-cost";
-  const labels={wood:"🪵 Odun",food:"🌾 Tahıl",iron:"⚒️ Demir",gold:"🪙 Altın",horses:"🐎 At"};
-  cost.textContent=Object.entries(unit.cost||{}).map(([key,value])=>(labels[key]||key)+": "+armyNumber(value)).join(" · ");
-  const button=document.createElement("button");button.type="button";button.dataset.armyRecruit=unit.id;button.textContent="1 Asker Yetiştir";
-  const enough=Object.entries(unit.cost||{}).every(([key,value])=>Number(gameResources[key]||0)>=Number(value));
-  const workerOk=unit.requiresHorse||Number(armyState.idleWorkers||0)>=1;
-  button.disabled=!unit.unlocked||!enough||!workerOk||!authToken;
-  if(!unit.unlocked)button.textContent="Bina Seviyesi Yetersiz";
-  else if(!enough)button.textContent="Yetersiz Kaynak";
-  else if(!workerOk)button.textContent="Boş İşçi Yok";
-  card.append(head,cost,button);armyRecruitCatalogNode.append(card);
- });
-}
 async function loadArmyState(){
  if(!authToken)return;
  try{
@@ -1202,7 +1242,7 @@ async function loadArmyState(){
   currentArmyPopulation=Math.max(0,Number(armyState.workerConsumingUnits??armyState.totalUnits)||0);
   updateWorkerSummary();renderProductionDialog();
   if(armyState.resources){gameResources={...gameResources,...armyState.resources};renderResourceBalances();}
-  renderArmySummary();renderArmyCatalog();renderRecruitCatalog();
+  renderArmySummary();renderArmyCatalog();renderArmyUpgradeCatalog();
  }catch(error){
   if(armyMessageNode)armyMessageNode.textContent=error.message||"Ordu bilgileri yüklenemedi.";
  }
@@ -1256,6 +1296,10 @@ function renderInventory(){
   card.append(button);return card;
  });
  inventoryContent.append(inventorySection("🎁 Başlangıç Paketi",cards,"Başlangıç eşyası bulunmuyor."));
+ const upgradeCard=inventoryCard("Asker Geliştirmeleri","", "🛡️","Piyade saldırısı ve savunması ile atlı savunmasını kalıcı olarak güçlendir.");
+ const upgradeButton=document.createElement("button");upgradeButton.type="button";upgradeButton.className="inventory-use-button";upgradeButton.id="army-upgrade-open";upgradeButton.textContent="Geliştir";
+ upgradeCard.append(upgradeButton);
+ inventoryContent.append(inventorySection("⚔️ Ordu Geliştirme", [upgradeCard], ""));
  if(villageProtectionExpiresAt&&new Date(villageProtectionExpiresAt)>new Date()){
   const status=document.createElement("p");status.className="inventory-note";
   status.textContent="🛡️ Köy koruması aktif · "+new Date(villageProtectionExpiresAt).toLocaleString("tr-TR")+" tarihine kadar";
@@ -1280,12 +1324,19 @@ async function useStarterItem(item,button){
   inventoryMessage.textContent=result.message||"Eşya kullanıldı.";
  }catch(error){inventoryMessage.textContent=error.message||"Eşya kullanılamadı.";button.disabled=false;}
 }
+async function openArmyUpgradeDialog(){
+ if(!authToken)return;
+ armyUpgradeMessage.textContent="Ordu geliştirmeleri yükleniyor…";
+ if(!armyUpgradeDialog.open)armyUpgradeDialog.showModal();
+ await loadArmyState();
+}
 async function openInventoryDialog(){
  if(!authToken)return;
  inventoryMessage.textContent="Envanter bilgileri yenileniyor…";
  if(!inventoryDialog.open)inventoryDialog.showModal();
  try{
   await loadGameState();
+  await loadArmyState();
   const items=await authRequest("/api/game/items",{token:authToken});
   starterInventory=items.inventory||starterInventory;
   starterItemCooldowns=items.cooldowns||{};
@@ -1416,7 +1467,7 @@ marketSellButton?.addEventListener("click",()=>executeMarketTrade("sell"));
 async function openArmyDialog(){
  if(!authToken)return;
  armyMessageNode.textContent="Ordu bilgileri yükleniyor…";
- showArmyUnitList();setArmyManagementTab("recruit");
+ showArmyUnitList();
  armyDialog.showModal();
  await loadArmyState();
  if(armyRefreshTimer)clearInterval(armyRefreshTimer);
@@ -1613,30 +1664,44 @@ document.querySelector('[data-action="battle-reports"]').addEventListener("click
 document.querySelector("#battle-reports-close").addEventListener("click",()=>battleReportsDialog.close());
 battleReportsDialog.addEventListener("click",event=>{if(event.target===battleReportsDialog)battleReportsDialog.close();});
 
-armyRecruitTab.addEventListener("click",()=>setArmyManagementTab("recruit"));
-armyUpgradeTab.addEventListener("click",()=>setArmyManagementTab("upgrade"));
-armyRecruitCatalogNode.addEventListener("click",async event=>{
- const button=event.target.closest("[data-army-recruit]");
- if(!button||button.disabled)return;
- button.disabled=true;armyMessageNode.textContent="Asker yetiştiriliyor…";
- try{
-  const result=await authRequest("/api/game/army/recruit",{method:"POST",token:authToken,body:{unitId:button.dataset.armyRecruit,amount:1}});
-  armyState=result;gameResources={...gameResources,...result.resources};
-  renderResourceBalances();renderArmySummary();renderArmyCatalog();renderRecruitCatalog();
-  armyMessageNode.textContent="1 asker başarıyla yetiştirildi.";
- }catch(error){armyMessageNode.textContent=error.message||"Asker yetiştirilemedi.";button.disabled=false;}
+armyCatalogNode.addEventListener("click",event=>{
+ const button=event.target.closest("[data-select-unit]");
+ if(button)renderArmyUnitDetail(button.dataset.selectUnit);
 });
-armyCatalogNode.addEventListener("click",async event=>{
+document.querySelector("#army-unit-back").addEventListener("click",showArmyUnitList);
+document.querySelector("#army-unit-detail").addEventListener("click",async event=>{
+ const button=event.target.closest("[data-recruit-unit]");
+ if(!button)return;
+ const amount=Number(document.querySelector("#"+button.dataset.amountInput).value);
+ const idleWorkers=Math.max(0,Number(armyState?.idleWorkers)||0);
+ const selectedUnit=armyState?.catalog?.find(unit=>unit.id===button.dataset.recruitUnit);
+ if(!Number.isSafeInteger(amount)||amount<1||(!selectedUnit?.requiresHorse&&amount>idleWorkers)){
+  armyMessageNode.textContent=selectedUnit?.requiresHorse?"Geçerli bir atlı asker miktarı seçmelisin.":"En fazla "+armyNumber(idleWorkers)+" boşta işçin kadar asker yetiştirebilirsin.";return;
+ }
+ button.disabled=true;armyMessageNode.textContent="Askerler orduya katılıyor…";
+ try{
+  const result=await authRequest("/api/game/army/recruit",{method:"POST",token:authToken,body:{unitId:button.dataset.recruitUnit,amount}});
+  armyState=result;currentArmyPopulation=Math.max(0,Number(result.workerConsumingUnits??result.totalUnits)||0);updateWorkerSummary();renderProductionDialog();
+  gameResources={...gameResources,...result.resources};renderResourceBalances();
+  renderArmySummary();renderArmyCatalog();renderArmyUpgradeCatalog();
+  if(selectedArmyUnitId)renderArmyUnitDetail(selectedArmyUnitId);
+  armyMessageNode.textContent=amount+" asker anında orduna katıldı. "+(selectedUnit?.requiresHorse?"Atlar ve diğer kaynaklar depodan düşüldü. ":"")+armyNumber(result.idleWorkers)+" işçi boşta kaldı.";
+ }catch(error){armyMessageNode.textContent=error.message||"Asker yetiştirme başlatılamadı.";button.disabled=false;}
+});
+armyUpgradeCatalogNode.addEventListener("click",async event=>{
  const button=event.target.closest("[data-army-upgrade]");
  if(!button||button.disabled)return;
- button.disabled=true;armyMessageNode.textContent="Ordu geliştirmesi satın alınıyor…";
+ button.disabled=true;armyUpgradeMessage.textContent="Ordu geliştirmesi satın alınıyor…";
  try{
   const result=await authRequest("/api/game/army/upgrade",{method:"POST",token:authToken,body:{upgradeId:button.dataset.armyUpgrade}});
   armyState=result;gameResources={...gameResources,...result.resources};
-  renderResourceBalances();renderArmySummary();renderArmyCatalog();
-  armyMessageNode.textContent="Geliştirme tamamlandı. Yeni seviye +"+result.armyUpgrades[button.dataset.armyUpgrade]+".";
- }catch(error){armyMessageNode.textContent=error.message||"Ordu geliştirmesi yapılamadı.";button.disabled=false;}
+  renderResourceBalances();renderArmySummary();renderArmyUpgradeCatalog();
+  armyUpgradeMessage.textContent="Geliştirme tamamlandı. Yeni seviye +"+result.armyUpgrades[button.dataset.armyUpgrade]+".";
+ }catch(error){armyUpgradeMessage.textContent=error.message||"Ordu geliştirmesi yapılamadı.";button.disabled=false;}
 });
+document.querySelector("#army-upgrade-open").addEventListener("click",openArmyUpgradeDialog);
+document.querySelector("#army-upgrade-close").addEventListener("click",()=>armyUpgradeDialog.close());
+armyUpgradeDialog.addEventListener("click",event=>{if(event.target===armyUpgradeDialog)armyUpgradeDialog.close();});
 document.querySelector("#army-units").addEventListener("click",()=>{
  if(!armyDialog.open)armyDialog.showModal();
  loadArmyState();
