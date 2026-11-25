@@ -78,7 +78,7 @@ test("production breakdown exposes worker, node-yield and center bonuses used by
   assert.equal(result.productionPerHour.wood, 30.8);
 });
 
-test("temple produces 25 workers per hour per level and accrues offline", () => {
+test("temple produces 100 workers per hour per level without a total cap", () => {
   for (let level = 1; level <= 10; level += 1) {
     const result = settleEconomy({
       resources: {}, workerAssignments: {},
@@ -87,16 +87,16 @@ test("temple produces 25 workers per hour per level and accrues offline", () => 
       lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
       now: Date.parse("2026-01-01T01:00:00.000Z")
     });
-    assert.equal(result.workerProductionPerHour, level * 25);
-    assert.equal(result.workerPool, Math.min(2800, 1800 + level * 25));
+    assert.equal(result.workerProductionPerHour, level * 100);
+    assert.equal(result.workerPool, 1800 + level * 100);
   }
   const offline = settleEconomy({
     resources: {}, workerAssignments: {}, buildings: { "7": { level: 10 } },
     workerPool: 2700, lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T02:30:00.000Z")
   });
-  assert.equal(offline.workerPool, 2800);
-  assert.equal(offline.workersProduced, 100);
+  assert.equal(offline.workerPool, 5200);
+  assert.equal(offline.workersProduced, 2500);
 });
 
 test("worker production retains fractional accrual between state checks", () => {
@@ -123,7 +123,7 @@ test("each resource source can receive up to 1000 workers within the shared popu
 });
 
 
-test("new villages start with 1800 workers and temple growth is capped at 2800", () => {
+test("new villages start with 1800 workers and temple growth is unlimited", () => {
   const initial = settleEconomy({
     resources: {}, workerAssignments: {}, buildings: { "7": { level: 1 } },
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
@@ -136,7 +136,7 @@ test("new villages start with 1800 workers and temple growth is capped at 2800",
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T01:00:00.000Z")
   });
-  assert.equal(grown.workerPool, 2800);
+  assert.equal(grown.workerPool, 3700);
 });
 
 test("each individual resource source is capped at 1000 workers", () => {
