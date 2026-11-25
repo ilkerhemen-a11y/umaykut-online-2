@@ -740,7 +740,9 @@ function renderProductionDialog(){
  if(!productionResourceGrid)return;
  const total=totalAssigned();
  productionWorkerTotal.textContent=formatNumber(total);
- productionWorkerFree.textContent=formatNumber(Math.max(0,currentWorkerPool-total-currentArmyPopulation))+" işçi boştadır";
+ const freeWorkers=Math.max(0,currentWorkerPool-total-currentArmyPopulation);
+ const hourlySummary=["gold","wood","food","stone","iron","horses"].filter(key=>Number(gameProductionPerHour[key]||0)>0).map(key=>"+"+formatNumber(gameProductionPerHour[key])+" "+RESOURCE_LABELS[key]).join(" · ");
+ productionWorkerFree.textContent=formatNumber(freeWorkers)+" işçi boştadır"+(hourlySummary?" · Saatlik üretim: "+hourlySummary:"");
  productionResourceGrid.replaceChildren();
  for(const key of ["gold","wood","food","stone","iron","horses"]){
   const current=Number(gameResources[key]||0),rate=Number(gameProductionPerHour[key]||0);
