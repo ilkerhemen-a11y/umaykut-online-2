@@ -604,8 +604,10 @@ document.querySelector("#open-ranking").addEventListener("click",openRanking);
 document.querySelector("#ranking-close").addEventListener("click",()=>rankingDialog.close());
 rankingRefreshButton.addEventListener("click",loadRanking);
 
-const WORKER_POOL=1000;
-let currentWorkerPool=WORKER_POOL;
+const INITIAL_WORKER_POOL=1800;
+const WORKER_POOL=2800;
+const MAX_RESOURCE_ASSIGNMENT_WORKERS=1000;
+let currentWorkerPool=INITIAL_WORKER_POOL;
 let currentArmyPopulation=0;
 let workerProductionPerHour=25;
 const WORKER_STORAGE_KEY="umaykut-worker-state-v3";
@@ -618,7 +620,7 @@ const resourceInfo={
  iron:{name:"Demir Madeni",type:"DEMİR BÖLGESİ",description:"Demir çıkarmak için bu madene işçi görevlendir."}
 };
 const assigned={grain:0,wood:0,stone:0,gold:0,iron:0};
-let availableWorkers=WORKER_POOL;
+let availableWorkers=INITIAL_WORKER_POOL;
 let selectedResource=null;
 let selectedMineKey=null;
 let selectedMineName="";
@@ -626,11 +628,13 @@ function restoreWorkerState(){
  try{
   const saved=JSON.parse(localStorage.getItem(WORKER_STORAGE_KEY)||localStorage.getItem("umaykut-worker-state-v2")||"null");
   if(!saved||!saved.assigned)return;
-  if(Number.isFinite(Number(saved.workerPool)))currentWorkerPool=Math.min(WORKER_POOL,Math.max(0,Number(saved.workerPool)));
+  if(Number.isFinite(Number(saved.workerPool)))currentWorkerPool=Math.min(WORKER_POOL,Math.max(INITIAL_WORKER_POOL,Number(saved.workerPool)));
   let remaining=currentWorkerPool;
   Object.keys(saved.assigned).forEach(key=>{
    if((RESOURCE_KEYS.includes(key)||/^mine_\d+$/.test(key))&&Number.isSafeInteger(saved.assigned[key])&&saved.assigned[key]>=0){
-    assigned[key]=Math.min(saved.assigned[key],remaining);remaining-=assigned[key];
+    const assignedTotal=Object.values(assigned).reduce((sum,value)=>sum+Number(value||0),0);
+    const assignmentRoom=Math.max(0,MAX_RESOURCE_ASSIGNMENT_WORKERS-assignedTotal);
+    assigned[key]=Math.min(saved.assigned[key],remaining,assignmentRoom);remaining-=assigned[key];
    }
   });
   availableWorkers=remaining;
@@ -668,9 +672,9 @@ function selectedMineAssigned(){
 function updateWorkerActions(){
  if(!selectedResource)return;
  const current=selectedMineAssigned();
- assignButton.disabled=availableWorkers===0;
+ assignButton.disabled=availableWorkers===0||totalAssigned()>=MAX_RESOURCE_ASSIGNMENT_WORKERS;
  recallButton.disabled=current===0;
- workerInput.max=String(Math.max(availableWorkers,current,1));
+ workerInput.max=String(Math.max(Math.min(availableWorkers,MAX_RESOURCE_ASSIGNMENT_WORKERS-totalAssigned())+current,1));
 }
 function selectWorldMine(node,marker){
  const info=resourceInfo[node.resource_type];
@@ -697,7 +701,8 @@ function readWorkerCount(){
 assignButton.addEventListener("click",()=>{
  if(!selectedResource||!selectedMineKey)return;
  const count=readWorkerCount();if(count===null)return;
- if(count>availableWorkers){workerStatus.textContent=`En fazla ${formatNumber(availableWorkers)} işçi gönderebilirsin.`;workerInput.value=String(Math.max(availableWorkers,1));return;}
+ const assignmentRoom=Math.max(0,MAX_RESOURCE_ASSIGNMENT_WORKERS-totalAssigned());
+ if(count>availableWorkers||count>assignmentRoom){const allowed=Math.min(availableWorkers,assignmentRoom);workerStatus.textContent=`En fazla ${formatNumber(allowed)} işçi daha görevlendirebilirsin. Kaynaklara toplam en fazla ${formatNumber(MAX_RESOURCE_ASSIGNMENT_WORKERS)} işçi atanabilir.`;workerInput.value=String(Math.max(allowed,1));return;}
  assigned[selectedMineKey]=(assigned[selectedMineKey]||0)+count;
  saveWorkerState();updateWorkerSummary();workerInput.value="1";
  workerStatus.textContent=`${formatNumber(count)} işçi ${selectedMineName} noktasına gönderildi. Bu kaynakta ${formatNumber(selectedMineAssigned())} görevde, ${formatNumber(availableWorkers)} boştadır. Hesabına kaydedildi.`;
@@ -850,7 +855,7 @@ async function authRequest(path,{method="GET",body,token}={}){
 
 
 function applyProductionState(state){
- if(Number.isFinite(Number(state.workerPool)))currentWorkerPool=Math.min(WORKER_POOL,Math.max(0,Number(state.workerPool)));
+ if(Number.isFinite(Number(state.workerPool)))currentWorkerPool=Math.min(WORKER_POOL,Math.max(INITIAL_WORKER_POOL,Number(state.workerPool)));
  if(Number.isFinite(Number(state.workerProductionPerHour)))workerProductionPerHour=Number(state.workerProductionPerHour);
  const totalLabel=document.querySelector("#workers-total-count");
  const hourlyLabel=document.querySelector("#workers-hourly-production");
@@ -908,14 +913,14 @@ async function loadGameState(){
     if((RESOURCE_KEYS.includes(key)||/^mine_\d+$/.test(key))&&Number.isSafeInteger(Number(value))&&Number(value)>=0)assigned[key]=Number(value);
    });
    RESOURCE_KEYS.forEach(key=>{if(!Number.isSafeInteger(assigned[key]))assigned[key]=0;});
-   currentWorkerPool=Math.min(WORKER_POOL,Math.max(0,Number(state.workerPool||WORKER_POOL)));
+   currentWorkerPool=Math.min(WORKER_POOL,Math.max(INITIAL_WORKER_POOL,Number(state.workerPool||INITIAL_WORKER_POOL)));
    availableWorkers=Math.max(0,currentWorkerPool-totalAssigned());
   }else{
    await authRequest("/api/game/state",{
     method:"PUT",token:authToken,
     body:{factionId:shell.dataset.faction,workerAssignments:{...assigned}}
    });
-   currentWorkerPool=Math.max(WORKER_POOL,Number(state.workerPool||WORKER_POOL));
+   currentWorkerPool=Math.min(WORKER_POOL,Math.max(INITIAL_WORKER_POOL,Number(state.workerPool||INITIAL_WORKER_POOL)));
    availableWorkers=Math.max(0,currentWorkerPool-totalAssigned());
   }
   gameStateReady=true;
