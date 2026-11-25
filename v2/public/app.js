@@ -1173,7 +1173,7 @@ function renderArmyUnitDetail(unitId){
  content.append(stats);
  const costTitle=document.createElement("h4");costTitle.textContent="Bir asker yetiştirme maliyeti";content.append(costTitle);
  const costs=document.createElement("p");costs.className="army-unit-cost";
- costs.textContent=Object.entries(unit.cost).map(([key,value])=>({wood:"Odun",food:"Yiyecek",iron:"Demir",gold:"Altın"}[key]+" "+armyNumber(value))).join(" · ");content.append(costs);
+ costs.textContent=Object.entries(unit.cost).map(([key,value])=>({wood:"Odun",food:"Yiyecek",iron:"Demir",gold:"Altın",horses:"At"}[key]+" "+armyNumber(value))).join(" · ");content.append(costs);
  const unlock=document.createElement("p");unlock.className="army-unlock";
  const buildingLabel=unit.building==="barracks"?"Kışla":unit.building==="archery"?"Okçu":"Ahır";
  unlock.textContent=unit.unlocked?buildingLabel+" seviyesi "+unit.requiredLevel+" · Birlik yetiştirilebilir":buildingLabel+" seviye "+unit.requiredLevel+" gerekli";
@@ -1699,7 +1699,7 @@ armyUpgradeCatalogNode.addEventListener("click",async event=>{
   armyUpgradeMessage.textContent="Geliştirme tamamlandı. Yeni seviye +"+result.armyUpgrades[button.dataset.armyUpgrade]+".";
  }catch(error){armyUpgradeMessage.textContent=error.message||"Ordu geliştirmesi yapılamadı.";button.disabled=false;}
 });
-document.querySelector("#army-upgrade-open").addEventListener("click",openArmyUpgradeDialog);
+inventoryContent.addEventListener("click",event=>{if(event.target.closest("#army-upgrade-open"))openArmyUpgradeDialog();});
 document.querySelector("#army-upgrade-close").addEventListener("click",()=>armyUpgradeDialog.close());
 armyUpgradeDialog.addEventListener("click",event=>{if(event.target===armyUpgradeDialog)armyUpgradeDialog.close();});
 document.querySelector("#army-units").addEventListener("click",()=>{
