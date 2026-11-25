@@ -965,7 +965,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             );
             const state = await client.query(
               `SELECT p.village_name, s.faction_id, s.worker_pool, s.worker_assignments,
-                      s.worker_state_initialized, s.resources, s.buildings, s.wall, s.updated_at,
+                      s.worker_state_initialized, s.resources, s.buildings, s.troops, s.wall, s.updated_at,
                       s.last_resource_tick, s.production_remainders, s.storage_capacity
                FROM umaykut_v2.players p
                JOIN umaykut_v2.player_game_state s ON s.player_id = p.id
@@ -985,12 +985,13 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             );
             const economy = settleEconomy({
               resources: row.resources,
-              workerAssignments: row.worker_assignments,
+              workerAssignments: economy.workerAssignments,
               buildings,
               resourceNodes: nodes.rows,
               lastResourceTick: row.last_resource_tick,
               productionRemainders: row.production_remainders,
               workerPool: row.worker_pool,
+              troopPopulation: Object.values(typeof row.troops === "string" ? JSON.parse(row.troops || "{}") : (row.troops || {})).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0),
               storedStorageCapacity: row.storage_capacity
             });
             await client.query(
@@ -998,12 +999,13 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
                SET buildings = $2::jsonb,
                    resources = $3::jsonb,
                    worker_pool = $6,
+                   worker_assignments = $7::jsonb,
                    last_resource_tick = $4,
                    production_remainders = $5::jsonb,
                    updated_at = NOW()
                WHERE player_id = $1`,
               [playerId, JSON.stringify(buildings), JSON.stringify(economy.resources),
-               economy.lastResourceTick, JSON.stringify(economy.remainders), economy.workerPool]
+               economy.lastResourceTick, JSON.stringify(economy.remainders), economy.workerPool, JSON.stringify(economy.workerAssignments)]
             );
             await client.query("COMMIT");
             inTransaction = false;
