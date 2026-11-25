@@ -632,9 +632,7 @@ function restoreWorkerState(){
   let remaining=currentWorkerPool;
   Object.keys(saved.assigned).forEach(key=>{
    if((RESOURCE_KEYS.includes(key)||/^mine_\d+$/.test(key))&&Number.isSafeInteger(saved.assigned[key])&&saved.assigned[key]>=0){
-    const assignedTotal=Object.values(assigned).reduce((sum,value)=>sum+Number(value||0),0);
-    const assignmentRoom=Math.max(0,MAX_RESOURCE_ASSIGNMENT_WORKERS-assignedTotal);
-    assigned[key]=Math.min(saved.assigned[key],remaining,assignmentRoom);remaining-=assigned[key];
+    assigned[key]=Math.min(saved.assigned[key],MAX_RESOURCE_ASSIGNMENT_WORKERS,remaining);remaining-=assigned[key];
    }
   });
   availableWorkers=remaining;
@@ -672,9 +670,9 @@ function selectedMineAssigned(){
 function updateWorkerActions(){
  if(!selectedResource)return;
  const current=selectedMineAssigned();
- assignButton.disabled=availableWorkers===0||totalAssigned()>=MAX_RESOURCE_ASSIGNMENT_WORKERS;
+ assignButton.disabled=availableWorkers===0||selectedMineAssigned()>=MAX_RESOURCE_ASSIGNMENT_WORKERS;
  recallButton.disabled=current===0;
- workerInput.max=String(Math.max(Math.min(availableWorkers,MAX_RESOURCE_ASSIGNMENT_WORKERS-totalAssigned())+current,1));
+ workerInput.max=String(Math.max(Math.min(availableWorkers,MAX_RESOURCE_ASSIGNMENT_WORKERS-current)+current,1));
 }
 function selectWorldMine(node,marker){
  const info=resourceInfo[node.resource_type];
@@ -701,8 +699,8 @@ function readWorkerCount(){
 assignButton.addEventListener("click",()=>{
  if(!selectedResource||!selectedMineKey)return;
  const count=readWorkerCount();if(count===null)return;
- const assignmentRoom=Math.max(0,MAX_RESOURCE_ASSIGNMENT_WORKERS-totalAssigned());
- if(count>availableWorkers||count>assignmentRoom){const allowed=Math.min(availableWorkers,assignmentRoom);workerStatus.textContent=`En fazla ${formatNumber(allowed)} işçi daha görevlendirebilirsin. Kaynaklara toplam en fazla ${formatNumber(MAX_RESOURCE_ASSIGNMENT_WORKERS)} işçi atanabilir.`;workerInput.value=String(Math.max(allowed,1));return;}
+ const assignmentRoom=Math.max(0,MAX_RESOURCE_ASSIGNMENT_WORKERS-selectedMineAssigned());
+ if(count>availableWorkers||count>assignmentRoom){const allowed=Math.min(availableWorkers,assignmentRoom);workerStatus.textContent=`Bu kaynak alanına en fazla ${formatNumber(allowed)} işçi daha görevlendirebilirsin. Her kaynak alanının sınırı ${formatNumber(MAX_RESOURCE_ASSIGNMENT_WORKERS)} işçidir.`;workerInput.value=String(Math.max(allowed,1));return;}
  assigned[selectedMineKey]=(assigned[selectedMineKey]||0)+count;
  saveWorkerState();updateWorkerSummary();workerInput.value="1";
  workerStatus.textContent=`${formatNumber(count)} işçi ${selectedMineName} noktasına gönderildi. Bu kaynakta ${formatNumber(selectedMineAssigned())} görevde, ${formatNumber(availableWorkers)} boştadır. Hesabına kaydedildi.`;
