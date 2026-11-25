@@ -9,7 +9,9 @@ export const RESOURCE_PRODUCTION_PER_WORKER_HOUR = Object.freeze({
 const RESOURCE_KEYS = Object.freeze(["gold", "wood", "food", "stone", "iron"]);
 const RESOURCE_ALIASES = Object.freeze({ grain: "food" });
 const MAX_OFFLINE_HOURS = 72;
-export const MAX_WORKER_POOL = 1000;
+export const INITIAL_WORKER_POOL = 1800;
+export const MAX_WORKER_POOL = 2800;
+export const MAX_RESOURCE_ASSIGNMENT_WORKERS = 1000;
 
 function parseObject(value, fallback = {}) {
   if (typeof value === "string") {
@@ -25,7 +27,7 @@ export function settleEconomy({
   resourceNodes = [],
   lastResourceTick,
   productionRemainders: storedRemainders,
-  workerPool = MAX_WORKER_POOL,
+  workerPool = INITIAL_WORKER_POOL,
   troopPopulation = 0,
   storedStorageCapacity = 15000,
   now = Date.now()
@@ -49,11 +51,11 @@ export function settleEconomy({
   const exactWorkers = workerProductionPerHour * elapsedHours + Math.max(0, Number(remainders.workers) || 0);
   const newWorkers = Math.floor(exactWorkers);
   remainders.workers = Number((exactWorkers - newWorkers).toFixed(8));
-  const workerPoolBefore = Math.min(MAX_WORKER_POOL, Math.max(0, Math.floor(Number(workerPool) || 0)));
+  const workerPoolBefore = Math.min(MAX_WORKER_POOL, Math.max(INITIAL_WORKER_POOL, Math.floor(Number(workerPool) || INITIAL_WORKER_POOL)));
   const settledWorkerPool = Math.min(MAX_WORKER_POOL, workerPoolBefore + newWorkers);
   const workersActuallyProduced = settledWorkerPool - workerPoolBefore;
   if (settledWorkerPool >= MAX_WORKER_POOL) remainders.workers = 0;
-  let assignableWorkers = Math.max(0, settledWorkerPool - Math.max(0, Number(troopPopulation) || 0));
+  let assignableWorkers = Math.min(MAX_RESOURCE_ASSIGNMENT_WORKERS, Math.max(0, settledWorkerPool - Math.max(0, Number(troopPopulation) || 0)));
   for (const key of Object.keys(assignments)) {
     const requested = Math.max(0, Math.floor(Number(assignments[key]) || 0));
     const kept = Math.min(requested, assignableWorkers);
