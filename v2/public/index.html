@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101a13">
   <meta name="description" content="Umaykut Online 2 — yeni nesil Selçuklu strateji oyunu">
   <title>Umaykut Online 2 · V2</title>
-  <link rel="stylesheet" href="/app.css?v=army-recruitment-20261125">
+  <link rel="stylesheet" href="/app.css?v=army-recruitment-legacy-ui-20261125">
   <link rel="stylesheet" href="/factions.css?v=20261124-hun-unit-portraits-2">
 </head>
 <body>
@@ -231,24 +231,21 @@
       <section class="production-effects"><h3>Üretim etkileri</h3><div id="production-effects-list"></div></section>
       <p id="production-updated" class="army-message" role="status" aria-live="polite"></p>
     </dialog>
-    <dialog id="army-dialog" class="army-dialog army-upgrades-dialog" aria-labelledby="army-dialog-title">
-  <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · ORDU MERKEZİ</small><h2 id="army-dialog-title">Ordu Yönetimi</h2></div><button id="army-close" type="button" aria-label="Kapat">×</button></div>
-  <div class="army-management-tabs" role="tablist" aria-label="Ordu işlemleri">
-    <button id="army-recruit-tab" class="selected" type="button" role="tab" aria-selected="true" aria-controls="army-recruit-section">⚔️ Asker Yetiştir</button>
-    <button id="army-upgrade-tab" type="button" role="tab" aria-selected="false" aria-controls="army-upgrade-section">🛡️ Asker Geliştir</button>
-  </div>
-  <section class="army-recruit-section" id="army-recruit-section">
-    <h3>⚔️ Birlik Yetiştirme</h3>
-    <p>Devletine ait birlikleri gerekli bina seviyesi ve kaynaklarla yetiştir.</p>
-    <div id="army-recruit-catalog" class="army-unit-catalog"><p>Asker kataloğu yükleniyor…</p></div>
-  </section>
-  <section class="army-recruit-section" id="army-upgrade-section" hidden>
-    <h3>🛡️ Kalıcı Ordu Geliştirmeleri</h3>
-    <p id="army-building-hint">Geliştirmeler yalnızca altınla satın alınır. Her özellik en fazla +10 puana ulaşır.</p>
-    <div id="army-upgrade-catalog" class="army-unit-catalog army-upgrade-catalog"><p>Ordu geliştirmeleri yükleniyor…</p></div>
-  </section>
-  <p id="army-message" class="army-message" role="status" aria-live="polite"></p>
-</dialog>
+    <dialog id="army-dialog" class="army-dialog" aria-labelledby="army-dialog-title">
+      <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · SAVAŞ HAZIRLIĞI</small><h2 id="army-dialog-title">Ordu Birlikleri</h2></div><button id="army-close" type="button" aria-label="Kapat">×</button></div>
+      <section class="army-recruit-section" id="army-unit-list-section"><h3>⚔️ Birlik seç</h3><p id="army-building-hint">İncelemek ve yetiştirmek istediğin birliği seç.</p><div id="army-unit-catalog" class="army-unit-catalog"><p>Ordu bilgileri yükleniyor…</p></div></section>
+      <section class="army-unit-detail" id="army-unit-detail" hidden>
+        <button type="button" id="army-unit-back" class="army-unit-back">← Birlik listesine dön</button>
+        <div id="army-unit-detail-content"></div>
+      </section>
+      <p id="army-message" class="army-message" role="status" aria-live="polite"></p>
+    </dialog>
+    <dialog id="army-upgrade-dialog" class="army-dialog army-upgrade-dialog" aria-labelledby="army-upgrade-title">
+      <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · ORDU GELİŞİMİ</small><h2 id="army-upgrade-title">Asker Geliştir</h2></div><button id="army-upgrade-close" type="button" aria-label="Kapat">×</button></div>
+      <p class="army-message">Geliştirmeler altınla satın alınır. Her özellik en fazla +10 seviyeye ulaşır.</p>
+      <div id="army-upgrade-catalog" class="army-unit-catalog army-upgrade-catalog"><p>Ordu geliştirmeleri yükleniyor…</p></div>
+      <p id="army-upgrade-message" class="army-message" role="status" aria-live="polite"></p>
+    </dialog>
 \n    <dialog id="battle-reports-dialog" class="army-dialog battle-reports-dialog" aria-labelledby="battle-reports-title">
       <div class="army-dialog-head"><div><small>UMAYKUT ONLINE II · TARİHÇE</small><h2 id="battle-reports-title">Savaş Raporları</h2></div><button id="battle-reports-close" type="button" aria-label="Kapat">×</button></div>
       <p class="army-message">Katıldığın saldırılar ve savunmalar burada kayıt altında tutulur.</p>
