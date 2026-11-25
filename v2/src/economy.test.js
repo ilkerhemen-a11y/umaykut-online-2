@@ -88,7 +88,7 @@ test("temple produces 25 workers per hour per level and accrues offline", () => 
       now: Date.parse("2026-01-01T01:00:00.000Z")
     });
     assert.equal(result.workerProductionPerHour, level * 25);
-    assert.equal(result.workerPool, 925 + level * 25 > 1000 ? 1000 : 900 + level * 25);
+    assert.equal(result.workerPool, Math.min(1000, 900 + level * 25));
   }
   const offline = settleEconomy({
     resources: {}, workerAssignments: {}, buildings: { "7": { level: 10 } },
