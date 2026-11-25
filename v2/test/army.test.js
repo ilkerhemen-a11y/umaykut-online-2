@@ -130,3 +130,49 @@ test("buying an army upgrade deducts only gold and persists the independent leve
   assert.equal(body.troops.infantry, 12);
   assert.equal(body.catalog.find(unit => unit.id === "infantry").attack, 16);
 });
+
+test("recruitment accepts batches above 100 and charges the exact resource cost", async () => {
+  const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
+  const secret = "test-session-secret-with-at-least-32-characters";
+  const token = createSessionToken(playerId, secret);
+  const state = {
+    faction_id: "seljuk",
+    resources: { gold: 500, wood: 6000, food: 7000, iron: 3000, horses: 10 },
+    buildings: { "2": { type: "barracks", level: 1 }, "3": { type: "stable", level: 1 }, "4": { type: "blacksmith", level: 1 }, "9": { type: "archery", level: 1 } },
+    troops: { infantry: 0 }, training_queue: [], worker_pool: 5000, worker_assignments: {},
+    army_upgrades: { infantryAttack: 0, infantryDefense: 0, cavalryDefense: 0 }
+  };
+  const client = {
+    async query(sql, params) {
+      if (sql.includes("SELECT faction_id, resources")) return { rows: [state], rowCount: 1 };
+      if (sql.includes("SET resources=$2::jsonb, troops=$3::jsonb")) {
+        state.resources = JSON.parse(params[1]);
+        state.troops = JSON.parse(params[2]);
+      }
+      return { rows: [], rowCount: 1 };
+    },
+    release() {}
+  };
+  const pool = {
+    async query(sql) {
+      if (sql.includes("SELECT p.id FROM umaykut_v2.players")) return { rows: [{ id: playerId }], rowCount: 1 };
+      if (sql.includes("SELECT resources, army_upgrades")) return { rows: [{ resources: state.resources, army_upgrades: state.army_upgrades }], rowCount: 1 };
+      throw new Error("Unexpected pool query: " + sql);
+    },
+    async connect() { return client; }
+  };
+  const req = {
+    method: "POST", headers: { authorization: "Bearer " + token },
+    async *[Symbol.asyncIterator]() { yield JSON.stringify({ unitId: "infantry", amount: 150 }); }
+  };
+  const res = { writeHead(status) { this.statusCode = status; }, end(body) { this.body = body; } };
+  await handleArmyRequest({ req, res, url: new URL("http://localhost/api/game/army/recruit"), pool, sessionSecret: secret });
+  const body = JSON.parse(res.body);
+  assert.equal(res.statusCode, 200);
+  assert.equal(body.troops.infantry, 150);
+  assert.equal(body.resources.wood, 750);
+  assert.equal(body.resources.food, 250);
+  assert.equal(body.resources.iron, 750);
+  assert.equal(body.workerConsumingUnits, 150);
+  assert.equal(body.idleWorkers, 4850);
+});
