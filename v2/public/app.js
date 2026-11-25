@@ -751,9 +751,8 @@ function renderProductionDialog(){
   const icon=document.createElement("span");icon.textContent=RESOURCE_ICONS[key];
   const name=document.createElement("b");name.textContent=RESOURCE_LABELS[key];
   heading.append(icon,name);
-  const amount=document.createElement("strong");amount.textContent="+"+formatNumber(rate)+"/saat";
   const stock=document.createElement("small");stock.textContent=formatNumber(current)+" · Sınırsız depo";
-  card.append(heading,amount,stock);productionResourceGrid.append(card);
+  card.append(heading,stock);productionResourceGrid.append(card);
  }
  productionBreakdownList.replaceChildren();
  if(!gameProductionBreakdown.length){
@@ -762,14 +761,10 @@ function renderProductionDialog(){
   gameProductionBreakdown.forEach(item=>{
    const row=document.createElement("article");row.className="production-breakdown-row";
    const title=document.createElement("strong");title.textContent=productionNodeName(item)+(item.nodeId?" · Verim "+item.yieldLevel+"/10":" · Genel alan");
-   const detail=document.createElement("small");const perWorkerRate=item.workers>0?item.hourlyProduction/item.workers:0;detail.textContent="İşçi başına: +"+formatNumber(perWorkerRate)+" "+RESOURCE_LABELS[item.resourceType]+"/saat · "+formatNumber(item.workers)+" işçi × "+formatNumber(item.workerBaseRate)+" temel üretim × "+item.nodeMultiplier.toFixed(2)+" kaynak verimi × "+item.centerMultiplier.toFixed(2)+" merkez bonusu";
-   const output=document.createElement("b");output.textContent="+"+formatNumber(item.hourlyProduction)+" "+RESOURCE_LABELS[item.resourceType]+"/saat";
-   row.append(title,detail,output);productionBreakdownList.append(row);
+   const detail=document.createElement("small");detail.textContent=formatNumber(item.workers)+" işçi × "+formatNumber(item.workerBaseRate)+" temel üretim × "+item.nodeMultiplier.toFixed(2)+" kaynak verimi × "+item.centerMultiplier.toFixed(2)+" merkez bonusu";
+   row.append(title,detail);productionBreakdownList.append(row);
   });
  }
- const stableLevel=Math.max(1,Math.min(10,Number(gameBuildings["3"]?.level)||1));
- const stableRate=Math.round(Math.min(9,stableLevel)*1000/9);
- const stableNote=document.createElement("p");stableNote.className="production-stable-note";stableNote.textContent="Ahır seviye "+stableLevel+" · İşçi kullanmadan +"+formatNumber(stableRate)+" at/saat üretir (seviye 9’da en fazla 1.000).";productionBreakdownList.append(stableNote);
  const centerLevel=Number(gameBuildings["1"]?.level)||1;
  const archeryLevel=Number(gameBuildings["9"]?.level)||1;
  const lumberyardLevel=Number(gameBuildings["6"]?.level)||1;
