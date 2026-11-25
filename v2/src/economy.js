@@ -9,6 +9,7 @@ export const RESOURCE_PRODUCTION_PER_WORKER_HOUR = Object.freeze({
 const RESOURCE_KEYS = Object.freeze(["gold", "wood", "food", "stone", "iron"]);
 const RESOURCE_ALIASES = Object.freeze({ grain: "food" });
 const MAX_OFFLINE_HOURS = 72;
+export const MAX_WORKER_POOL = 1000;
 
 function parseObject(value, fallback = {}) {
   if (typeof value === "string") {
@@ -47,7 +48,10 @@ export function settleEconomy({
   const exactWorkers = workerProductionPerHour * elapsedHours + Math.max(0, Number(remainders.workers) || 0);
   const newWorkers = Math.floor(exactWorkers);
   remainders.workers = Number((exactWorkers - newWorkers).toFixed(8));
-  const settledWorkerPool = Math.max(0, Math.floor(Number(workerPool) || 0)) + newWorkers;
+  const workerPoolBefore = Math.min(MAX_WORKER_POOL, Math.max(0, Math.floor(Number(workerPool) || 0)));
+  const settledWorkerPool = Math.min(MAX_WORKER_POOL, workerPoolBefore + newWorkers);
+  const workersActuallyProduced = settledWorkerPool - workerPoolBefore;
+  if (settledWorkerPool >= MAX_WORKER_POOL) remainders.workers = 0;
   const lastTick = now;
   const productionPerHour = Object.fromEntries(RESOURCE_KEYS.map(key => [key, 0]));
   productionPerHour.horses = horseProductionPerHour;
@@ -131,7 +135,7 @@ export function settleEconomy({
     productionBreakdown,
     workerPool: settledWorkerPool,
     workerProductionPerHour,
-    workersProduced: newWorkers,
+    workersProduced: workersActuallyProduced,
     productionApplied,
     storageCapacity,
     lumberyardBonusPercent: (lumberyardLevel - 1) * 5,
