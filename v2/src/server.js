@@ -445,7 +445,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           await client.query("BEGIN");inTx=true;
           const ids=[session.id,targetId].sort();
           const result=await client.query(
-            `SELECT p.id,p.village_name,s.faction_id,s.resources,s.buildings,s.troops,s.training_queue,s.protection_expires_at
+            `SELECT p.id,p.village_name,s.faction_id,s.resources,s.buildings,s.troops,s.training_queue,s.army_upgrades,s.protection_expires_at
              FROM umaykut_v2.players p JOIN umaykut_v2.player_game_state s ON s.player_id=p.id
              WHERE p.id=ANY($1::uuid[]) ORDER BY p.id FOR UPDATE OF s`,[ids]);
           if(result.rowCount!==2){await client.query("ROLLBACK");inTx=false;return sendJson(res,404,{error:"Hedef köy bulunamadı veya henüz kurulmadı."});}
@@ -457,7 +457,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           const troops=typeof attacker.troops==="string"?JSON.parse(attacker.troops||"{}"):{...(attacker.troops||{})};
           const queue=typeof attacker.training_queue==="string"?JSON.parse(attacker.training_queue||"[]"):(attacker.training_queue||[]);
           const settled=settleTrainingQueue(troops,queue);
-          const catalog=getTroopCatalog(attacker.faction_id,typeof attacker.buildings==="string"?JSON.parse(attacker.buildings||"{}"):(attacker.buildings||{}));
+          const catalog=getTroopCatalog(attacker.faction_id,typeof attacker.buildings==="string"?JSON.parse(attacker.buildings||"{}"):(attacker.buildings||{}),typeof attacker.army_upgrades==="string"?JSON.parse(attacker.army_upgrades||"{}"):(attacker.army_upgrades||{}));
           const selected={},unitMap=new Map(catalog.map(unit=>[unit.id,unit]));
           let attackPower=0,slowestSpeed=Infinity,total=0;
           for(const [unitId,raw] of Object.entries(input.troops)){
@@ -1062,7 +1062,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           "SELECT worker_pool, troops FROM umaykut_v2.player_game_state WHERE player_id = $1",
           [playerId]
         );
-        const currentWorkerPool = Number(workerCapacity.rows[0]?.worker_pool ?? 1800);
+        const currentWorkerPool = Math.min(1000, Math.max(0, Number(workerCapacity.rows[0]?.worker_pool ?? 1000)));
         const currentTroops = workerCapacity.rows[0]?.troops ?? {};
         const totalTroops = Object.values(currentTroops).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0);
         if (totalAssignedWorkers + totalTroops > currentWorkerPool) {
