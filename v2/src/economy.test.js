@@ -83,12 +83,12 @@ test("temple produces 25 workers per hour per level and accrues offline", () => 
     const result = settleEconomy({
       resources: {}, workerAssignments: {},
       buildings: { "1": { level: 1 }, "7": { level }, "9": { level: 1 } },
-      workerPool: 900,
+      workerPool: 1800,
       lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
       now: Date.parse("2026-01-01T01:00:00.000Z")
     });
     assert.equal(result.workerProductionPerHour, level * 25);
-    assert.equal(result.workerPool, Math.min(2800, 900 + level * 25));
+    assert.equal(result.workerPool, Math.min(2800, 1800 + level * 25));
   }
   const offline = settleEconomy({
     resources: {}, workerAssignments: {}, buildings: { "7": { level: 10 } },
@@ -102,23 +102,23 @@ test("temple produces 25 workers per hour per level and accrues offline", () => 
 test("worker production retains fractional accrual between state checks", () => {
   const result = settleEconomy({
     resources: {}, workerAssignments: {}, buildings: { "7": { level: 1 } },
-    workerPool: 100, productionRemainders: { workers: 0 },
+    workerPool: 1800, productionRemainders: { workers: 0 },
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T00:30:00.000Z")
   });
-  assert.equal(result.workerPool, 112);
+  assert.equal(result.workerPool, 1812);
   assert.equal(result.remainders.workers, 0.5);
 });
 test("assigned workers are trimmed to the remaining population after troop consumption", () => {
   const result = settleEconomy({
     resources: {}, workerAssignments: { wood: 800, gold: 300, food: 200 },
     buildings: { "1": { level: 1 }, "7": { level: 1 } },
-    workerPool: 1000, troopPopulation: 250,
+    workerPool: 1800, troopPopulation: 250,
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T00:00:00.000Z")
   });
-  assert.deepEqual(result.workerAssignments, { wood: 750, gold: 0, food: 0 });
-  assert.equal(Object.values(result.workerAssignments).reduce((sum, count) => sum + count, 0), 750);
+  assert.deepEqual(result.workerAssignments, { wood: 800, gold: 200, food: 0 });
+  assert.equal(Object.values(result.workerAssignments).reduce((sum, count) => sum + count, 0), 1000);
 });
 
 
