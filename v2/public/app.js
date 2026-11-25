@@ -1716,9 +1716,14 @@ armyUpgradeCatalogNode.addEventListener("click",async event=>{
 inventoryContent.addEventListener("click",event=>{if(event.target.closest("#army-upgrade-open"))openArmyUpgradeDialog();});
 document.querySelector("#army-upgrade-close").addEventListener("click",()=>armyUpgradeDialog.close());
 armyUpgradeDialog.addEventListener("click",event=>{if(event.target===armyUpgradeDialog)armyUpgradeDialog.close();});
-document.querySelector("#army-units").addEventListener("click",()=>{
+document.querySelector("#army-units").addEventListener("click",async event=>{
+ const selectedCard=event.target.closest("[data-open-unit]");
+ const selectedUnitId=selectedCard?.dataset.openUnit||null;
  if(!armyDialog.open)armyDialog.showModal();
- loadArmyState();
+ armyMessageNode.textContent="Ordu bilgileri yükleniyor…";
+ await loadArmyState();
+ if(selectedUnitId)renderArmyUnitDetail(selectedUnitId);
+ else showArmyUnitList();
 });
 
 const worldPlayerList=document.querySelector("#world-player-list");
