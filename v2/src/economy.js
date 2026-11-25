@@ -25,7 +25,8 @@ export function settleEconomy({
   resourceNodes = [],
   lastResourceTick,
   productionRemainders: storedRemainders,
-  workerPool = 1800,
+  workerPool = MAX_WORKER_POOL,
+  troopPopulation = 0,
   storedStorageCapacity = 15000,
   now = Date.now()
 }) {
@@ -52,6 +53,13 @@ export function settleEconomy({
   const settledWorkerPool = Math.min(MAX_WORKER_POOL, workerPoolBefore + newWorkers);
   const workersActuallyProduced = settledWorkerPool - workerPoolBefore;
   if (settledWorkerPool >= MAX_WORKER_POOL) remainders.workers = 0;
+  let assignableWorkers = Math.max(0, settledWorkerPool - Math.max(0, Number(troopPopulation) || 0));
+  for (const key of Object.keys(assignments)) {
+    const requested = Math.max(0, Math.floor(Number(assignments[key]) || 0));
+    const kept = Math.min(requested, assignableWorkers);
+    assignments[key] = kept;
+    assignableWorkers -= kept;
+  }
   const lastTick = now;
   const productionPerHour = Object.fromEntries(RESOURCE_KEYS.map(key => [key, 0]));
   productionPerHour.horses = horseProductionPerHour;
@@ -131,6 +139,7 @@ export function settleEconomy({
   return {
     resources,
     remainders,
+    workerAssignments: assignments,
     productionPerHour,
     productionBreakdown,
     workerPool: settledWorkerPool,
