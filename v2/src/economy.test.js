@@ -109,7 +109,7 @@ test("worker production retains fractional accrual between state checks", () => 
   assert.equal(result.workerPool, 1812);
   assert.equal(result.remainders.workers, 0.5);
 });
-test("assigned workers are trimmed to the remaining population after troop consumption", () => {
+test("each resource source can receive up to 1000 workers within the shared population", () => {
   const result = settleEconomy({
     resources: {}, workerAssignments: { wood: 800, gold: 300, food: 200 },
     buildings: { "1": { level: 1 }, "7": { level: 1 } },
@@ -117,8 +117,9 @@ test("assigned workers are trimmed to the remaining population after troop consu
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T00:00:00.000Z")
   });
-  assert.deepEqual(result.workerAssignments, { wood: 800, gold: 200, food: 0 });
-  assert.equal(Object.values(result.workerAssignments).reduce((sum, count) => sum + count, 0), 1000);
+  assert.deepEqual(result.workerAssignments, { wood: 800, gold: 300, food: 200 });
+  assert.equal(Object.values(result.workerAssignments).reduce((sum, count) => sum + count, 0), 1300);
+  assert.equal(result.workerPool - 250 - 1300, 250);
 });
 
 
@@ -138,13 +139,14 @@ test("new villages start with 1800 workers and temple growth is capped at 2800",
   assert.equal(grown.workerPool, 2800);
 });
 
-test("resource assignments are capped at 1000 without reducing total population", () => {
+test("each individual resource source is capped at 1000 workers", () => {
   const result = settleEconomy({
-    resources: {}, workerAssignments: { wood: 800, gold: 500, food: 200 },
-    buildings: { "7": { level: 1 } }, workerPool: 1800,
+    resources: {}, workerAssignments: { wood: 1200, gold: 1000, food: 200 },
+    buildings: { "7": { level: 1 } }, workerPool: 2800,
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T00:00:00.000Z")
   });
-  assert.equal(Object.values(result.workerAssignments).reduce((sum, count) => sum + count, 0), 1000);
-  assert.equal(result.workerPool, 1800);
+  assert.deepEqual(result.workerAssignments, { wood: 1000, gold: 1000, food: 200 });
+  assert.equal(Object.values(result.workerAssignments).reduce((sum, count) => sum + count, 0), 2200);
+  assert.equal(result.workerPool, 2800);
 });
