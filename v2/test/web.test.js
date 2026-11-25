@@ -59,7 +59,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.doesNotMatch(html,/data-resource="(?:grain|wood|stone)"/);
   assert.match(html,/köyünün erişim alanındaki bir kaynak görseline dokun/);
   assert.match(html,/id="open-settings"/);
-  assert.match(html,/data-action="settings"/);
+  assert.match(html,/class="map-shortcut-card map-shortcut-settings" id="open-settings"[^>]*aria-haspopup="dialog"[^>]*aria-controls="settings-dialog"/);
   assert.match(html,/id="logout-button"/);
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
