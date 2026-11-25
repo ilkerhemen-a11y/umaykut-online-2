@@ -27,6 +27,7 @@ const webRoot = resolve(here, "../public");
 const assetRoot = resolve(here, "../public/assets");
 const legacyAssetRoot = resolve(here, "../../public/assets");
 const INITIAL_RESOURCES = Object.freeze({gold:1650,wood:6900,food:9350,stone:7480,iron:8040,horses:100});
+const HORSE_TROOPS = new Set(["light_cavalry", "mounted_archer", "heavy_cavalry"]);
 const INITIAL_BUILDINGS = Object.freeze({
   "1": {type:"center",level:1},
   "2": {type:"barracks",level:1},
@@ -445,7 +446,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           await client.query("BEGIN");inTx=true;
           const ids=[session.id,targetId].sort();
           const result=await client.query(
-            `SELECT p.id,p.village_name,s.faction_id,s.resources,s.buildings,s.troops,s.training_queue,s.protection_expires_at
+            `SELECT p.id,p.village_name,s.faction_id,s.resources,s.buildings,s.troops,s.training_queue,s.army_upgrades,s.protection_expires_at
              FROM umaykut_v2.players p JOIN umaykut_v2.player_game_state s ON s.player_id=p.id
              WHERE p.id=ANY($1::uuid[]) ORDER BY p.id FOR UPDATE OF s`,[ids]);
           if(result.rowCount!==2){await client.query("ROLLBACK");inTx=false;return sendJson(res,404,{error:"Hedef köy bulunamadı veya henüz kurulmadı."});}
@@ -457,7 +458,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           const troops=typeof attacker.troops==="string"?JSON.parse(attacker.troops||"{}"):{...(attacker.troops||{})};
           const queue=typeof attacker.training_queue==="string"?JSON.parse(attacker.training_queue||"[]"):(attacker.training_queue||[]);
           const settled=settleTrainingQueue(troops,queue);
-          const catalog=getTroopCatalog(attacker.faction_id,typeof attacker.buildings==="string"?JSON.parse(attacker.buildings||"{}"):(attacker.buildings||{}));
+          const catalog=getTroopCatalog(attacker.faction_id,typeof attacker.buildings==="string"?JSON.parse(attacker.buildings||"{}"):(attacker.buildings||{}),typeof attacker.army_upgrades==="string"?JSON.parse(attacker.army_upgrades||"{}"):(attacker.army_upgrades||{}));
           const selected={},unitMap=new Map(catalog.map(unit=>[unit.id,unit]));
           let attackPower=0,slowestSpeed=Infinity,total=0;
           for(const [unitId,raw] of Object.entries(input.troops)){
@@ -965,7 +966,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
             );
             const state = await client.query(
               `SELECT p.village_name, s.faction_id, s.worker_pool, s.worker_assignments,
-                      s.worker_state_initialized, s.resources, s.buildings, s.wall, s.updated_at,
+                      s.worker_state_initialized, s.resources, s.buildings, s.troops, s.wall, s.updated_at,
                       s.last_resource_tick, s.production_remainders, s.storage_capacity
                FROM umaykut_v2.players p
                JOIN umaykut_v2.player_game_state s ON s.player_id = p.id
@@ -991,6 +992,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
               lastResourceTick: row.last_resource_tick,
               productionRemainders: row.production_remainders,
               workerPool: row.worker_pool,
+              troopPopulation: Object.entries(typeof row.troops === "string" ? JSON.parse(row.troops || "{}") : (row.troops || {})).reduce((sum, [unitId, count]) => sum + (HORSE_TROOPS.has(unitId) ? 0 : Math.max(0, Number(count) || 0)), 0),
               storedStorageCapacity: row.storage_capacity
             });
             await client.query(
@@ -998,12 +1000,13 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
                SET buildings = $2::jsonb,
                    resources = $3::jsonb,
                    worker_pool = $6,
+                   worker_assignments = $7::jsonb,
                    last_resource_tick = $4,
                    production_remainders = $5::jsonb,
                    updated_at = NOW()
                WHERE player_id = $1`,
               [playerId, JSON.stringify(buildings), JSON.stringify(economy.resources),
-               economy.lastResourceTick, JSON.stringify(economy.remainders), economy.workerPool]
+               economy.lastResourceTick, JSON.stringify(economy.remainders), economy.workerPool, JSON.stringify(economy.workerAssignments)]
             );
             await client.query("COMMIT");
             inTransaction = false;
@@ -1012,7 +1015,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
               workerPool: economy.workerPool,
               workerProductionPerHour: economy.workerProductionPerHour,
               workersProduced: economy.workersProduced,
-              workerAssignments: row.worker_assignments,
+              workerAssignments: economy.workerAssignments,
               workerStateInitialized: row.worker_state_initialized,
               resources: economy.resources,
               buildings,
@@ -1062,9 +1065,9 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           "SELECT worker_pool, troops FROM umaykut_v2.player_game_state WHERE player_id = $1",
           [playerId]
         );
-        const currentWorkerPool = Number(workerCapacity.rows[0]?.worker_pool ?? 1800);
+        const currentWorkerPool = Math.min(1000, Math.max(0, Number(workerCapacity.rows[0]?.worker_pool ?? 1000)));
         const currentTroops = workerCapacity.rows[0]?.troops ?? {};
-        const totalTroops = Object.values(currentTroops).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0);
+        const totalTroops = Object.entries(currentTroops).reduce((sum, [unitId, count]) => sum + (HORSE_TROOPS.has(unitId) ? 0 : Math.max(0, Number(count) || 0)), 0);
         if (totalAssignedWorkers + totalTroops > currentWorkerPool) {
           return sendJson(res, 400, { error: "Görevlendirilen işçi ve asker sayısı toplam işçi kapasitesini aşamaz.", workerPool: currentWorkerPool, totalTroops });
         }

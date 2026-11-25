@@ -47,7 +47,7 @@ async function resolveRaid(pool, raidId) {
 
     const ids = [raid.attacker_id, raid.defender_id].sort();
     const states = await client.query(
-      `SELECT p.id,p.village_name,s.faction_id,s.resources,s.buildings,s.troops,s.wall,s.protection_expires_at
+      `SELECT p.id,p.village_name,s.faction_id,s.resources,s.buildings,s.troops,s.army_upgrades,s.wall,s.protection_expires_at
          FROM umaykut_v2.players p
          JOIN umaykut_v2.player_game_state s ON s.player_id=p.id
         WHERE p.id=ANY($1::uuid[])
@@ -65,8 +65,8 @@ async function resolveRaid(pool, raidId) {
     const defenderTroops = parseJson(defender.troops, {});
     const attackerBuildings = parseJson(attacker.buildings, {});
     const defenderBuildings = parseJson(defender.buildings, {});
-    const attackerCatalog = getTroopCatalog(attacker.faction_id, attackerBuildings);
-    const defenderCatalog = getTroopCatalog(defender.faction_id, defenderBuildings);
+    const attackerCatalog = getTroopCatalog(attacker.faction_id, attackerBuildings, parseJson(attacker.army_upgrades, {}));
+    const defenderCatalog = getTroopCatalog(defender.faction_id, defenderBuildings, parseJson(defender.army_upgrades, {}));
     const wall = settleWall(defender.wall);
     const protectionActive = defender.protection_expires_at && new Date(defender.protection_expires_at).getTime() > Date.now();
     const outcome = protectionActive ? {

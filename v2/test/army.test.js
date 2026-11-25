@@ -1,262 +1,92 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getTroopCatalog, settleTrainingQueue, handleArmyRequest } from "../src/army.js";
+import {
+  getTroopCatalog, normalizeArmyUpgrades, getArmyUpgradeCost, handleArmyRequest, MAX_WORKER_POOL
+} from "../src/army.js";
 import { createSessionToken } from "../src/auth.js";
 
-test("level-one barracks and stable only unlock their first units", () => {
-  const catalog = getTroopCatalog("gokturk", {
-    barracks: { level: 1 }, stable: { level: 1 }
-  });
-  assert.equal(catalog.find(unit => unit.id === "infantry").unlocked, true);
-  assert.equal(catalog.find(unit => unit.id === "archer").unlocked, false);
-  assert.equal(catalog.find(unit => unit.id === "light_cavalry").unlocked, true);
-  assert.equal(catalog.find(unit => unit.id === "mounted_archer").unlocked, false);
+test("worker pool is capped at 1000", () => {
+  assert.equal(MAX_WORKER_POOL, 1000);
 });
 
-test("barracks and stable levels unlock advanced troop tiers", () => {
-  const catalog = getTroopCatalog("seljuk", {
-    barracks: { level: 10 }, stable: { level: 10 }
+test("army upgrade levels normalize independently between zero and ten", () => {
+  assert.deepEqual(normalizeArmyUpgrades({ infantryAttack: 14, infantryDefense: -2, cavalryDefense: 4.8 }), {
+    infantryAttack: 10, infantryDefense: 0, cavalryDefense: 4
   });
-  assert.equal(catalog.length, 8);
-  assert.ok(catalog.every(unit => unit.unlocked));
 });
 
-test("factions receive distinct troop identities and specialties", () => {
+test("upgrade cost increases by 1000 gold per next level", () => {
+  assert.equal(getArmyUpgradeCost(1), 1000);
+  assert.equal(getArmyUpgradeCost(2), 2000);
+  assert.equal(getArmyUpgradeCost(10), 10000);
+  assert.throws(() => getArmyUpgradeCost(11), RangeError);
+});
+
+test("army upgrades add attack and both defense bonuses to troop catalog without changing cavalry attack", () => {
   const buildings = { barracks: { level: 10 }, stable: { level: 10 } };
-  const gokturk = getTroopCatalog("gokturk", buildings);
-  const hun = getTroopCatalog("hun", buildings);
-  const seljuk = getTroopCatalog("seljuk", buildings);
-  assert.equal(gokturk.find(unit => unit.id === "archer").name, "Börü Okçusu");
-  assert.equal(hun.find(unit => unit.id === "light_cavalry").name, "Tunga");
-  assert.equal(seljuk.find(unit => unit.id === "heavy_cavalry").name, "Sipahi");
-  assert.ok(hun.find(unit => unit.id === "light_cavalry").speed > gokturk.find(unit => unit.id === "light_cavalry").speed);
-  assert.equal(seljuk.find(unit => unit.id === "shield").infantryDefense, 20);
+  const catalog = getTroopCatalog("seljuk", buildings, {
+    infantryAttack: 3, infantryDefense: 2, cavalryDefense: 4
+  });
+  const infantry = catalog.find(unit => unit.id === "infantry");
+  const cavalry = catalog.find(unit => unit.id === "light_cavalry");
+  assert.equal(infantry.attack, 18);
+  assert.equal(infantry.infantryDefense, 22);
+  assert.equal(infantry.cavalryDefense, 14);
+  assert.equal(cavalry.attack, 20);
+  assert.equal(cavalry.infantryDefense, 52);
+  assert.equal(cavalry.cavalryDefense, 144);
 });
 
-test("barracks and stable levels do not add training time", () => {
-  const low = getTroopCatalog("gokturk", { barracks: { level: 1 }, stable: { level: 1 } });
-  const high = getTroopCatalog("gokturk", { barracks: { level: 10 }, stable: { level: 10 } });
-  assert.equal("secondsPerUnit" in low.find(unit => unit.id === "infantry"), false);
-  assert.equal("secondsPerUnit" in high.find(unit => unit.id === "light_cavalry"), false);
-});
-test("numeric V2 building slots unlock troop tiers without training timers", () => {
-  const levelOne = getTroopCatalog("gokturk", { "2": { type: "barracks", level: 1 }, "3": { type: "stable", level: 1 } });
-  assert.equal(levelOne.find(unit => unit.id === "archer").unlocked, false);
-  assert.equal(levelOne.find(unit => unit.id === "mounted_archer").unlocked, false);
-  const levelFive = getTroopCatalog("gokturk", { "2": { type: "barracks", level: 5 }, "3": { type: "stable", level: 5 } });
-  assert.equal(levelFive.find(unit => unit.id === "archer").unlocked, true);
-  assert.equal(levelFive.find(unit => unit.id === "shield").unlocked, true);
-  assert.equal(levelFive.find(unit => unit.id === "mounted_archer").unlocked, true);
-});
-test("legacy training queue entries are converted to instant troops", () => {
-  const now = Date.now();
-  const result = settleTrainingQueue({ infantry: 3 }, [
-    { unitId: "infantry", amount: 4, completesAt: new Date(now + 60000).toISOString() },
-    { unitId: "archer", amount: 2, completesAt: new Date(now + 600000).toISOString() }
-  ], now);
-  assert.deepEqual(result.troops, { infantry: 7, archer: 2 });
-  assert.equal(result.trainingQueue.length, 0);
-  assert.equal(result.changed, true);
-});
-test("legacy training entries without timestamps are safely settled", () => {
-  const result = settleTrainingQueue({}, [{ unitId: "infantry", amount: 5 }], Date.now());
-  assert.deepEqual(result.troops, { infantry: 5 });
-  assert.equal(result.trainingQueue.length, 0);
-  assert.equal(result.changed, true);
+test("legacy troop recruitment endpoint is disabled without deleting existing troops", async () => {
+  const response = { writeHead(status) { this.statusCode = status; }, end(body) { this.body = body; } };
+  await handleArmyRequest({
+    req: { method: "POST" }, res: response,
+    url: new URL("http://localhost/api/game/army/recruit"), pool: null, sessionSecret: null
+  });
+  assert.equal(response.statusCode, 410);
+  assert.match(JSON.parse(response.body).error, /Ordu Geliştirme Merkezi/);
 });
 
-test("the reconnaissance unit is displayed as Casus in every faction", () => {
-  for (const faction of ["gokturk", "hun", "seljuk"]) {
-    const unit = getTroopCatalog(faction, { barracks: { level: 2 } }).find(item => item.id === "scout");
-    assert.equal(unit.name, "Casus");
-    assert.equal(unit.unlocked, true);
-  }
-});
-
-
-test("army recruitment is capped by the number of idle workers on the server", async () => {
+test("buying an army upgrade deducts only gold and persists the independent level", async () => {
   const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
   const secret = "test-session-secret-with-at-least-32-characters";
   const token = createSessionToken(playerId, secret);
   const state = {
-    faction_id: "gokturk",
-    resources: { wood: 10000, food: 10000, iron: 10000, gold: 10000 },
-    buildings: { "2": { type: "barracks", level: 5 }, "3": { type: "stable", level: 5 } },
-    troops: {},
-    training_queue: [],
-    worker_pool: 1800,
-    worker_assignments: { grain: 700, wood: 600, stone: 400 }
+    faction_id: "seljuk", resources: { gold: 5000, wood: 500, food: 600, iron: 700, horses: 10 },
+    buildings: { "2": { type: "barracks", level: 10 }, "3": { type: "stable", level: 10 }, "4": { type: "blacksmith", level: 1 } },
+    troops: { infantry: 12, light_cavalry: 4 }, training_queue: [],
+    worker_pool: 1000, worker_assignments: { wood: 10 },
+    army_upgrades: { infantryAttack: 0, infantryDefense: 0, cavalryDefense: 0 }
   };
-  const writes = [];
-  const pool = {
-    query: async sql => sql.includes("SELECT p.id FROM umaykut_v2.players")
-      ? { rows: [{ id: playerId }], rowCount: 1 }
-      : sql.includes("SELECT resources FROM umaykut_v2.player_game_state")
-        ? { rows: [{ resources: state.resources }], rowCount: 1 }
-        : (() => { throw new Error("Unexpected pool query: " + sql); })(),
-    connect: async () => ({
-      query: async (sql, values = []) => {
-        if (["BEGIN", "COMMIT", "ROLLBACK"].includes(sql)) return { rows: [] };
-        if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) return { rows: [], rowCount: 1 };
-        if (sql.includes("SELECT faction_id, resources, buildings, troops, training_queue")) return { rows: [state], rowCount: 1 };
-        if (sql.includes("UPDATE umaykut_v2.player_game_state SET resources=")) {
-          state.resources = JSON.parse(values[1]);
-          state.training_queue = JSON.parse(values[2]);
-          state.troops = JSON.parse(values[3]);
-          writes.push(sql);
-          return { rows: [], rowCount: 1 };
-        }
-        throw new Error("Unexpected client query: " + sql);
-      },
-      release: () => {}
-    })
-  };
-  const invoke = async amount => {
-    const req = {
-      method: "POST",
-      headers: { authorization: "Bearer " + token },
-      [Symbol.asyncIterator]: async function* () {
-        yield JSON.stringify({ unitId: "infantry", amount });
+  const client = {
+    async query(sql, params) {
+      if (sql.includes("SELECT faction_id, resources")) return { rows: [state], rowCount: 1 };
+      if (sql.includes("SET resources=$2::jsonb, army_upgrades=$3::jsonb")) {
+        state.resources = JSON.parse(params[1]); state.army_upgrades = JSON.parse(params[2]);
       }
-    };
-    const response = {
-      statusCode: 200, headers: {}, body: "",
-      writeHead(status, headers) { this.statusCode = status; this.headers = headers; },
-      end(body) { this.body = body; }
-    };
-    await handleArmyRequest({ req, res: response, url: new URL("http://localhost/api/game/army/recruit"), pool, sessionSecret: secret });
-    return { status: response.statusCode, body: JSON.parse(response.body) };
-  };
-  const tooMany = await invoke(101);
-  assert.equal(tooMany.status, 409);
-  assert.equal(tooMany.body.idleWorkers, 100);
-  assert.equal(state.troops.infantry, undefined);
-  const allowed = await invoke(100);
-  assert.equal(allowed.status, 200);
-  assert.equal(allowed.body.troops.infantry, 100);
-  assert.equal(allowed.body.idleWorkers, 0);
-  assert.equal(allowed.body.totalUnits, 100);
-  assert.equal(writes.length, 1);
-});
-
-test("Hun roster uses the seven approved names and exact base battle values", () => {
-  const catalog = getTroopCatalog("hun", { barracks: { level: 10 }, stable: { level: 10 } });
-  const byId = Object.fromEntries(catalog.map(unit => [unit.id, unit]));
-  assert.deepEqual(
-    ["infantry", "archer", "shield", "guard", "light_cavalry", "mounted_archer", "heavy_cavalry"].map(id => byId[id].name),
-    ["Toygun", "Kemankeş", "Tarık", "Barlas", "Tunga", "Talakan", "Tarkan"]
-  );
-  assert.deepEqual(
-    ["infantry", "archer", "shield", "guard", "light_cavalry", "mounted_archer", "heavy_cavalry"].map(id => [
-      byId[id].attack, byId[id].infantryDefense, byId[id].cavalryDefense, byId[id].speed
-    ]),
-    [[35,25,15,16],[60,80,35,16],[20,25,90,14],[120,60,90,24],[65,50,110,32],[95,85,60,50],[150,110,80,40]]
-  );
-  assert.equal(byId.archer.attackDisplay, "30 × 2");
-  assert.equal(byId.guard.attackDisplay, "120–130");
-  assert.equal(byId.heavy_cavalry.attack, 150);
-});
-
-
-test("Seljuk roster matches the approved stat table and building unlock levels", () => {
-  const catalog = getTroopCatalog("seljuk", {
-    "2": { type: "barracks", level: 1 },
-    "3": { type: "stable", level: 1 },
-    "9": { type: "archery", level: 1 }
-  });
-  const byId = Object.fromEntries(catalog.map(unit => [unit.id, unit]));
-  const ids = ["infantry", "archer", "shield", "guard", "light_cavalry", "mounted_archer", "heavy_cavalry"];
-  assert.deepEqual(ids.map(id => byId[id].name),
-    ["Nefer", "Tirkendaz", "Kargılı", "Azap", "Akıncı", "Deli", "Sipahi"]);
-  assert.deepEqual(ids.map(id => [
-    byId[id].attack, byId[id].infantryDefense, byId[id].cavalryDefense, byId[id].speed, byId[id].carry
-  ]), [
-    [15,20,10,22,30], [50,90,15,22,30], [40,20,90,18,40],
-    [115,55,55,25,50], [20,50,140,30,40], [60,120,20,45,80], [160,90,90,35,90]
-  ]);
-  assert.equal(byId.archer.attackDisplay, "25 × 2");
-  assert.equal(byId.archer.building, "archery");
-  assert.equal(byId.archer.requiredLevel, 1);
-  assert.equal(byId.archer.unlocked, true);
-  assert.equal(byId.shield.unlocked, false);
-  assert.equal(byId.guard.unlocked, false);
-  assert.equal(byId.mounted_archer.unlocked, false);
-  const levelFive = getTroopCatalog("seljuk", {
-    barracks: { level: 5 }, stable: { level: 5 }, archery: { level: 1 }
-  });
-  assert.equal(levelFive.find(unit => unit.id === "shield").unlocked, true);
-  assert.equal(levelFive.find(unit => unit.id === "mounted_archer").unlocked, true);
-  assert.equal(levelFive.find(unit => unit.id === "guard").unlocked, false);
-  const levelTen = getTroopCatalog("seljuk", {
-    barracks: { level: 10 }, stable: { level: 10 }, archery: { level: 1 }
-  });
-  assert.ok(ids.every(id => levelTen.find(unit => unit.id === id).unlocked));
-});
-
-
-test("cavalry requires horses and does not consume idle workers", async () => {
-  const playerId = "8f2f3d1a-2d3b-4b5c-9d7e-123456789abc";
-  const secret = "test-session-secret-with-at-least-32-characters";
-  const token = createSessionToken(playerId, secret);
-  const state = {
-    faction_id: "seljuk",
-    resources: { wood: 10000, food: 10000, iron: 10000, gold: 10000, horses: 5 },
-    buildings: { "3": { type: "stable", level: 1 } },
-    troops: {},
-    training_queue: [],
-    worker_pool: 100,
-    worker_assignments: { grain: 100 }
+      return { rows: [], rowCount: 1 };
+    },
+    release() {}
   };
   const pool = {
-    query: async sql => sql.includes("SELECT p.id FROM umaykut_v2.players")
-      ? { rows: [{ id: playerId }], rowCount: 1 }
-      : sql.includes("SELECT resources FROM umaykut_v2.player_game_state")
-        ? { rows: [{ resources: state.resources }], rowCount: 1 }
-        : (() => { throw new Error("Unexpected pool query: " + sql); })(),
-    connect: async () => ({
-      query: async (sql, values = []) => {
-        if (["BEGIN", "COMMIT", "ROLLBACK"].includes(sql)) return { rows: [] };
-        if (sql.includes("INSERT INTO umaykut_v2.player_game_state")) return { rows: [], rowCount: 1 };
-        if (sql.includes("SELECT faction_id, resources, buildings, troops, training_queue")) return { rows: [state], rowCount: 1 };
-        if (sql.includes("UPDATE umaykut_v2.player_game_state SET resources=")) {
-          state.resources = JSON.parse(values[1]);
-          state.training_queue = JSON.parse(values[2]);
-          state.troops = JSON.parse(values[3]);
-          return { rows: [], rowCount: 1 };
-        }
-        throw new Error("Unexpected client query: " + sql);
-      },
-      release: () => {}
-    })
+    async query(sql) {
+      if (sql.includes("SELECT p.id FROM umaykut_v2.players")) return { rows: [{ id: playerId }], rowCount: 1 };
+      if (sql.includes("SELECT resources, army_upgrades")) return { rows: [{ resources: state.resources, army_upgrades: state.army_upgrades }], rowCount: 1 };
+      throw new Error("Unexpected pool query: " + sql);
+    },
+    async connect() { return client; }
   };
-  const invoke = async amount => {
-    const req = {
-      method: "POST",
-      headers: { authorization: "Bearer " + token },
-      [Symbol.asyncIterator]: async function* () {
-        yield JSON.stringify({ unitId: "light_cavalry", amount });
-      }
-    };
-    const response = {
-      statusCode: 200, headers: {}, body: "",
-      writeHead(status, headers) { this.statusCode = status; this.headers = headers; },
-      end(body) { this.body = body; }
-    };
-    await handleArmyRequest({ req, res: response, url: new URL("http://localhost/api/game/army/recruit"), pool, sessionSecret: secret });
-    return { status: response.statusCode, body: JSON.parse(response.body) };
+  const req = {
+    method: "POST", headers: { authorization: "Bearer " + token },
+    async *[Symbol.asyncIterator]() { yield JSON.stringify({ upgradeId: "infantryAttack" }); }
   };
-  const catalogUnit = getTroopCatalog("seljuk", state.buildings).find(unit => unit.id === "light_cavalry");
-  assert.equal(catalogUnit.requiresHorse, true);
-  assert.equal(catalogUnit.workersPerUnit, 0);
-  assert.equal(catalogUnit.cost.horses, 1);
-  const recruited = await invoke(5);
-  assert.equal(recruited.status, 200);
-  assert.equal(recruited.body.troops.light_cavalry, 5);
-  assert.equal(recruited.body.idleWorkers, 0);
-  assert.equal(recruited.body.workerConsumingUnits, 0);
-  assert.equal(recruited.body.resources.horses, 0);
-  const withoutHorses = await invoke(1);
-  assert.equal(withoutHorses.status, 409);
-  assert.equal(withoutHorses.body.missing.horses, 1);
-  assert.equal(state.troops.light_cavalry, 5);
+  const res = { writeHead(status) { this.statusCode = status; }, end(body) { this.body = body; } };
+  await handleArmyRequest({ req, res, url: new URL("http://localhost/api/game/army/upgrade"), pool, sessionSecret: secret });
+  const body = JSON.parse(res.body);
+  assert.equal(res.statusCode, 200);
+  assert.equal(body.armyUpgrades.infantryAttack, 1);
+  assert.equal(body.resources.gold, 4000);
+  assert.equal(body.resources.wood, 500);
+  assert.equal(body.troops.infantry, 12);
+  assert.equal(body.catalog.find(unit => unit.id === "infantry").attack, 16);
 });
