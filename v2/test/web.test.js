@@ -224,6 +224,10 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="army-upgrade-dialog"/);
   assert.match(appScript,/id="army-upgrade-open"/);
   assert.match(appScript,/function renderArmyUnitDetail\(unitId\)/);
+  assert.match(appScript,/unit\.armyUpgradeBonuses\|\|\{\}/);
+  assert.match(appScript,/statWithBonus\(attackBase,attackBonus\)/);
+  assert.match(appScript,/statWithBonus\(infantryDefenseBase,infantryDefenseBonus\)/);
+  assert.match(appScript,/statWithBonus\(cavalryDefenseBase,cavalryDefenseBonus\)/);
   assert.match(appScript,/data-select-unit/);
   assert.match(appScript,/data-recruit-unit/);
   assert.match(appScript,/function renderArmyUpgradeCatalog\(\)/);
