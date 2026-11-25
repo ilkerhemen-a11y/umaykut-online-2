@@ -1166,7 +1166,21 @@ function renderArmyUnitDetail(unitId){
  description.textContent=unit.requiresHorse?"Ahırda yetiştirilir. İşçi kullanmaz; her asker için at gerekir.":unit.building==="barracks"?"Kışlada yetiştirilen kara birliği.":unit.building==="archery"?"Okçu binasında yetiştirilen menzilli birlik.":"Ahırda yetiştirilen atlı birlik.";
  content.append(description);
  const stats=document.createElement("div");stats.className="army-detail-stats";
- [["Saldırı gücü",unit.attackDisplay||unit.attack],["Piyade savunması",unit.infantryDefense],["Süvari savunması",unit.cavalryDefense],["Hız",unit.speed],["Taşıma kapasitesi",unit.carry]].forEach(([label,value])=>{
+ const upgradeBonuses=unit.armyUpgradeBonuses||{};
+ const attackBonus=Math.max(0,Number(upgradeBonuses.infantryAttack)||0);
+ const infantryDefenseBonus=Math.max(0,Number(upgradeBonuses.infantryDefense)||0);
+ const cavalryDefenseBonus=Math.max(0,Number(upgradeBonuses.cavalryDefense)||0);
+ const statWithBonus=(base,bonus)=>bonus>0?String(base)+" (+"+armyNumber(bonus)+")":String(base);
+ const attackBase=unit.attackDisplay||armyNumber(Math.max(0,Number(unit.attack||0)-attackBonus));
+ const infantryDefenseBase=armyNumber(Math.max(0,Number(unit.infantryDefense||0)-infantryDefenseBonus));
+ const cavalryDefenseBase=armyNumber(Math.max(0,Number(unit.cavalryDefense||0)-cavalryDefenseBonus));
+ [
+  ["Saldırı gücü",statWithBonus(attackBase,attackBonus)],
+  ["Piyade savunması",statWithBonus(infantryDefenseBase,infantryDefenseBonus)],
+  ["Süvari savunması",statWithBonus(cavalryDefenseBase,cavalryDefenseBonus)],
+  ["Hız",unit.speed],
+  ["Taşıma kapasitesi",unit.carry]
+ ].forEach(([label,value])=>{
   const item=document.createElement("div"),strong=document.createElement("strong"),small=document.createElement("small");
   strong.textContent=String(value);small.textContent=label;item.append(strong,small);stats.append(item);
  });
