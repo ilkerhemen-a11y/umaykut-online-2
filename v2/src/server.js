@@ -1068,8 +1068,8 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
         const currentWorkerPool = Math.min(2800, Math.max(1800, Number(workerCapacity.rows[0]?.worker_pool ?? 1800)));
         const currentTroops = workerCapacity.rows[0]?.troops ?? {};
         const totalTroops = Object.entries(currentTroops).reduce((sum, [unitId, count]) => sum + (HORSE_TROOPS.has(unitId) ? 0 : Math.max(0, Number(count) || 0)), 0);
-        if (totalAssignedWorkers > 1000 || totalAssignedWorkers + totalTroops > currentWorkerPool) {
-          return sendJson(res, 400, { error: "Görevlendirilen işçi ve asker sayısı toplam işçi kapasitesini aşamaz.", workerPool: currentWorkerPool, totalTroops });
+        if (values.some(value => value > 1000) || totalAssignedWorkers + totalTroops > currentWorkerPool) {
+          return sendJson(res, 400, { error: "Her kaynak alanına en fazla 1.000 işçi atanabilir; toplam işçi ve asker sayısı nüfus kapasitesini aşamaz.", workerPool: currentWorkerPool, totalTroops });
         }
         const saved = await pool.query(
           `INSERT INTO umaykut_v2.player_game_state(player_id, faction_id, worker_assignments, worker_state_initialized)
