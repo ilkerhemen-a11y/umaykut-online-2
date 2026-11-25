@@ -53,7 +53,7 @@ const FACTION_UNITS = {
   }
 };
 
-export const MAX_WORKER_POOL = 1000;
+export const MAX_WORKER_POOL = 2800;
 export const ARMY_UPGRADE_DEFINITIONS = Object.freeze({
   infantryAttack: { name: "Piyade Saldırısı", description: "Piyade birliklerinin saldırı gücünü artırır." },
   infantryDefense: { name: "Piyade Savunması", description: "Piyade saldırılarına karşı savunmayı artırır." },
