@@ -1,13 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  getTroopCatalog, normalizeArmyUpgrades, getArmyUpgradeCost, handleArmyRequest, MAX_WORKER_POOL
+  getTroopCatalog, normalizeArmyUpgrades, getArmyUpgradeCost, handleArmyRequest
 } from "../src/army.js";
 import { createSessionToken } from "../src/auth.js";
-
-test("total worker population is capped at 2800", () => {
-  assert.equal(MAX_WORKER_POOL, 2800);
-});
 
 test("army upgrade levels normalize independently between zero and ten", () => {
   assert.deepEqual(normalizeArmyUpgrades({ infantryAttack: 14, infantryDefense: -2, cavalryDefense: 4.8 }), {
@@ -54,7 +50,7 @@ test("recruiting a troop deducts its resources and adds one unit to the persiste
   const state = {
     faction_id: "seljuk", resources: { gold: 500, wood: 500, food: 600, iron: 700, horses: 10 },
     buildings: { "2": { type: "barracks", level: 1 }, "3": { type: "stable", level: 1 }, "4": { type: "blacksmith", level: 1 }, "9": { type: "archery", level: 1 } },
-    troops: { infantry: 0 }, training_queue: [], worker_pool: 1800, worker_assignments: {},
+    troops: { infantry: 0 }, training_queue: [], worker_pool: 5000, worker_assignments: {},
     army_upgrades: { infantryAttack: 0, infantryDefense: 0, cavalryDefense: 0 }
   };
   const client = {
@@ -88,7 +84,7 @@ test("recruiting a troop deducts its resources and adds one unit to the persiste
   assert.equal(body.resources.food, 555);
   assert.equal(body.resources.iron, 685);
   assert.equal(body.workerConsumingUnits, 1);
-  assert.equal(body.idleWorkers, 1799);
+  assert.equal(body.idleWorkers, 4999);
 });
 
 test("buying an army upgrade deducts only gold and persists the independent level", async () => {

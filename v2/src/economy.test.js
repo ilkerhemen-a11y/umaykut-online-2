@@ -78,7 +78,7 @@ test("production breakdown exposes worker, node-yield and center bonuses used by
   assert.equal(result.productionPerHour.wood, 30.8);
 });
 
-test("temple produces 25 workers per hour per level and accrues offline", () => {
+test("temple produces 100 workers per hour per level without a total cap", () => {
   for (let level = 1; level <= 10; level += 1) {
     const result = settleEconomy({
       resources: {}, workerAssignments: {},
@@ -87,16 +87,16 @@ test("temple produces 25 workers per hour per level and accrues offline", () => 
       lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
       now: Date.parse("2026-01-01T01:00:00.000Z")
     });
-    assert.equal(result.workerProductionPerHour, level * 25);
-    assert.equal(result.workerPool, Math.min(2800, 1800 + level * 25));
+    assert.equal(result.workerProductionPerHour, level * 100);
+    assert.equal(result.workerPool, 1800 + level * 100);
   }
   const offline = settleEconomy({
     resources: {}, workerAssignments: {}, buildings: { "7": { level: 10 } },
     workerPool: 2700, lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T02:30:00.000Z")
   });
-  assert.equal(offline.workerPool, 2800);
-  assert.equal(offline.workersProduced, 100);
+  assert.equal(offline.workerPool, 5200);
+  assert.equal(offline.workersProduced, 2500);
 });
 
 test("worker production retains fractional accrual between state checks", () => {
@@ -106,9 +106,21 @@ test("worker production retains fractional accrual between state checks", () => 
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T00:30:00.000Z")
   });
-  assert.equal(result.workerPool, 1812);
-  assert.equal(result.remainders.workers, 0.5);
+  assert.equal(result.workerPool, 1850);
+  assert.equal(result.remainders.workers, 0);
 });
+test("temple worker production accrues for the full 72-hour offline window", () => {
+  const result = settleEconomy({
+    resources: {}, workerAssignments: {}, buildings: { "7": { level: 10 } },
+    workerPool: 1800,
+    lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
+    now: Date.parse("2026-01-04T00:00:00.000Z")
+  });
+  assert.equal(result.workerProductionPerHour, 1000);
+  assert.equal(result.workersProduced, 72000);
+  assert.equal(result.workerPool, 73800);
+});
+
 test("each resource source can receive up to 1000 workers within the shared population", () => {
   const result = settleEconomy({
     resources: {}, workerAssignments: { wood: 800, gold: 300, food: 200 },
@@ -123,7 +135,7 @@ test("each resource source can receive up to 1000 workers within the shared popu
 });
 
 
-test("new villages start with 1800 workers and temple growth is capped at 2800", () => {
+test("new villages start with 1800 workers and temple growth is unlimited", () => {
   const initial = settleEconomy({
     resources: {}, workerAssignments: {}, buildings: { "7": { level: 1 } },
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
@@ -136,17 +148,17 @@ test("new villages start with 1800 workers and temple growth is capped at 2800",
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T01:00:00.000Z")
   });
-  assert.equal(grown.workerPool, 2800);
+  assert.equal(grown.workerPool, 3700);
 });
 
 test("each individual resource source is capped at 1000 workers", () => {
   const result = settleEconomy({
     resources: {}, workerAssignments: { wood: 1200, gold: 1000, food: 200 },
-    buildings: { "7": { level: 1 } }, workerPool: 2800,
+    buildings: { "7": { level: 1 } }, workerPool: 4500,
     lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T00:00:00.000Z")
   });
   assert.deepEqual(result.workerAssignments, { wood: 1000, gold: 1000, food: 200 });
   assert.equal(Object.values(result.workerAssignments).reduce((sum, count) => sum + count, 0), 2200);
-  assert.equal(result.workerPool, 2800);
+  assert.equal(result.workerPool, 4500);
 });

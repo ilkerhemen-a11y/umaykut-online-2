@@ -53,7 +53,6 @@ const FACTION_UNITS = {
   }
 };
 
-export const MAX_WORKER_POOL = 2800;
 export const ARMY_UPGRADE_DEFINITIONS = Object.freeze({
   infantryAttack: { name: "Piyade Saldırısı", description: "Piyade birliklerinin saldırı gücünü artırır." },
   infantryDefense: { name: "Piyade Savunması", description: "Piyade saldırılarına karşı savunmayı artırır." },
@@ -147,7 +146,7 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     );
     const row = result.rows[0];
     const resources = parseJson(row.resources, {});
-    const workerPool = Math.min(MAX_WORKER_POOL, Math.max(1800, Number(row.worker_pool ?? 1800) || 1800));
+    const workerPool = Math.max(1800, Number(row.worker_pool ?? 1800) || 1800);
     const workerAssignments = parseJson(row.worker_assignments, {});
     const assignedWorkers = Object.values(workerAssignments).reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
     const buildings = parseJson(row.buildings, {});

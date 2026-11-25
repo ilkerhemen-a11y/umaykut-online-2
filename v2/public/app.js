@@ -605,11 +605,10 @@ document.querySelector("#ranking-close").addEventListener("click",()=>rankingDia
 rankingRefreshButton.addEventListener("click",loadRanking);
 
 const INITIAL_WORKER_POOL=1800;
-const WORKER_POOL=2800;
 const MAX_RESOURCE_ASSIGNMENT_WORKERS=1000;
 let currentWorkerPool=INITIAL_WORKER_POOL;
 let currentArmyPopulation=0;
-let workerProductionPerHour=25;
+let workerProductionPerHour=100;
 const WORKER_STORAGE_KEY="umaykut-worker-state-v3";
 const RESOURCE_KEYS=["grain","wood","stone","gold","iron"];
 const resourceInfo={
@@ -628,7 +627,7 @@ function restoreWorkerState(){
  try{
   const saved=JSON.parse(localStorage.getItem(WORKER_STORAGE_KEY)||localStorage.getItem("umaykut-worker-state-v2")||"null");
   if(!saved||!saved.assigned)return;
-  if(Number.isFinite(Number(saved.workerPool)))currentWorkerPool=Math.min(WORKER_POOL,Math.max(INITIAL_WORKER_POOL,Number(saved.workerPool)));
+  if(Number.isFinite(Number(saved.workerPool)))currentWorkerPool=Math.max(INITIAL_WORKER_POOL,Number(saved.workerPool));
   let remaining=currentWorkerPool;
   Object.keys(saved.assigned).forEach(key=>{
    if((RESOURCE_KEYS.includes(key)||/^mine_\d+$/.test(key))&&Number.isSafeInteger(saved.assigned[key])&&saved.assigned[key]>=0){
@@ -851,7 +850,7 @@ async function authRequest(path,{method="GET",body,token}={}){
 
 
 function applyProductionState(state){
- if(Number.isFinite(Number(state.workerPool)))currentWorkerPool=Math.min(WORKER_POOL,Math.max(INITIAL_WORKER_POOL,Number(state.workerPool)));
+ if(Number.isFinite(Number(state.workerPool)))currentWorkerPool=Math.max(INITIAL_WORKER_POOL,Number(state.workerPool));
  if(Number.isFinite(Number(state.workerProductionPerHour)))workerProductionPerHour=Number(state.workerProductionPerHour);
  const totalLabel=document.querySelector("#workers-total-count");
  const hourlyLabel=document.querySelector("#workers-hourly-production");
@@ -909,7 +908,7 @@ async function loadGameState(){
     if((RESOURCE_KEYS.includes(key)||/^mine_\d+$/.test(key))&&Number.isSafeInteger(Number(value))&&Number(value)>=0)assigned[key]=Number(value);
    });
    RESOURCE_KEYS.forEach(key=>{if(!Number.isSafeInteger(assigned[key]))assigned[key]=0;});
-   currentWorkerPool=Math.min(WORKER_POOL,Math.max(INITIAL_WORKER_POOL,Number(state.workerPool||INITIAL_WORKER_POOL)));
+   currentWorkerPool=Math.max(INITIAL_WORKER_POOL,Number(state.workerPool||INITIAL_WORKER_POOL));
    availableWorkers=Math.max(0,currentWorkerPool-totalAssigned());
   }else{
    await authRequest("/api/game/state",{

@@ -1063,7 +1063,7 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           "SELECT worker_pool, troops FROM umaykut_v2.player_game_state WHERE player_id = $1",
           [playerId]
         );
-        const currentWorkerPool = Math.min(2800, Math.max(1800, Number(workerCapacity.rows[0]?.worker_pool ?? 1800)));
+        const currentWorkerPool = Math.max(1800, Number(workerCapacity.rows[0]?.worker_pool ?? 1800));
         const currentTroops = workerCapacity.rows[0]?.troops ?? {};
         const totalTroops = Object.entries(currentTroops).reduce((sum, [unitId, count]) => sum + (HORSE_TROOPS.has(unitId) ? 0 : Math.max(0, Number(count) || 0)), 0);
         if (values.some(value => value > 1000) || totalAssignedWorkers + totalTroops > currentWorkerPool) {
