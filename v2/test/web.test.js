@@ -238,7 +238,9 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(appScript,/\/api\/game\/army\/upgrade/);
   assert.match(appScript,/\/api\/game\/army\/recruit/);
   assert.doesNotMatch(html,/army-management-tabs/);
-  assert.match(appScript,/const WORKER_POOL=1000/);
+  assert.match(appScript,/const INITIAL_WORKER_POOL=1800/);
+  assert.match(appScript,/const WORKER_POOL=2800/);
+  assert.match(appScript,/const MAX_RESOURCE_ASSIGNMENT_WORKERS=1000/);
   assert.match(appScript,/setServerClock\(state.serverNow\)/);
   assert.match(appScript,/function renderProductionDialog\(\)/);
   assert.match(appScript,/currentWorkerPool/);
