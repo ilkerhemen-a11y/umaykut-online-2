@@ -171,6 +171,34 @@ export async function handleArmyRequest({ req, res, url, pool, sessionSecret }) 
     let catalog = getTroopCatalog(factionId, buildings, armyUpgrades);
 
     if (req.method === "POST" && url.pathname === "/api/game/army/upgrade") {
+      let body = "";
+      for await (const chunk of req) { body += chunk; if (body.length > 8192) throw new Error("İstek çok büyük."); }
+      const input = JSON.parse(body || "{}");
+      const upgradeId = String(input.upgradeId || "");
+      if (!Object.hasOwn(ARMY_UPGRADE_DEFINITIONS, upgradeId)) {
+        await client.query("ROLLBACK"); transaction = false;
+        sendJson(res, 400, { error: "Geçersiz ordu geliştirmesi." }); return true;
+      }
+      const currentLevel = armyUpgrades[upgradeId];
+      if (currentLevel >= 10) {
+        await client.query("ROLLBACK"); transaction = false;
+        sendJson(res, 409, { error: "Bu geliştirme zaten en yüksek seviyede." }); return true;
+      }
+      const nextLevel = currentLevel + 1;
+      const goldCost = getArmyUpgradeCost(nextLevel);
+      const currentGold = Math.max(0, Number(resources.gold) || 0);
+      if (currentGold < goldCost) {
+        await client.query("ROLLBACK"); transaction = false;
+        sendJson(res, 409, { error: "Yetersiz altın.", requiredGold: goldCost, availableGold: currentGold }); return true;
+      }
+      resources.gold = currentGold - goldCost;
+      armyUpgrades = { ...armyUpgrades, [upgradeId]: nextLevel };
+      await client.query(
+        "UPDATE umaykut_v2.player_game_state SET resources=$2::jsonb, army_upgrades=$3::jsonb, updated_at=NOW() WHERE player_id=$1",
+        [session.id, JSON.stringify(resources), JSON.stringify(armyUpgrades)]
+      );
+      catalog = getTroopCatalog(factionId, buildings, armyUpgrades);
+    }
     await client.query("COMMIT"); transaction = false;
     const latest = await pool.query("SELECT resources, army_upgrades FROM umaykut_v2.player_game_state WHERE player_id=$1", [session.id]);
     const finalResources = parseJson(latest.rows[0]?.resources, resources);
