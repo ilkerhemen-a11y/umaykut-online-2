@@ -88,14 +88,14 @@ test("temple produces 25 workers per hour per level and accrues offline", () => 
       now: Date.parse("2026-01-01T01:00:00.000Z")
     });
     assert.equal(result.workerProductionPerHour, level * 25);
-    assert.equal(result.workerPool, Math.min(1000, 900 + level * 25));
+    assert.equal(result.workerPool, Math.min(2800, 900 + level * 25));
   }
   const offline = settleEconomy({
     resources: {}, workerAssignments: {}, buildings: { "7": { level: 10 } },
-    workerPool: 900, lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
+    workerPool: 2700, lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
     now: Date.parse("2026-01-01T02:30:00.000Z")
   });
-  assert.equal(offline.workerPool, 1000);
+  assert.equal(offline.workerPool, 2800);
   assert.equal(offline.workersProduced, 100);
 });
 
@@ -119,4 +119,32 @@ test("assigned workers are trimmed to the remaining population after troop consu
   });
   assert.deepEqual(result.workerAssignments, { wood: 750, gold: 0, food: 0 });
   assert.equal(Object.values(result.workerAssignments).reduce((sum, count) => sum + count, 0), 750);
+});
+
+
+test("new villages start with 1800 workers and temple growth is capped at 2800", () => {
+  const initial = settleEconomy({
+    resources: {}, workerAssignments: {}, buildings: { "7": { level: 1 } },
+    lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
+    now: Date.parse("2026-01-01T00:00:00.000Z")
+  });
+  assert.equal(initial.workerPool, 1800);
+  const grown = settleEconomy({
+    resources: {}, workerAssignments: {}, buildings: { "7": { level: 10 } },
+    workerPool: 2700,
+    lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
+    now: Date.parse("2026-01-01T01:00:00.000Z")
+  });
+  assert.equal(grown.workerPool, 2800);
+});
+
+test("resource assignments are capped at 1000 without reducing total population", () => {
+  const result = settleEconomy({
+    resources: {}, workerAssignments: { wood: 800, gold: 500, food: 200 },
+    buildings: { "7": { level: 1 } }, workerPool: 1800,
+    lastResourceTick: new Date("2026-01-01T00:00:00.000Z"),
+    now: Date.parse("2026-01-01T00:00:00.000Z")
+  });
+  assert.equal(Object.values(result.workerAssignments).reduce((sum, count) => sum + count, 0), 1000);
+  assert.equal(result.workerPool, 1800);
 });
