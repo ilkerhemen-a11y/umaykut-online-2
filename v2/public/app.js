@@ -250,7 +250,7 @@ let wallServerEffects={defensePercent:5,shelterCapacity:{gold:500,wood:500,food:
 let gameProductionPerHour={gold:0,wood:0,food:0,stone:0,iron:0};
 let gameProductionBreakdown=[];
 let gameResourceNodes=[];
-let gameStorageCapacity=15000;
+let gameStorageCapacity=Infinity;
 function renderResourceBalances(){
  for(const key of Object.keys(DEFAULT_RESOURCES)){
   const node=document.querySelector("#resource-"+key);
@@ -751,10 +751,8 @@ function renderProductionDialog(){
   const name=document.createElement("b");name.textContent=RESOURCE_LABELS[key];
   heading.append(icon,name);
   const amount=document.createElement("strong");amount.textContent="+"+formatNumber(rate)+"/saat";
-  const stock=document.createElement("small");stock.textContent=formatNumber(current)+" / "+formatNumber(gameStorageCapacity)+" depoda";
-  const meter=document.createElement("div");meter.className="production-capacity-track";
-  const fill=document.createElement("span");fill.style.width=Math.min(100,current/gameStorageCapacity*100)+"%";meter.append(fill);
-  card.append(heading,amount,stock,meter);productionResourceGrid.append(card);
+  const stock=document.createElement("small");stock.textContent=formatNumber(current)+" · Sınırsız depo";
+  card.append(heading,amount,stock);productionResourceGrid.append(card);
  }
  productionBreakdownList.replaceChildren();
  if(!gameProductionBreakdown.length){
@@ -863,7 +861,7 @@ function applyProductionState(state){
  gameProductionPerHour={...gameProductionPerHour,...(state.productionPerHour||{})};
  gameProductionBreakdown=Array.isArray(state.productionBreakdown)?state.productionBreakdown:[];
  gameResourceNodes=Array.isArray(state.resourceNodes)?state.resourceNodes:[];
- gameStorageCapacity=Math.max(1,Number(state.storageCapacity)||gameStorageCapacity);
+ gameStorageCapacity=Infinity;
  if(state.resources&&typeof state.resources==="object")gameResources={...DEFAULT_RESOURCES,...state.resources};
  renderResourceBalances();
  renderProductionDialog();
