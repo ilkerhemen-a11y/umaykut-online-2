@@ -1065,10 +1065,10 @@ export function createServer({ pool = createPool(), sessionSecret = process.env.
           "SELECT worker_pool, troops FROM umaykut_v2.player_game_state WHERE player_id = $1",
           [playerId]
         );
-        const currentWorkerPool = Math.min(1000, Math.max(0, Number(workerCapacity.rows[0]?.worker_pool ?? 1000)));
+        const currentWorkerPool = Math.min(2800, Math.max(1800, Number(workerCapacity.rows[0]?.worker_pool ?? 1800)));
         const currentTroops = workerCapacity.rows[0]?.troops ?? {};
         const totalTroops = Object.entries(currentTroops).reduce((sum, [unitId, count]) => sum + (HORSE_TROOPS.has(unitId) ? 0 : Math.max(0, Number(count) || 0)), 0);
-        if (totalAssignedWorkers + totalTroops > currentWorkerPool) {
+        if (totalAssignedWorkers > 1000 || totalAssignedWorkers + totalTroops > currentWorkerPool) {
           return sendJson(res, 400, { error: "Görevlendirilen işçi ve asker sayısı toplam işçi kapasitesini aşamaz.", workerPool: currentWorkerPool, totalTroops });
         }
         const saved = await pool.query(
