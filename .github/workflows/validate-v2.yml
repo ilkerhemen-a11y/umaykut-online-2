@@ -1,0 +1,27 @@
+name: Validate Umaykut V2
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "v2/**"
+      - ".github/workflows/validate-v2.yml"
+  pull_request:
+    branches:
+      - rebuild/umaykut-online-2-v2-foundation-20261117
+    paths:
+      - "v2/**"
+      - ".github/workflows/validate-v2.yml"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install V2 dependencies
+        run: npm install --no-audit --no-fund
+        working-directory: v2
+      - name: Run V2 test suite
+        run: npm test
+        working-directory: v2

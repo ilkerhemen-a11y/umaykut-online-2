@@ -1,6 +1,7 @@
 import { clampVillageZoom, clampVillagePan, calculateVillagePinch, calculateVillagePan } from "./village-camera.js";
 import { applyVillageSelection } from "./village-selection.js";
 import { calculateVillageUpgradeProgress } from "./village-upgrade-progress.js";
+import { applyVillageFactionArt } from "./village-art.js";
 
 applyVillageSelection(document.querySelectorAll("[data-building-slot]"), null);
 const factions={
@@ -15,6 +16,7 @@ let selectedFoundingFaction=null;
 function setFaction(key){
  if(!factions[key])return false;
  shell.dataset.faction=key;
+ applyVillageFactionArt(document.querySelector(".city-art"),key);
  shell.style.setProperty("--faction-portrait",`url("/assets/factions/${key}-warrior.webp")`);
  factionLabel.textContent=factions[key].name;
  document.querySelector('meta[name="theme-color"]').content=factions[key].themeColor;
