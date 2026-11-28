@@ -157,6 +157,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(css.includes(".building-numbers{position:absolute;inset:0;pointer-events:none}"));
   assert.ok(css.includes(".building-number.is-center{width:clamp(54px,14vw,82px);height:clamp(48px,12vw,72px);background:transparent}"));
   assert.ok(css.includes(".building-number.is-center .building-marker-art{filter:drop-shadow(0 3px 5px #071008d9) drop-shadow(0 0 7px #d5ad5a66)}"));
+  assert.ok(css.includes(".building-number.is-center .building-label{top:auto;bottom:calc(100% + 1px)}"));
   assert.match(css,/\.wall-number\{[^}]*left:50%[^}]*top:7%/);
   assert.ok(css.includes(".building-number{position:absolute;transform:translate(-50%,-50%);"));
   assert.ok(css.includes("@media(max-width:360px){\n  .building-number{width:28px;height:24px}\n  .building-number.is-center{width:50px;height:44px}"));
