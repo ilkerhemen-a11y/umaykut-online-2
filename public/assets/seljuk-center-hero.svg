@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 420" role="img" aria-labelledby="title desc">
+<title id="title">Selçuklu merkez sarayı</title>
+<desc id="desc">İzometrik taş saray; altın kubbe, turkuaz çini kuşağı, işlemeli revaklar ve hilalli minareler.</desc>
+<defs>
+ <linearGradient id="stoneFront" x1="0" y1="0" x2=".25" y2="1"><stop stop-color="#f4e7c8"/><stop offset=".52" stop-color="#cdb78c"/><stop offset="1" stop-color="#8a7351"/></linearGradient>
+ <linearGradient id="stoneSide" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b7a17a"/><stop offset="1" stop-color="#64523b"/></linearGradient>
+ <linearGradient id="goldDome" x1=".15" y1="0" x2=".85" y2="1"><stop stop-color="#fff4b5"/><stop offset=".28" stop-color="#e9c65e"/><stop offset=".68" stop-color="#bd842d"/><stop offset="1" stop-color="#76501f"/></linearGradient>
+ <linearGradient id="turquoise" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#7bd1c9"/><stop offset=".45" stop-color="#258b91"/><stop offset="1" stop-color="#104451"/></linearGradient>
+ <linearGradient id="roofBlue" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#4aaab0"/><stop offset=".5" stop-color="#1c6879"/><stop offset="1" stop-color="#12394d"/></linearGradient>
+ <linearGradient id="goldTrim" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff0a2"/><stop offset="1" stop-color="#9b6826"/></linearGradient>
+ <pattern id="tilework" width="22" height="22" patternUnits="userSpaceOnUse">
+  <path d="M11 1 21 11 11 21 1 11Z" fill="none" stroke="#f0d99a" stroke-width="1.7"/>
+  <path d="M11 5 17 11 11 17 5 11Z" fill="none" stroke="#72c8c2" stroke-width="1.4"/>
+  <circle cx="11" cy="11" r="2" fill="#f5e4b6"/>
+ </pattern>
+ <filter id="softShadow" x="-30%" y="-30%" width="160%" height="180%"><feGaussianBlur stdDeviation="8"/></filter>
+ <filter id="edgeShadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#09120d" flood-opacity=".55"/></filter>
+</defs>
+<!-- grounded stone platform -->
+<ellipse cx="256" cy="366" rx="202" ry="29" fill="#08130c" opacity=".52" filter="url(#softShadow)"/>
+<path d="M44 300 256 390 468 300 256 210Z" fill="#6e5c40" stroke="#3f3527" stroke-width="5"/>
+<path d="M58 296 256 378 454 296 256 220Z" fill="#c8b58c" stroke="#f0dfb7" stroke-width="4"/>
+<path d="M78 292 256 364 434 292 256 232Z" fill="#a18b66" stroke="#69563a" stroke-width="3"/>
+<path d="M78 292 256 364 256 377 58 296Z" fill="#766043"/>
+<path d="M256 364 434 292 454 296 256 390Z" fill="#55452f"/>
+<!-- lower plinth, front and right faces -->
+<path d="M91 229 256 292 256 354 91 289Z" fill="url(#stoneFront)" stroke="#665239" stroke-width="4"/>
+<path d="M256 292 421 229 421 289 256 354Z" fill="url(#stoneSide)" stroke="#51432f" stroke-width="4"/>
+<path d="M83 220 256 282 429 220 256 153Z" fill="#e2d0a8" stroke="#705c3d" stroke-width="5"/>
+<path d="M83 220 256 282 256 299 83 237Z" fill="#a18a63"/>
+<path d="M256 282 429 220 429 237 256 299Z" fill="#756044"/>
+<path d="M96 222 256 279 416 222" fill="none" stroke="#fff0ca" stroke-width="4" opacity=".8"/>
+<!-- palace body -->
+<path d="M116 173 256 225 256 298 116 246Z" fill="url(#stoneFront)" stroke="#6c583b" stroke-width="4"/>
+<path d="M256 225 396 173 396 246 256 298Z" fill="url(#stoneSide)" stroke="#51432f" stroke-width="4"/>
+<path d="M116 173 256 119 396 173 256 225Z" fill="#e8d8b4" stroke="#776244" stroke-width="5"/>
+<!-- side wing roof -->
+<path d="M104 173 169 130 229 153 164 199Z" fill="url(#roofBlue)" stroke="#164d5c" stroke-width="4"/>
+<path d="M283 153 343 130 408 173 348 199Z" fill="url(#roofBlue)" stroke="#164d5c" stroke-width="4"/>
+<path d="M112 173 169 139 221 158M291 158 343 139 400 173" fill="none" stroke="#e8d49e" stroke-width="3"/>
+<!-- turquoise frieze -->
+<path d="M119 179 256 230 393 179 393 197 256 249 119 197Z" fill="url(#turquoise)" stroke="#e6d3a0" stroke-width="3"/>
+<path d="M119 179 256 230 393 179 393 197 256 249 119 197Z" fill="url(#tilework)" opacity=".9"/>
+<!-- carved facade bands -->
+<path d="M126 208 256 256 386 208M126 217 256 265 386 217" fill="none" stroke="#f4e4bd" stroke-width="2" opacity=".8"/>
+<path d="M136 225 256 269 376 225" fill="none" stroke="#7c6037" stroke-width="2"/>
+<!-- front entrance -->
+<path d="M202 280V237Q256 176 310 237V280Z" fill="#4b3828" stroke="#f0d9a7" stroke-width="6"/>
+<path d="M216 280V240Q256 198 296 240V280Z" fill="#173f48" stroke="#c99a4c" stroke-width="4"/>
+<path d="M231 280V247Q256 220 281 247V280Z" fill="#091e24" stroke="#e4c578" stroke-width="2"/>
+<path d="M256 221V280M218 254H294M218 266H294" stroke="#b9853d" stroke-width="2" opacity=".9"/>
+<circle cx="256" cy="239" r="5" fill="#f5d97b"/>
+<!-- front windows and side windows -->
+<g fill="#16424b" stroke="#f0dfb8" stroke-width="3">
+ <path d="M145 232V208Q161 185 177 220V244Z"/>
+ <path d="M335 244V220Q351 185 367 208V232Z"/>
+ <path d="M281 258V238Q294 220 307 243V268Z"/>
+</g>
+<g stroke="#d4a954" stroke-width="2"><path d="M161 201V237M351 201V237M294 231V264"/></g>
+<!-- rear drum -->
+<path d="M192 140V102Q256 70 320 102V140L256 164Z" fill="url(#turquoise)" stroke="#e7d39e" stroke-width="5"/>
+<path d="M192 112 256 136 320 112V127L256 151 192 127Z" fill="url(#tilework)" stroke="#e5d3a4" stroke-width="2"/>
+<path d="M201 100 256 120 311 100" fill="none" stroke="#fff0b5" stroke-width="3"/>
+<!-- large gold dome -->
+<path d="M184 104Q188 21 256 15Q324 21 328 104L256 132Z" fill="url(#goldDome)" stroke="#79501d" stroke-width="5" filter="url(#edgeShadow)"/>
+<path d="M198 101Q206 42 256 30Q306 42 314 101" fill="none" stroke="#fff1ac" stroke-width="4" opacity=".8"/>
+<path d="M215 91Q224 43 256 32M297 91Q288 43 256 32M256 24V118" fill="none" stroke="#a56e25" stroke-width="2.5" opacity=".7"/>
+<path d="M256 20V5" stroke="#d4b05b" stroke-width="4"/>
+<path d="M256 5Q269 -4 279 7Q266 15 256 5Z" fill="#f6d879" stroke="#845b24" stroke-width="2"/>
+<!-- left short minaret -->
+<g filter="url(#edgeShadow)">
+ <path d="M91 150 104 128 117 150V235L104 245 91 235Z" fill="url(#stoneFront)" stroke="#655137" stroke-width="3"/>
+ <path d="M86 151H122L116 139H92Z" fill="url(#turquoise)" stroke="#e4cf97" stroke-width="2"/>
+ <path d="M95 128 104 98 113 128Z" fill="url(#goldDome)" stroke="#7a5423" stroke-width="2"/>
+ <path d="M91 173H117M91 208H117" stroke="#e8d7ad" stroke-width="3"/>
+ <path d="M100 157H108V174H100ZM100 191H108V207H100Z" fill="#15434c"/>
+</g>
+<!-- right tall tiled minaret -->
+<g filter="url(#edgeShadow)">
+ <path d="M374 165 390 138 406 165V260L390 272 374 260Z" fill="url(#stoneFront)" stroke="#5c4b35" stroke-width="3"/>
+ <path d="M369 165H411L405 151H375Z" fill="url(#turquoise)" stroke="#f0dca9" stroke-width="2"/>
+ <path d="M378 184H402V201H378ZM378 222H402V240H378Z" fill="#14505d" stroke="#e7d5a4" stroke-width="2"/>
+ <path d="M390 138 390 98" stroke="#d8b35c" stroke-width="4"/>
+ <path d="M374 138Q390 92 406 138L399 146H381Z" fill="url(#roofBlue)" stroke="#e4ce95" stroke-width="3"/>
+ <path d="M390 98V74" stroke="#e4c76d" stroke-width="3"/>
+ <path d="M390 74Q406 65 414 78Q400 87 390 74Z" fill="#f4d575" stroke="#865c24" stroke-width="2"/>
+ <path d="M390 176V255" stroke="#e4d2a0" stroke-width="1.5" opacity=".7"/>
+</g>
+<!-- gold and turquoise corner ornaments -->
+<g fill="#d6ad54" stroke="#795523" stroke-width="1.5">
+ <path d="M132 184 140 191 132 198 124 191Z"/><path d="M380 191 388 198 380 205 372 198Z"/>
+ <path d="M145 250 153 257 145 264 137 257Z"/><path d="M367 264 375 257 367 250 359 257Z"/>
+</g>
+<!-- stone joints and crenellated roof edge -->
+<g fill="none" stroke="#806b49" stroke-width="2" opacity=".75">
+ <path d="M128 237 155 247M128 249 155 259M357 247 384 237M357 259 384 249"/>
+ <path d="M141 175V193M170 186V204M342 204V186M371 193V175"/>
+</g>
+<g fill="#ead9b2" stroke="#7a6545" stroke-width="2">
+ <path d="M111 173V161H124V170H137V158H150V187Z"/>
+ <path d="M362 187V158H375V170H388V161H401V173Z"/>
+</g>
+<!-- front steps -->
+<path d="M190 286 256 310 322 286 322 297 256 321 190 297Z" fill="#e5d3a9" stroke="#7c6748" stroke-width="3"/>
+<path d="M178 301 256 330 334 301 334 312 256 341 178 312Z" fill="#9d855e" stroke="#655237" stroke-width="3"/>
+<path d="M165 316 256 350 347 316" fill="none" stroke="#f1dfb7" stroke-width="4"/>
+<!-- banners -->
+<g stroke="#d9b76a" stroke-width="2">
+ <path d="M128 135V92M356 143V100"/>
+</g>
+<path d="M128 94 154 101 128 121Z" fill="#1e6574" stroke="#e5c67b" stroke-width="2"/>
+<path d="M356 102 382 109 356 129Z" fill="#1e6574" stroke="#e5c67b" stroke-width="2"/>
+<g fill="#f1d17a"><path d="M128 100 134 107 128 114 122 107Z"/><path d="M356 108 362 115 356 122 350 115Z"/></g>
+</svg>

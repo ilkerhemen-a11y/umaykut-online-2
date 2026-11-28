@@ -64,7 +64,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.match(html,/id="setting-reduced-motion"/);
   assert.match(html,/id="setting-compact-resources"/);
   assert.match(html,/\/assets\/IMG-20261117-WA0073\.jpg/);
-  assert.match(html,/href="\/app\.css\?v=army-upgrade-bonus-display-20261125"/);
+  assert.match(html,/href="\/app\.css\?v=seljuk-center-hero-20261128"/);
   assert.ok(html.includes('src="/app.js?v=village-faction-art-20261126"'));
   assert.match(html,/id="production-dialog"/);
   assert.match(html,/id="production-open"/);
@@ -100,7 +100,7 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
     assert.ok(html.slice(markerStart,markerEnd).includes('class="building-label">'+name+'</span>'));
   }
 
-  const expectedBuildingArt=[["1","/assets/seljuk-center.svg"],["2","/assets/buildings/barracks.svg"],["3","/assets/buildings/stable.svg"],["4","/assets/buildings/blacksmith.svg"],["5","/assets/buildings/school.svg"],["6","/assets/buildings/lumberjack.svg"],["7","/assets/buildings/temple.svg"],["8","/assets/buildings/market.svg"],["9","/assets/buildings/archery.svg"]];
+  const expectedBuildingArt=[["1","/assets/seljuk-center-hero.svg"],["2","/assets/buildings/barracks.svg"],["3","/assets/buildings/stable.svg"],["4","/assets/buildings/blacksmith.svg"],["5","/assets/buildings/school.svg"],["6","/assets/buildings/lumberjack.svg"],["7","/assets/buildings/temple.svg"],["8","/assets/buildings/market.svg"],["9","/assets/buildings/archery.svg"]];
   for(const [slot,asset] of expectedBuildingArt){
     const markerStart=stageHtml.indexOf('data-building-slot="'+slot+'"');
     const markerEnd=stageHtml.indexOf("</button>",markerStart);
@@ -108,12 +108,18 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
     assert.ok(marker.includes('class="building-marker-art" src="'+asset+'"'),"slot "+slot+" uses its own isometric building asset");
   }
   assert.ok(stageHtml.includes('class="wall-marker-art" src="/assets/buildings/wall.svg"'));
+  const centerHeroResponse=await fetch(base+"/assets/seljuk-center-hero.svg");
+  assert.equal(centerHeroResponse.status,200);
+  const centerHeroSvg=await centerHeroResponse.text();
+  assert.match(centerHeroSvg,/<svg[^>]*viewBox="0 0 512 420"/);
+  assert.match(centerHeroSvg,/<title id="title">Selçuklu merkez sarayı<\/title>/);
+  assert.match(centerHeroSvg,/id="tilework"/);
 
   const expectedPositions=[["1",53.68,51.25],["2",42.23,38.35],["3",67.92,59.54],["4",24.62,53.54],["5",72.69,44.7],["6",28.04,43.46],["7",60.15,38.31],["8",45.03,58.37],["9",78.9,52.57]];
   // Check the actual CSS marker dimensions at 320px and 375px phone widths.
   const mobileLayouts=[
-    {width:320,height:480,centerWidth:38,centerHeight:32,markerWidth:28,markerHeight:24},
-    {width:375,height:562.5,centerWidth:48,centerHeight:40,markerWidth:34,markerHeight:30}
+    {width:320,height:480,centerWidth:50,centerHeight:44,markerWidth:28,markerHeight:24},
+    {width:375,height:562.5,centerWidth:54,centerHeight:48,markerWidth:34,markerHeight:30}
   ];
   for(const layout of mobileLayouts){
     const mobileMarkers=expectedPositions.map(([slot,x,y])=>({
@@ -149,9 +155,12 @@ test("V2 serves the Göktürk village image with nine compact building numbers",
   assert.ok(css.includes(".city-frame.is-zoomed{touch-action:none}"));
   assert.ok(css.includes(".village-camera-controls{position:absolute;z-index:5;"));
   assert.ok(css.includes(".building-numbers{position:absolute;inset:0;pointer-events:none}"));
+  assert.ok(css.includes(".building-number.is-center{width:clamp(54px,14vw,82px);height:clamp(48px,12vw,72px);background:transparent}"));
+  assert.ok(css.includes(".building-number.is-center .building-marker-art{filter:drop-shadow(0 3px 5px #071008d9) drop-shadow(0 0 7px #d5ad5a66)}"));
+  assert.ok(css.includes(".building-number.is-center .building-label{top:auto;bottom:calc(100% + 1px)}"));
   assert.match(css,/\.wall-number\{[^}]*left:50%[^}]*top:7%/);
   assert.ok(css.includes(".building-number{position:absolute;transform:translate(-50%,-50%);"));
-  assert.ok(css.includes("@media(max-width:360px){\n  .building-number{width:28px;height:24px}\n  .building-number.is-center{width:38px;height:32px}"));
+  assert.ok(css.includes("@media(max-width:360px){\n  .building-number{width:28px;height:24px}\n  .building-number.is-center{width:50px;height:44px}"));
   assert.ok(css.includes(".building-index{top:-2px;right:-2px;width:14px;height:14px;font-size:9px}"));
 
   assert.ok(!css.includes(".wall-position-tools{"));
